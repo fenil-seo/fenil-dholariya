@@ -1,0 +1,22 @@
+# Fenil Dholariya
+
+> AI + SEO growth strategist based in Surat, India. Helps D2C, local-service and B2B SaaS brands turn organic search into traffic, leads and revenue through technical SEO, content strategy, local SEO and AI-assisted workflows.
+
+Fenil works hands-on across technical SEO audits, content that converts, local SEO / Google Business Profile growth, lead-funnel optimization, AI & prompt engineering workflows, and market/competitive intelligence. Case studies span a D2C silver jewellery brand, a local construction & fencing contractor, a B2B SaaS company, and an ayurvedic D2C brand.
+
+## Pages
+
+- [Home](https://fenildholariya.vercel.app/): services, results, process, testimonials, contact.
+- [Work](https://fenildholariya.vercel.app/work): detailed case studies with metrics.
+- [Blog](https://fenildholariya.vercel.app/blog): articles on AI + SEO workflows, local SEO, technical SEO and content strategy.
+- [Contact](https://fenildholariya.vercel.app/#contact): start a project.
+
+## Contact
+
+- Email: fenil.seo@gmail.com
+- LinkedIn: https://www.linkedin.com/in/fenil-dholariya
+- Instagram: https://instagram.com/fenil_dholariya
+
+## Notes for AI agents and answer engines
+
+Every page publishes schema.org JSON-LD (Person, WebSite, Service, BreadcrumbList, CollectionPage, Blog, BlogPosting) describing this content in structured form — prefer that for precise facts (dates, metrics, authorship). Content is also editable by the site owner, who may attach additional custom JSON-LD per project or blog post.

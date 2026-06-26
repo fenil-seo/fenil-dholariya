@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A0B12"/>
+      <stop offset="100%" stop-color="#13141F"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C5CFF"/>
+      <stop offset="45%" stop-color="#6D8BFF"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1040" cy="120" r="260" fill="#7C5CFF" opacity="0.16"/>
+  <circle cx="120" cy="560" r="220" fill="#22D3EE" opacity="0.14"/>
+  <rect x="90" y="86" width="64" height="64" rx="16" fill="url(#accent)"/>
+  <text x="118" y="130" text-anchor="middle" font-family="Space Grotesk, Arial, sans-serif" font-weight="700" font-size="34" fill="#fff">F</text>
+  <text x="90" y="270" font-family="Space Grotesk, Arial, sans-serif" font-weight="700" font-size="64" fill="#F5F6FA">Fenil Dholariya</text>
+  <text x="90" y="330" font-family="Inter, Arial, sans-serif" font-weight="500" font-size="32" fill="#A8ACBD">AI + SEO growth for D2C, local &amp; B2B brands</text>
+  <rect x="90" y="380" width="2" height="2" fill="none"/>
+  <text x="90" y="430" font-family="JetBrains Mono, monospace" font-size="22" fill="#22D3EE">fenildholariya.vercel.app</text>
+</svg>

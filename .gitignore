@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Local env / secrets
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local AI agent tooling state (not part of the app)
+.agents/
+.neon
+skills-lock.json

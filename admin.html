@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0A0B12" />
+  <meta name="robots" content="noindex, nofollow" />
+
+  <title>Admin — Fenil Dholariya</title>
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body data-page="admin">
+
+  <div class="admin-login" id="loginView">
+    <form class="admin-login__card glass" id="loginForm" autocomplete="off">
+      <div class="brand"><span class="brand__mark"><span>F</span></span> Admin</div>
+      <h1>Sign in</h1>
+      <p class="text-muted">Manage content for the Fenil Dholariya portfolio.</p>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input class="input" id="loginPassword" type="password" required autocomplete="current-password" />
+      </div>
+      <button class="btn btn--primary btn--block" type="submit" id="loginSubmit">Sign in</button>
+      <p class="form-status" id="loginStatus"></p>
+    </form>
+  </div>
+
+  <div class="admin" id="dashboardView" style="display:none">
+    <header class="admin__topbar">
+      <div class="brand"><span class="brand__mark"><span>F</span></span> Admin</div>
+      <div class="admin__topbar-actions">
+        <a href="/" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">View site ↗</a>
+        <button class="btn btn--ghost btn--sm" id="logoutBtn">Log out</button>
+      </div>
+    </header>
+
+    <div class="admin__banner" id="dbBanner" style="display:none">
+      <span id="dbBannerText">Database not connected yet — the public site is running on static seed content.</span>
+      <button class="btn btn--primary btn--sm" id="setupBtn">Initialize database</button>
+    </div>
+
+    <nav class="admin__tabs" id="adminTabs">
+      <button class="admin__tab is-active" data-tab="profile">Profile</button>
+      <button class="admin__tab" data-tab="stats">Stats</button>
+      <button class="admin__tab" data-tab="services">Services</button>
+      <button class="admin__tab" data-tab="process">Process</button>
+      <button class="admin__tab" data-tab="projects">Projects</button>
+      <button class="admin__tab" data-tab="posts">Blog</button>
+      <button class="admin__tab" data-tab="testimonials">Testimonials</button>
+      <button class="admin__tab" data-tab="skills">Skills</button>
+      <button class="admin__tab" data-tab="timeline">Timeline</button>
+      <button class="admin__tab" data-tab="leads">Leads</button>
+    </nav>
+
+    <main class="admin__panels">
+      <section class="admin__panel is-active" id="panel-profile"></section>
+      <section class="admin__panel" id="panel-stats"></section>
+      <section class="admin__panel" id="panel-services"></section>
+      <section class="admin__panel" id="panel-process"></section>
+      <section class="admin__panel" id="panel-projects"></section>
+      <section class="admin__panel" id="panel-posts"></section>
+      <section class="admin__panel" id="panel-testimonials"></section>
+      <section class="admin__panel" id="panel-skills"></section>
+      <section class="admin__panel" id="panel-timeline"></section>
+      <section class="admin__panel" id="panel-leads"></section>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
