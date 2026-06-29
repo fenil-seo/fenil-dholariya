@@ -160,7 +160,7 @@ window.Schema = (() => {
       url,
       headline: post.title,
       description: post.excerpt,
-      image: `${SITE_URL}/assets/og.svg`,
+      image: `${SITE_URL}/assets/og.png`,
       datePublished: post.date,
       dateModified: post.date,
       inLanguage: "en",

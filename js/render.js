@@ -42,7 +42,7 @@ window.Render = (() => {
   function renderServices(services, el) {
     if (!el || !services?.length) return;
     el.innerHTML = services.map((s, i) => `
-      <div class="service reveal is-in spotlight" data-cursor>
+      <div class="service reveal is-in" data-cursor>
         <div class="service__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[s.icon] || ICONS.audit}</svg></div>
         <div>
           <div class="service__num">${String(i + 1).padStart(2, "0")}</div>

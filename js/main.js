@@ -185,23 +185,10 @@
     els.forEach((e) => { e.dataset.boundCount = "1"; io.observe(e); });
   }
 
-  /* ---------- Card spotlight (rebindable) ---------- */
-  function bindSpotlights(root) {
-    if (!FINE_POINTER) return;
-    root.querySelectorAll(".spotlight:not([data-spot-bound])").forEach((card) => {
-      card.dataset.spotBound = "1";
-      card.addEventListener("mousemove", (e) => {
-        const r = card.getBoundingClientRect();
-        card.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
-        card.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
-      });
-    });
-  }
-
   /* ---------- Generative visuals (canvas, no stock imagery needed) ---------- */
   const Viz = (() => {
-    const VIOLET = [124, 92, 255];
-    const CYAN = [34, 211, 238];
+    const BLUE = [13, 96, 254];
+    const STEEL = [184, 191, 209];
     const registry = [];
     let started = false;
 
@@ -326,7 +313,7 @@
         const canvas = document.createElement("canvas");
         canvas.setAttribute("aria-hidden", "true");
         container.appendChild(canvas);
-        const accent = container.dataset.accent === "cyan" ? CYAN : VIOLET;
+        const accent = container.dataset.accent === "cyan" ? STEEL : BLUE;
         const inst = { container, canvas, ctx: canvas.getContext("2d"), type: container.dataset.viz || "network", accent, t: Math.floor(Math.random() * 200), visible: true };
         resize(inst);
         draw(inst, inst.t);
@@ -416,7 +403,6 @@
   function bindAll(root) {
     bindReveals(root);
     bindCounters(root);
-    bindSpotlights(root);
     Viz.init(root);
   }
   bindAll(document);

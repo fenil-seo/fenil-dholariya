@@ -99,6 +99,5 @@ Just paste JSON into the "Custom schema markup (JSON-LD)" field on that resource
 
 ## Notes
 
-- `assets/fenil.jpg` isn't included — add a real headshot there (or it falls back to initials automatically).
-- `assets/og.svg` and `assets/favicon.svg` are placeholder brand marks; swap in real artwork any time.
+- `assets/logo.png`, `assets/fenil.jpg`, `assets/favicon.png` and `assets/og.png` are the real brand assets — replace them directly any time the logo or headshot changes.
 - The admin password is read server-side only (`process.env.ADMIN_PASSWORD`) — it's never present in any file shipped to the browser.
