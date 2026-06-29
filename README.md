@@ -14,8 +14,11 @@ The site works fully out of the box with zero configuration - it serves built-in
 ## Project structure
 
 ```
-index.html, work.html, blog.html, post.html   public pages
+index.html, services.html, work.html,         public pages (multi-page site, not a single-page scroller)
+gallery.html, about.html, blog.html,
+post.html, contact.html
 admin.html                                    admin dashboard (password-protected)
+404.html                                       custom not-found page
 css/style.css                                 public design system
 css/admin.css                                 admin-only styles
 js/data.js                                    static seed content used by the public pages on first paint
@@ -95,7 +98,7 @@ Just paste JSON into the "Custom schema markup (JSON-LD)" field on that resource
 1. Push this folder to a GitHub repo and import it in Vercel ("Add New Project").
 2. In the project's **Settings → Environment Variables**, add `DATABASE_URL` (if using Neon), `ADMIN_PASSWORD`, and `AUTH_SECRET`. Without `DATABASE_URL` the site still deploys and works, just on seed content.
 3. Deploy. Then visit `https://your-domain/admin`, log in, and click **Initialize database** once (only needed if you added `DATABASE_URL`).
-4. Update the canonical/OG URLs in `index.html`, `work.html`, `blog.html`, `post.html`, `robots.txt`, and `SITE_URL` in `api/content.js` if you're using a custom domain instead of the default `*.vercel.app` one.
+4. Update the canonical/OG URLs in every public HTML page, `robots.txt`, `llms.txt`, and `SITE_URL` in `api/content.js` and `js/schema.js` if you're using a custom domain instead of the default `*.vercel.app` one.
 
 ## Notes
 

@@ -411,6 +411,33 @@
     if (y) y.textContent = new Date().getFullYear();
   })();
 
+  /* ---------- Gallery lightbox ---------- */
+  (function lightbox() {
+    const lb = document.getElementById("lightbox");
+    if (!lb) return;
+    const img = document.getElementById("lightboxImg");
+    const open = (src, alt) => {
+      img.src = src;
+      img.alt = alt || "";
+      lb.classList.add("is-open");
+      document.documentElement.style.overflow = "hidden";
+    };
+    const close = () => {
+      lb.classList.remove("is-open");
+      document.documentElement.style.overflow = "";
+      img.src = "";
+    };
+    document.querySelectorAll(".gallery-item img").forEach((el) => {
+      el.addEventListener("click", () => open(el.currentSrc || el.src, el.alt));
+    });
+    lb.addEventListener("click", (e) => {
+      if (e.target === lb || e.target.closest(".lightbox__close")) close();
+    });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && lb.classList.contains("is-open")) close();
+    });
+  })();
+
   /* ---------- Bind everything, and rebind after hydration ---------- */
   function bindAll(root) {
     bindReveals(root);

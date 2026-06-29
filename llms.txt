@@ -6,10 +6,13 @@ Fenil works hands-on across technical SEO audits, content that converts, local S
 
 ## Pages
 
-- [Home](https://fenil-dholariya.vercel.app/): services, results, process, testimonials, contact.
+- [Home](https://fenil-dholariya.vercel.app/): overview, stats, featured work, testimonials.
+- [Services](https://fenil-dholariya.vercel.app/services): the six services offered and how the engagement process works.
 - [Work](https://fenil-dholariya.vercel.app/work): detailed case studies with metrics.
+- [Gallery](https://fenil-dholariya.vercel.app/gallery): real Search Console and Analytics screenshots from client accounts.
+- [About](https://fenil-dholariya.vercel.app/about): bio, skills and career timeline.
 - [Blog](https://fenil-dholariya.vercel.app/blog): articles on AI + SEO workflows, local SEO, technical SEO and content strategy.
-- [Contact](https://fenil-dholariya.vercel.app/#contact): start a project.
+- [Contact](https://fenil-dholariya.vercel.app/contact): start a project.
 
 ## Contact
 
