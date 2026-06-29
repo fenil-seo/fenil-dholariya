@@ -1,5 +1,5 @@
 /* =================================================================
-   ADMIN DASHBOARD — login, tabs, and generic CRUD forms for every
+   ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
    content resource. Talks only to /api/admin (cookie-authenticated);
    never touches js/data.js seed content.
    ================================================================= */
@@ -173,7 +173,7 @@
         try {
           data[f.key] = JSON.parse(raw);
         } catch (err) {
-          throw new Error(`${f.label}: invalid JSON — ${err.message}`);
+          throw new Error(`${f.label}: invalid JSON - ${err.message}`);
         }
       } else data[f.key] = el.value;
     });
@@ -205,7 +205,7 @@
         const listEl = panel.querySelector(`#list-${resource}`);
         const items = data.items || [];
         if (items.length) items.forEach((item) => listEl.appendChild(buildCard(item)));
-        else listEl.innerHTML = `<p class="admin-empty">Nothing here yet — click + Add.</p>`;
+        else listEl.innerHTML = `<p class="admin-empty">Nothing here yet - click + Add.</p>`;
 
         panel.querySelector('[data-action="add"]').addEventListener("click", () => {
           if (listEl.querySelector(".admin-empty")) listEl.innerHTML = "";
@@ -252,7 +252,7 @@
               const { ok, data } = await window.API.admin(resource, "delete", { id: item.id });
               if (ok) {
                 card.remove();
-                if (!listEl.children.length) listEl.innerHTML = `<p class="admin-empty">Nothing here yet — click + Add.</p>`;
+                if (!listEl.children.length) listEl.innerHTML = `<p class="admin-empty">Nothing here yet - click + Add.</p>`;
               } else alert(data?.error || "Delete failed.");
             });
           }
@@ -262,7 +262,7 @@
             cancelBtn.addEventListener("click", (e) => {
               e.stopPropagation();
               card.remove();
-              if (!listEl.children.length) listEl.innerHTML = `<p class="admin-empty">Nothing here yet — click + Add.</p>`;
+              if (!listEl.children.length) listEl.innerHTML = `<p class="admin-empty">Nothing here yet - click + Add.</p>`;
             });
           }
 
@@ -317,7 +317,7 @@
       label: "Custom schema markup (JSON-LD)",
       type: "json",
       wide: true,
-      hint: "Optional. Paste any schema.org JSON-LD object (or array of objects) — it's added to the home page alongside the built-in Person/WebSite/Service markup. Leave blank to skip.",
+      hint: "Optional. Paste any schema.org JSON-LD object (or array of objects) - it's added to the home page alongside the built-in Person/WebSite/Service markup. Leave blank to skip.",
     },
   ];
 
@@ -364,7 +364,7 @@
     },
   };
 
-  /* ---------- Leads (read, triage, delete — created by the public contact form) ---------- */
+  /* ---------- Leads (read, triage, delete - created by the public contact form) ---------- */
   const leadsResource = {
     async render(panel) {
       const { ok, data } = await window.API.admin("leads", "list");
@@ -449,13 +449,13 @@
         { key: "trend", label: "Trend note", placeholder: "across client accounts" },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
       ],
-      summary: (i) => ({ title: `${i.value}${i.suffix || ""} — ${i.label}`, sub: i.trend }),
+      summary: (i) => ({ title: `${i.value}${i.suffix || ""} - ${i.label}`, sub: i.trend }),
     }),
 
     services: listResource({
       resource: "services",
       title: "Services",
-      hint: "What you offer — shown on the home page.",
+      hint: "What you offer - shown on the home page.",
       fields: [
         { key: "icon", label: "Icon", type: "select", options: ["audit", "content", "local", "funnel", "ai", "research"] },
         { key: "title", label: "Title" },
@@ -497,7 +497,7 @@
           label: "Custom schema markup (JSON-LD)",
           type: "json",
           wide: true,
-          hint: "Optional. Paste any schema.org JSON-LD object (or array) — e.g. a Review or Product node for this case study. Leave blank to skip.",
+          hint: "Optional. Paste any schema.org JSON-LD object (or array) - e.g. a Review or Product node for this case study. Leave blank to skip.",
         },
       ],
       summary: (i) => ({ title: i.title, sub: `${i.category || ""} · /work/${i.slug}` }),
@@ -524,7 +524,7 @@
           type: "json",
           wide: true,
           placeholder: '{\n  "@context": "https://schema.org",\n  "@type": "HowTo",\n  "name": "…"\n}',
-          hint: "Optional. Paste any schema.org JSON-LD object — e.g. HowTo, FAQPage or Review — for this specific article. Added alongside the built-in BlogPosting markup. Leave blank to skip.",
+          hint: "Optional. Paste any schema.org JSON-LD object - e.g. HowTo, FAQPage or Review - for this specific article. Added alongside the built-in BlogPosting markup. Leave blank to skip.",
         },
       ],
       summary: (i) => ({ title: i.title, sub: `${i.category || ""} · /post/${i.slug}${i.published === false ? " · Draft" : ""}` }),
@@ -562,7 +562,7 @@
       fields: [
         { key: "role", label: "Role" },
         { key: "org", label: "Organization" },
-        { key: "period", label: "Period", placeholder: "Sep 2025 — Present" },
+        { key: "period", label: "Period", placeholder: "Sep 2025 - Present" },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
       ],
       summary: (i) => ({ title: i.role, sub: `${i.org || ""} · ${i.period || ""}` }),

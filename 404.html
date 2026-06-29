@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05060a" />
+  <meta name="robots" content="noindex" />
+
+  <title>Page not found - Fenil Dholariya</title>
+  <meta name="description" content="This page doesn't exist or has moved." />
+
+  <link rel="icon" href="/assets/favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="/" class="brand" data-cursor>
+        <span class="brand__mark"><img src="/assets/logo.png" alt="" width="34" height="34" /></span>
+        Fenil Dholariya
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="container" style="min-height: 70vh; display: grid; place-items: center; text-align: center; padding-block: clamp(3rem, 8vw, 6rem);">
+      <div>
+        <span class="eyebrow">404</span>
+        <h1 style="font-family: var(--font-display); font-size: var(--fs-h1); margin: 1rem 0;">This page doesn't exist.</h1>
+        <p class="lead" style="margin: 0 auto 2rem; max-width: 460px;">The link may be broken, or the page has moved. Let's get you back on track.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="/" class="btn btn--primary">Back to home</a>
+          <a href="/blog" class="btn btn--ghost">Read the blog</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__bottom" style="border-top: none; padding-top: 0;">
+        <span>© <span id="year">2026</span> Fenil Dholariya · Surat, India</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

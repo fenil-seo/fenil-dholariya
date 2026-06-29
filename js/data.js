@@ -1,5 +1,5 @@
 /* =================================================================
-   SITE SEED DATA  (instant front-end fallback — no network needed)
+   SITE SEED DATA  (instant front-end fallback - no network needed)
    The same content lives in /lib/seed-data.js to seed Neon Postgres.
    Once the DB is connected, the admin panel becomes the source of truth
    and these values are used only when the API is unreachable.
@@ -10,7 +10,7 @@ window.SITE_DATA = {
     role: "AI + SEO Growth Strategist",
     tagline: "Practical AI + SEO to grow traffic, leads & revenue.",
     intro:
-      "I help D2C brands, local businesses and B2B teams turn organic search into a predictable revenue channel — blending technical SEO, content strategy and AI workflows.",
+      "I help D2C brands, local businesses and B2B teams turn organic search into a predictable revenue channel - blending technical SEO, content strategy and AI workflows.",
     location: "Surat, Gujarat, India",
     email: "fenil.seo@gmail.com",
     phone: "+91 63546 46935",
@@ -41,7 +41,7 @@ window.SITE_DATA = {
     {
       icon: "content",
       title: "Content That Converts",
-      desc: "Search-led content and copy engineered for humans and algorithms — built around buyer intent, not keyword stuffing.",
+      desc: "Search-led content and copy engineered for humans and algorithms - built around buyer intent, not keyword stuffing.",
     },
     {
       icon: "local",
@@ -51,7 +51,7 @@ window.SITE_DATA = {
     {
       icon: "funnel",
       title: "Lead Gen & Funnel Optimization",
-      desc: "From first click to closed deal — landing pages, tracking and funnels tuned to lift qualified leads, not just traffic.",
+      desc: "From first click to closed deal - landing pages, tracking and funnels tuned to lift qualified leads, not just traffic.",
     },
     {
       icon: "ai",
@@ -69,7 +69,7 @@ window.SITE_DATA = {
     {
       step: "01",
       title: "Discovery & Prioritization",
-      desc: "I map demand, audit your site and rank opportunities by impact-vs-effort — so we start where the revenue is.",
+      desc: "I map demand, audit your site and rank opportunities by impact-vs-effort - so we start where the revenue is.",
     },
     {
       step: "02",
@@ -86,7 +86,7 @@ window.SITE_DATA = {
   projects: [
     {
       slug: "d2c-silver-jewellery",
-      title: "D2C Silver Jewellery — Organic Growth Engine",
+      title: "D2C Silver Jewellery - Organic Growth Engine",
       category: "D2C / E-commerce",
       client: "Silver jewellery brand",
       desc: "Rebuilt product-page architecture and search-led content to turn organic search into a primary sales channel for a direct-to-consumer silver brand.",
@@ -101,7 +101,7 @@ window.SITE_DATA = {
     },
     {
       slug: "local-construction-gmb",
-      title: "Construction & Fencing — Local Lead Machine",
+      title: "Construction & Fencing - Local Lead Machine",
       category: "Local SEO",
       client: "Local contractor",
       desc: "Optimized the Google Business Profile, built a review engine and local landing pages to scale qualified, ready-to-buy leads.",
@@ -116,7 +116,7 @@ window.SITE_DATA = {
     },
     {
       slug: "b2b-saas-pipeline",
-      title: "B2B SaaS — Content-Led Pipeline",
+      title: "B2B SaaS - Content-Led Pipeline",
       category: "SaaS / B2B",
       client: "SaaS company",
       desc: "Built an intent-mapped content engine and AI-driven nurture sequences that grew trials and tripled marketing-qualified leads.",
@@ -131,7 +131,7 @@ window.SITE_DATA = {
     },
     {
       slug: "ayurvedic-technical-seo",
-      title: "Ayurvedic D2C — Technical SEO Turnaround",
+      title: "Ayurvedic D2C - Technical SEO Turnaround",
       category: "Technical SEO",
       client: "Ayurvedic brand",
       desc: "Resolved crawl, indexation and Core Web Vitals issues that were capping growth, unlocking a steady organic traffic climb.",
@@ -158,11 +158,11 @@ window.SITE_DATA = {
       excerpt:
         "AI won't rank your site on its own. Here's the exact human-in-the-loop workflow I use to scale research and content without losing quality.",
       body:
-        "<p>Most teams bolt AI onto a broken process and wonder why rankings don't move. AI is an accelerant — it multiplies whatever system it's dropped into. If the system is weak, you just produce mediocre content faster.</p>" +
+        "<p>Most teams bolt AI onto a broken process and wonder why rankings don't move. AI is an accelerant - it multiplies whatever system it's dropped into. If the system is weak, you just produce mediocre content faster.</p>" +
         "<h2>Start with demand, not prompts</h2>" +
-        "<p>Before a single prompt, I map real search demand and intent. AI is brilliant at clustering keywords, summarizing SERP intent and spotting content gaps — but only once you've fed it the right raw data from your own analytics and a proper crawl.</p>" +
+        "<p>Before a single prompt, I map real search demand and intent. AI is brilliant at clustering keywords, summarizing SERP intent and spotting content gaps - but only once you've fed it the right raw data from your own analytics and a proper crawl.</p>" +
         "<h2>Briefs are the leverage point</h2>" +
-        "<p>The highest-ROI use of AI in SEO isn't writing — it's briefing. A tight, intent-rich brief that captures entities, questions and angle gives both writers and models a target. Garbage brief, garbage draft.</p>" +
+        "<p>The highest-ROI use of AI in SEO isn't writing - it's briefing. A tight, intent-rich brief that captures entities, questions and angle gives both writers and models a target. Garbage brief, garbage draft.</p>" +
         "<h2>Keep a human in the loop</h2>" +
         "<p>Every AI draft passes through editing for accuracy, brand voice and originality. Search engines reward genuinely helpful content; thin AI spam gets filtered. The workflow scales <em>volume</em>, not corner-cutting.</p>" +
         "<h2>Measure, then automate the winners</h2>" +
@@ -185,7 +185,7 @@ window.SITE_DATA = {
         "<h2>Reviews are a ranking and conversion lever</h2>" +
         "<p>Volume, velocity, recency and keywords inside reviews all matter. Build a simple system that asks every happy customer at the right moment.</p>" +
         "<h2>Local landing pages with real signal</h2>" +
-        "<p>City and service pages still work — when they carry unique, genuinely useful content and consistent NAP data, not spun duplicates.</p>",
+        "<p>City and service pages still work - when they carry unique, genuinely useful content and consistent NAP data, not spun duplicates.</p>",
     },
     {
       slug: "technical-seo-audit-checklist",
@@ -202,11 +202,11 @@ window.SITE_DATA = {
         "<h2>Crawl & indexation</h2>" +
         "<p>I verify what's indexed vs. what should be, hunt down crawl traps, fix broken internal links and clean up the XML sitemap and robots rules.</p>" +
         "<h2>Core Web Vitals & rendering</h2>" +
-        "<p>LCP, CLS and INP get measured on real pages. Slow, janky pages lose rankings and conversions — exactly the problem most sites underestimate.</p>" +
+        "<p>LCP, CLS and INP get measured on real pages. Slow, janky pages lose rankings and conversions - exactly the problem most sites underestimate.</p>" +
         "<h2>Architecture & internal links</h2>" +
         "<p>Flat, logical structures with intentional internal linking pass authority where it counts and help both users and crawlers understand priority.</p>" +
         "<h2>Structured data & duplication</h2>" +
-        "<p>Schema, canonicalization and consolidation of thin or duplicate pages round out the pass — turning a leaky site into a clean growth platform.</p>",
+        "<p>Schema, canonicalization and consolidation of thin or duplicate pages round out the pass - turning a leaky site into a clean growth platform.</p>",
       schema_markup: {
         "@context": "https://schema.org",
         "@type": "HowTo",
@@ -233,7 +233,7 @@ window.SITE_DATA = {
       body:
         "<p>Traffic that doesn't convert is a vanity metric. Great SEO content earns the click <em>and</em> moves the reader toward a decision.</p>" +
         "<h2>Lead with intent</h2>" +
-        "<p>Match the format to what the searcher actually wants — a quick answer, a comparison, a how-to. Give it fast, then go deep.</p>" +
+        "<p>Match the format to what the searcher actually wants - a quick answer, a comparison, a how-to. Give it fast, then go deep.</p>" +
         "<h2>Write the way people decide</h2>" +
         "<p>Address objections, show proof, and make the next step obvious. Persuasion and clarity beat keyword density every time.</p>" +
         "<h2>Build topical authority</h2>" +
@@ -258,7 +258,7 @@ window.SITE_DATA = {
     },
     {
       quote:
-        "The AI workflows he set up let our small team publish like a big one — without the content reading like a robot wrote it.",
+        "The AI workflows he set up let our small team publish like a big one - without the content reading like a robot wrote it.",
       name: "Head of Marketing",
       role: "B2B SaaS",
       initials: "SA",
@@ -272,9 +272,9 @@ window.SITE_DATA = {
   ],
 
   timeline: [
-    { role: "SEO Head", org: "Global Surat", period: "Sep 2025 — Present" },
-    { role: "SEO Head", org: "Ark Intelligence", period: "Nov 2024 — Aug 2025" },
-    { role: "SEO Executive", org: "Dexoc Solutions", period: "Jan 2024 — Oct 2024" },
-    { role: "Freelance Content Writer", org: "Independent", period: "2022 — 2023" },
+    { role: "SEO Head", org: "Global Surat", period: "Sep 2025 - Present" },
+    { role: "SEO Head", org: "Ark Intelligence", period: "Nov 2024 - Aug 2025" },
+    { role: "SEO Executive", org: "Dexoc Solutions", period: "Jan 2024 - Oct 2024" },
+    { role: "Freelance Content Writer", org: "Independent", period: "2022 - 2023" },
   ],
 };

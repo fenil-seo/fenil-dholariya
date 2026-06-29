@@ -1,5 +1,5 @@
 /* =================================================================
-   MAIN — page interactions. Vanilla JS, no dependencies.
+   MAIN - page interactions. Vanilla JS, no dependencies.
    Everything here is rebindable (bind* functions skip already-bound
    nodes) so it works both on first paint and after the hydration
    layer (render.js) swaps in live content from the database.
@@ -79,6 +79,18 @@
       if (!ticking) { requestAnimationFrame(update); ticking = true; }
     }, { passive: true });
     update();
+  })();
+
+  /* ---------- Back to top ---------- */
+  (function backToTop() {
+    const btn = document.getElementById("backToTop");
+    if (!btn) return;
+    const onScroll = () => btn.classList.toggle("is-visible", window.scrollY > 600);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    btn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
+    });
   })();
 
   /* ---------- Custom cursor ---------- */
@@ -354,11 +366,11 @@
       btn.disabled = false;
       btn.innerHTML = original;
       if (ok) {
-        status.textContent = "Thanks — I'll reply within one business day.";
+        status.textContent = "Thanks - I'll reply within one business day.";
         status.className = "form-status is-ok";
         form.reset();
       } else {
-        status.textContent = "Couldn't send right now — please email fenil.seo@gmail.com directly.";
+        status.textContent = "Couldn't send right now - please email fenil.seo@gmail.com directly.";
         status.className = "form-status is-err";
       }
     });

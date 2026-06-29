@@ -1,5 +1,5 @@
 /* =================================================================
-   API CLIENT — thin fetch wrapper around the Neon-backed endpoints.
+   API CLIENT - thin fetch wrapper around the Neon-backed endpoints.
    Every call fails soft (returns null) so the static seed content in
    data.js always remains a working fallback if the DB isn't connected.
    ================================================================= */

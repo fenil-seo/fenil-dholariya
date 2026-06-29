@@ -1,5 +1,5 @@
 /* =================================================================
-   FENIL DHOLARIYA — Design System
+   FENIL DHOLARIYA - Design System
    Dark + electric blue. Flat surfaces, hairline borders, sharp
    corners. One accent color (sampled from the real brand mark),
    no gradients, no glow, no blur. Fluid tokens so mobile & desktop
@@ -21,7 +21,7 @@
   --text-soft:     #b9bcc8;
   --text-muted:    #7a7e8c;
 
-  /* Brand accent — the exact blue sampled from the real logo mark.
+  /* Brand accent - the exact blue sampled from the real logo mark.
      Single accent color by design; --blue-bright is a lighter tint
      used for small text/links so contrast on var(--bg) stays AA. */
   --blue:          #0d60fe;
@@ -54,7 +54,7 @@
   --container: 1280px;
   --gutter: clamp(1.25rem, 0.5rem + 3vw, 4rem);
 
-  /* Sharp radius scale — small and consistent, no pill shapes */
+  /* Sharp radius scale - small and consistent, no pill shapes */
   --radius-sm: 6px;
   --radius:    10px;
   --radius-lg: 14px;
@@ -159,6 +159,8 @@ p { color: var(--text-soft); }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 860px) { .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
 
 .divider { height: 1px; background: var(--line); border: 0; }
 
@@ -272,7 +274,7 @@ p { color: var(--text-soft); }
 }
 .brand__mark img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Desktop nav menu — links + CTA sit side by side (fixed: this rule
+/* Desktop nav menu - links + CTA sit side by side (fixed: this rule
    was previously missing, which dropped the CTA onto its own line) */
 .nav__menu {
   display: flex;
@@ -359,6 +361,8 @@ p { color: var(--text-soft); }
 .stat__label { margin-top: 0.7rem; color: var(--text-muted); font-size: 0.92rem; }
 .stat__trend { display: inline-flex; align-items: center; gap: 0.3em; color: var(--green); font-size: 0.8rem; font-family: var(--font-mono); margin-top: 0.4rem; }
 
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
 /* ---------- 10. Services ---------- */
 .service {
   display: grid;
@@ -396,6 +400,9 @@ p { color: var(--text-soft); }
 .process__index { font-family: var(--font-mono); color: var(--blue-bright); font-size: 0.85rem; letter-spacing: 0.2em; }
 .process__step h3 { font-size: var(--fs-h4); margin: 1rem 0 0.7rem; }
 .process__bar { height: 3px; border-radius: var(--radius-sm); background: var(--blue); margin-top: 1.4rem; transform: scaleX(.25); transform-origin: left; opacity: .5; }
+
+@media (max-width: 860px) { .process { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .process { grid-template-columns: 1fr; } }
 
 /* ---------- 12. Work / Projects ---------- */
 .work-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(1.2rem, 3vw, 2rem); }
@@ -590,6 +597,17 @@ p { color: var(--text-soft); }
 /* ---------- 21. Scroll progress ---------- */
 .scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: var(--blue); z-index: 200; transition: width .1s linear; }
 
+.back-to-top {
+  position: fixed; right: clamp(1.2rem, 3vw, 2.2rem); bottom: clamp(1.2rem, 3vw, 2.2rem);
+  width: 46px; height: 46px; display: grid; place-items: center;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  color: var(--text); z-index: 90; opacity: 0; pointer-events: none; transform: translateY(8px);
+  transition: opacity .25s var(--ease), transform .25s var(--ease), border-color .2s var(--ease), color .2s var(--ease);
+}
+.back-to-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.back-to-top:hover { border-color: var(--blue); color: var(--blue-bright); }
+.back-to-top svg { width: 20px; height: 20px; }
+
 /* ---------- 22. Utilities ---------- */
 .center { text-align: center; }
 .mx-auto { margin-inline: auto; }
@@ -603,6 +621,7 @@ p { color: var(--text-soft); }
   font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.05em; color: var(--text-soft);
 }
 .tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.tag.is-unavailable .dot { background: var(--text-muted); }
 
 /* ---------- 22b. Sub-page heros, articles, filters ---------- */
 .page-hero { padding-top: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5rem)); padding-bottom: clamp(2rem, 5vw, 3.5rem); }

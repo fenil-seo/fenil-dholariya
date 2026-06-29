@@ -1,5 +1,5 @@
 /* =================================================================
-   STRUCTURED DATA — schema.org JSON-LD builders + injectors.
+   STRUCTURED DATA - schema.org JSON-LD builders + injectors.
    Builds Person/WebSite/Service/BreadcrumbList/CollectionPage/
    CreativeWork/Blog/BlogPosting nodes from site content and writes
    them into <script type="application/ld+json"> tags. Reuses the
@@ -11,7 +11,7 @@
 window.Schema = (() => {
   "use strict";
 
-  const SITE_URL = "https://fenildholariya.vercel.app";
+  const SITE_URL = "https://fenil-dholariya.vercel.app";
 
   function prune(obj) {
     Object.keys(obj).forEach((k) => obj[k] === undefined && delete obj[k]);
@@ -137,7 +137,7 @@ window.Schema = (() => {
       "@context": "https://schema.org",
       "@type": "Blog",
       "@id": `${SITE_URL}/blog/#blog`,
-      name: "Fenil Dholariya — Blog",
+      name: "Fenil Dholariya - Blog",
       url: `${SITE_URL}/blog`,
       description: "Practical writing on AI workflows, technical SEO, local SEO and content strategy.",
       author: { "@id": `${SITE_URL}/#person` },
@@ -204,7 +204,7 @@ window.Schema = (() => {
       "ldJsonCollection",
       collectionPageNode(
         {
-          name: "Case Studies — Fenil Dholariya",
+          name: "Case Studies - Fenil Dholariya",
           url: `${SITE_URL}/work`,
           description: "Real growth case studies: D2C jewellery, local services, B2B SaaS and ayurvedic brands.",
         },

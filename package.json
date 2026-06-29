@@ -2,7 +2,7 @@
   "name": "fenil-dholariya-portfolio",
   "version": "1.0.0",
   "private": true,
-  "description": "Premium AI + SEO growth portfolio for Fenil Dholariya — static front-end with Neon Postgres-powered admin & blog, deployed on Vercel.",
+  "description": "Premium AI + SEO growth portfolio for Fenil Dholariya - static front-end with Neon Postgres-powered admin & blog, deployed on Vercel.",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",

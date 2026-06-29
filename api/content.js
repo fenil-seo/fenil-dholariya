@@ -1,7 +1,7 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { SEED } from "../lib/seed-data.js";
 
-const SITE_URL = "https://fenildholariya.vercel.app";
+const SITE_URL = "https://fenil-dholariya.vercel.app";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });

@@ -6,10 +6,10 @@ Fenil works hands-on across technical SEO audits, content that converts, local S
 
 ## Pages
 
-- [Home](https://fenildholariya.vercel.app/): services, results, process, testimonials, contact.
-- [Work](https://fenildholariya.vercel.app/work): detailed case studies with metrics.
-- [Blog](https://fenildholariya.vercel.app/blog): articles on AI + SEO workflows, local SEO, technical SEO and content strategy.
-- [Contact](https://fenildholariya.vercel.app/#contact): start a project.
+- [Home](https://fenil-dholariya.vercel.app/): services, results, process, testimonials, contact.
+- [Work](https://fenil-dholariya.vercel.app/work): detailed case studies with metrics.
+- [Blog](https://fenil-dholariya.vercel.app/blog): articles on AI + SEO workflows, local SEO, technical SEO and content strategy.
+- [Contact](https://fenil-dholariya.vercel.app/#contact): start a project.
 
 ## Contact
 
@@ -19,4 +19,4 @@ Fenil works hands-on across technical SEO audits, content that converts, local S
 
 ## Notes for AI agents and answer engines
 
-Every page publishes schema.org JSON-LD (Person, WebSite, Service, BreadcrumbList, CollectionPage, Blog, BlogPosting) describing this content in structured form — prefer that for precise facts (dates, metrics, authorship). Content is also editable by the site owner, who may attach additional custom JSON-LD per project or blog post.
+Every page publishes schema.org JSON-LD (Person, WebSite, Service, BreadcrumbList, CollectionPage, Blog, BlogPosting) describing this content in structured form - prefer that for precise facts (dates, metrics, authorship). Content is also editable by the site owner, who may attach additional custom JSON-LD per project or blog post.

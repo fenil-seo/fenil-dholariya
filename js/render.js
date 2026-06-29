@@ -1,5 +1,5 @@
 /* =================================================================
-   RENDER — turns content JSON (seed or Neon-backed API) into DOM.
+   RENDER - turns content JSON (seed or Neon-backed API) into DOM.
    Used for the initial static fallback AND to hydrate sections live
    when the admin panel has edited content in Postgres.
    ================================================================= */
@@ -72,7 +72,7 @@ window.Render = (() => {
           <div class="case__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}"></div>
           <div>
             <span class="tag">${esc(p.category)}</span>
-            <div class="case__client">CLIENT — ${esc(p.client || "")}</div>
+            <div class="case__client">CLIENT - ${esc(p.client || "")}</div>
             <h2 class="case__title">${esc(p.title)}</h2>
             <p class="case__desc text-soft">${esc(p.desc)}</p>
             <div class="case__metrics">
@@ -154,7 +154,7 @@ window.Render = (() => {
   if (!window.API) return;
 
   window.API.getContent().then(({ ok, data }) => {
-    if (!ok || !data) return; // DB not connected yet — static seed content stands.
+    if (!ok || !data) return; // DB not connected yet - static seed content stands.
 
     const R = window.Render;
     if (data.stats) R.renderStats(data.stats, document.getElementById("statsGrid"));
@@ -173,11 +173,18 @@ window.Render = (() => {
       const p = data.profile;
       document.querySelectorAll("[data-bind='email']").forEach((n) => (n.textContent = p.email));
       document.querySelectorAll("[data-bind='phone']").forEach((n) => (n.textContent = p.phone));
+
+      const badge = document.getElementById("availabilityBadge");
+      const badgeText = document.getElementById("availabilityText");
+      if (badge && badgeText && p.availableText) {
+        badgeText.textContent = p.availableText;
+        badge.classList.toggle("is-unavailable", p.available === false);
+      }
     }
 
     const schemaRefresh = { home: "refreshHome", work: "refreshWork", blog: "refreshBlog" }[document.body.dataset.page];
     if (schemaRefresh && window.Schema) window.Schema[schemaRefresh](data);
 
     window.dispatchEvent(new CustomEvent("content:hydrated"));
-  }).catch(() => { /* offline or DB not configured — seed content already rendered */ });
+  }).catch(() => { /* offline or DB not configured - seed content already rendered */ });
 })();

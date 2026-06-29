@@ -1,5 +1,5 @@
 /* =================================================================
-   POST PAGE — resolves the slug from the URL, renders the article
+   POST PAGE - resolves the slug from the URL, renders the article
    instantly from seed data when available, then refreshes from the
    live API in case an admin has edited it.
    ================================================================= */
@@ -30,12 +30,14 @@
 
     document.getElementById("postBody").innerHTML = post.body || `<p>${R.esc(post.excerpt || "")}</p>`;
 
-    document.title = `${post.title} — Fenil Dholariya`;
+    document.title = `${post.title} - Fenil Dholariya`;
     setMeta("metaDesc", "content", post.excerpt || "");
     setMeta("ogTitle2", "content", post.title);
     setMeta("ogDesc", "content", post.excerpt || "");
+    setMeta("twitterTitle", "content", post.title);
+    setMeta("twitterDesc", "content", post.excerpt || "");
     const canonical = document.getElementById("metaCanonical");
-    if (canonical) canonical.href = `https://fenildholariya.vercel.app/post/${post.slug}`;
+    if (canonical) canonical.href = `https://fenil-dholariya.vercel.app/post/${post.slug}`;
 
     const S = window.Schema;
     if (S) {

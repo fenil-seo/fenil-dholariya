@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("admin api error", resource, action, err);
     if (err.code === "23505") {
-      return res.status(409).json({ error: "That slug is already in use — choose a different one." });
+      return res.status(409).json({ error: "That slug is already in use - choose a different one." });
     }
     return res.status(500).json({ error: "Something went wrong. " + (err.message || "") });
   }
@@ -243,7 +243,7 @@ async function handlePosts(sql, action, id, data, res) {
   return res.status(400).json({ error: "Unknown action" });
 }
 
-/* ---------- Leads (read / triage / delete only — created by the public contact form) ---------- */
+/* ---------- Leads (read / triage / delete only - created by the public contact form) ---------- */
 async function handleLeads(sql, action, id, data, res) {
   if (action === "list") {
     const rows = await sql(`SELECT id, name, email, company, message, status, created_at FROM leads ORDER BY created_at DESC LIMIT 300`);
