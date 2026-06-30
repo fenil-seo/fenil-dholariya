@@ -648,6 +648,15 @@ p { color: var(--text-soft); }
 .gallery-item figcaption {
   padding: 0.65rem 0.9rem; font-size: 0.78rem; color: var(--text-muted);
   font-family: var(--font-mono); letter-spacing: 0.02em; border-top: 1px solid var(--line);
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+.gallery-item--highlight { border-color: rgba(13, 96, 254, 0.35); }
+.gallery-item--highlight:hover { border-color: var(--blue); }
+.gallery-item--highlight figcaption { border-top-color: rgba(13, 96, 254, 0.25); color: var(--text-soft); }
+.gallery-badge {
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+  background: rgba(13, 96, 254, 0.15); color: var(--blue-bright);
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap;
 }
 @media (max-width: 860px) { .gallery-grid { column-count: 2; } }
 @media (max-width: 560px) { .gallery-grid { column-count: 1; } }
