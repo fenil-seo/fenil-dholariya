@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     }
 
     if (!isDbConfigured()) {
-      console.log("New lead (DATABASE_URL not set):", { name, email, company, message });
-      return res.status(200).json({ ok: true, stored: false });
+      console.error("Lead dropped - DATABASE_URL not set:", { name, email });
+      return res.status(503).json({ error: "Could not save your message right now. Please email fenil.seo@gmail.com directly." });
     }
 
     try {

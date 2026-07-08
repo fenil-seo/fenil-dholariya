@@ -351,10 +351,10 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const payload = {
-        name: form.name.value.trim(),
-        email: form.email.value.trim(),
-        company: form.company.value.trim(),
-        message: form.message.value.trim(),
+        name: form.elements["name"].value.trim(),
+        email: form.elements["email"].value.trim(),
+        company: form.elements["company"].value.trim(),
+        message: form.elements["message"].value.trim(),
       };
       const original = btn.innerHTML;
       btn.disabled = true;
