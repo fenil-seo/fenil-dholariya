@@ -453,36 +453,11 @@
         return true;
       }
 
-      async function compressImage(file) {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            const img = new Image();
-            img.onload = () => {
-              const MAX = 1280;
-              const ratio = Math.min(1, MAX / img.naturalWidth, MAX / img.naturalHeight);
-              const w = Math.round(img.naturalWidth * ratio);
-              const h = Math.round(img.naturalHeight * ratio);
-              const canvas = document.createElement("canvas");
-              canvas.width = w; canvas.height = h;
-              canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-              resolve(canvas.toDataURL("image/jpeg", 0.82));
-            };
-            img.src = ev.target.result;
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-
       function buildItemForm(item, defaultSection) {
         const secKey = defaultSection || item?.section || (sections[0]?.key || "");
         const sectionOpts = sections.map((s) =>
           `<option value="${esc(s.key)}" ${s.key === secKey ? "selected" : ""}>${esc(s.label || s.key)}</option>`
         ).join("");
-        const imgSrc = item?.image_url || "";
-        const previewHtml = imgSrc
-          ? `<img class="gallery-upload__preview" src="${esc(imgSrc)}" alt="">`
-          : `<span class="gallery-upload__placeholder">Click to upload image (JPEG / PNG / WebP)</span>`;
 
         const div = document.createElement("div");
         div.innerHTML = `
@@ -491,14 +466,10 @@
               <label>Section</label>
               <select class="select" data-field="section">${sectionOpts}</select>
             </div>
-            <div class="gallery-upload" style="grid-column:1/-1">
-              <label style="display:block;font-size:.85rem;color:var(--text-soft);margin-bottom:.5rem;font-family:var(--font-mono);letter-spacing:.05em">Image — click to upload</label>
-              <div class="gallery-upload__area">
-                ${previewHtml}
-                <input type="file" accept="image/*" class="gallery-upload__input">
-                <input type="hidden" data-field="image_url" value="${esc(imgSrc)}">
-              </div>
-              <p class="admin-form__hint">Auto-resized to max 1280 px and saved as JPEG.</p>
+            <div class="field" style="grid-column:1/-1">
+              <label>Image path</label>
+              <input class="input" type="text" data-field="image_url" value="${esc(item?.image_url || "")}" placeholder="/assets/gallery/D2C.webp">
+              <p class="admin-form__hint">Commit the image to your GitHub repo under <code>/assets/gallery/</code>, then paste the path here (e.g. <code>/assets/gallery/my-screenshot.webp</code>).</p>
             </div>
             <div class="field">
               <label>Alt text</label>
@@ -517,26 +488,6 @@
               <span>Highlighted card style (Looker Studio / AI reports)</span>
             </label>
           </div>`;
-
-        const uploadArea = div.querySelector(".gallery-upload__area");
-        const fileInput = uploadArea.querySelector(".gallery-upload__input");
-        const hiddenInput = uploadArea.querySelector('[data-field="image_url"]');
-        fileInput.addEventListener("change", async (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          fileInput.disabled = true;
-          const dataUrl = await compressImage(file);
-          hiddenInput.value = dataUrl;
-          const existing = uploadArea.querySelector(".gallery-upload__preview");
-          if (existing) { existing.src = dataUrl; }
-          else {
-            const img = document.createElement("img");
-            img.className = "gallery-upload__preview";
-            img.src = dataUrl;
-            uploadArea.querySelector(".gallery-upload__placeholder")?.replaceWith(img);
-          }
-          fileInput.disabled = false;
-        });
         return div;
       }
 
