@@ -147,6 +147,26 @@ body[data-page="admin"] { overflow-x: hidden; }
   background-position: right 0.9em center;
   padding-right: 2.5em;
   color: var(--text);
+  /* Force browser native popup to render in dark mode */
+  color-scheme: dark;
+}
+/* Style option elements for browsers that support it (Firefox, some Chromium builds) */
+.select option {
+  background-color: #1a1b2e;
+  color: #e8e8f4;
+}
+.select option:checked,
+.select option:hover {
+  background-color: #0d60fe;
+  color: #fff;
+}
+/* Also fix the RTE block-format selector */
+.rte-block {
+  color-scheme: dark;
+}
+.rte-block option {
+  background-color: #1a1b2e;
+  color: #e8e8f4;
 }
 
 /* ---------- Gallery panel — section headers ---------- */
