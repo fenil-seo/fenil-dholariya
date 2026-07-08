@@ -433,10 +433,34 @@
   /* ---------- Resource registry ---------- */
   const VIZ_OPTIONS = ["network", "bars", "orbit", "wave"];
   const ACCENT_OPTIONS = ["violet", "cyan"];
+  const GALLERY_SECTIONS = ["d2c-revenue", "lead-gen", "ai-search", "search-console"];
 
   const RESOURCES = {
     profile: profileResource,
     leads: leadsResource,
+
+    gallery: listResource({
+      resource: "gallery",
+      title: "Gallery",
+      hint: "Screenshots shown on the /gallery page. Each item belongs to a section. Changes go live immediately.",
+      fields: [
+        { key: "section",        label: "Section key",           type: "select", options: GALLERY_SECTIONS },
+        { key: "section_label",  label: "Section title",         placeholder: "D2C Revenue Month-on-Month" },
+        { key: "section_eyebrow",label: "Section eyebrow",       placeholder: "Looker Studio · D2C e-commerce" },
+        { key: "section_desc",   label: "Section description",   type: "textarea", wide: true, placeholder: "One sentence shown under the section heading." },
+        { key: "section_order",  label: "Section order (1 = first on page)", type: "number", default: 99 },
+        { key: "image_url",      label: "Image path",            placeholder: "/assets/gallery/D2C.PNG", wide: true, hint: "Use the exact filename including any URL-encoded spaces (%20). Files must be uploaded to /assets/gallery/ first." },
+        { key: "alt",            label: "Alt text",              placeholder: "Looker Studio SEO Report March 2026 showing ₹26K revenue", wide: true },
+        { key: "badge",          label: "Badge label",           placeholder: "Mar 2026" },
+        { key: "caption",        label: "Caption text",          placeholder: "Revenue ₹26.48K · Clicks 315 · Purchases 13", wide: true },
+        { key: "highlight",      label: "Highlighted card style (Looker Studio / AI reports)", type: "checkbox", default: false },
+        { key: "sort_order",     label: "Order within section (lower = earlier)", type: "number", default: 0 },
+      ],
+      summary: (i) => ({
+        title: `[${i.section || "—"}]  ${i.badge ? i.badge + "  ·  " : ""}${i.caption || i.image_url || "New image"}`,
+        sub: i.image_url,
+      }),
+    }),
 
     stats: listResource({
       resource: "stats",

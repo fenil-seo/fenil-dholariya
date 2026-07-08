@@ -101,6 +101,12 @@
       <p class="lead reveal" data-delay="2">Real Looker Studio dashboards, Search Console and Analytics data from client accounts. Client domains blurred for confidentiality. Click any screenshot to enlarge.</p>
     </section>
 
+    <div id="galleryRoot" style="min-height:40vh">
+      <p style="text-align:center;padding:4rem 0;color:var(--text-soft);font-family:var(--font-mono);font-size:0.85rem">Loading gallery…</p>
+    </div>
+
+    <!-- static fallback hidden — dynamic loader below fills galleryRoot from /api/gallery -->
+    <template id="galleryStatic">
     <!-- ① D2C Revenue Month-on-Month -->
     <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
       <div class="section-head">
@@ -231,6 +237,7 @@
         <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-6.jpg" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
       </div>
     </section>
+    </template><!-- end #galleryStatic -->
 
     <!-- CTA -->
     <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
@@ -286,5 +293,55 @@
   <script src="/js/schema.js?v=20260629"></script>
   <script src="/js/render.js?v=20260629"></script>
   <script src="/js/main.js?v=20260708"></script>
+  <script>
+  (function () {
+    function esc(s) {
+      return String(s || "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function renderGallery(sections) {
+      var root = document.getElementById("galleryRoot");
+      if (!sections || !sections.length) {
+        root.innerHTML = '<p style="text-align:center;padding:4rem 0;color:var(--text-soft)">No gallery items yet.</p>';
+        return;
+      }
+      var html = "";
+      sections.forEach(function (sec) {
+        var collapsible = sec.items.length > 4 ? " gallery-grid--collapsible" : "";
+        html += '<section class="container" style="padding-bottom:clamp(4rem,8vw,7rem)">';
+        html += '<div class="section-head">';
+        if (sec.eyebrow) html += '<span class="eyebrow reveal">' + esc(sec.eyebrow) + '</span>';
+        html += '<h2 class="reveal" data-delay="1">' + esc(sec.label) + '</h2>';
+        if (sec.description) html += '<p class="lead reveal" data-delay="2" style="margin-top:0.8rem">' + esc(sec.description) + '</p>';
+        html += '</div>';
+        html += '<div class="gallery-grid' + collapsible + '">';
+        sec.items.forEach(function (item, i) {
+          var hi = item.highlight ? " gallery-item--highlight" : "";
+          var delay = i > 0 && i < 3 ? ' data-delay="' + i + '"' : "";
+          html += '<figure class="gallery-item' + hi + ' reveal" data-cursor' + delay + '>';
+          html += '<img src="' + esc(item.image_url) + '" alt="' + esc(item.alt) + '" loading="lazy" />';
+          html += '<figcaption>';
+          if (item.badge) html += '<span class="gallery-badge">' + esc(item.badge) + '</span> ';
+          html += esc(item.caption);
+          html += '</figcaption></figure>';
+        });
+        html += '</div></section>';
+      });
+      root.innerHTML = html;
+      if (window.refreshAnimations) window.refreshAnimations();
+      if (window.initGalleryCollapse) window.initGalleryCollapse();
+      if (window.bindLightboxItems) window.bindLightboxItems();
+    }
+
+    fetch("/api/gallery")
+      .then(function (r) { return r.json(); })
+      .then(function (d) { renderGallery(d.sections || []); })
+      .catch(function () {
+        document.getElementById("galleryRoot").innerHTML =
+          '<p style="text-align:center;padding:4rem 0;color:var(--text-soft)">Gallery unavailable — please try again shortly.</p>';
+      });
+  })();
+  </script>
 </body>
 </html>

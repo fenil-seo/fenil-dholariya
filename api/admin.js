@@ -44,6 +44,8 @@ export default async function handler(req, res) {
         return await handlePosts(sql, action, id, data, res);
       case "leads":
         return await handleLeads(sql, action, id, data, res);
+      case "gallery":
+        return await handleGallery(sql, action, id, data, res);
       default:
         return res.status(400).json({ error: "Unknown resource" });
     }
@@ -237,6 +239,49 @@ async function handlePosts(sql, action, id, data, res) {
   if (action === "delete") {
     if (!id) return res.status(400).json({ error: "Missing id" });
     await sql(`DELETE FROM posts WHERE id = $1`, [id]);
+    return res.status(200).json({ ok: true });
+  }
+
+  return res.status(400).json({ error: "Unknown action" });
+}
+
+/* ---------- Gallery (full CRUD — images shown on /gallery) ---------- */
+async function handleGallery(sql, action, id, data, res) {
+  const COLS = ["section", "section_label", "section_eyebrow", "section_desc", "section_order", "image_url", "alt", "badge", "caption", "highlight", "sort_order"];
+  const cols = (arr) => arr.map((f) => `"${f}"`).join(", ");
+
+  if (action === "list") {
+    const rows = await sql(`SELECT id, ${cols(COLS)} FROM gallery ORDER BY section_order ASC, sort_order ASC, id ASC`);
+    return res.status(200).json({ items: rows });
+  }
+
+  if (action === "create") {
+    const usable = COLS.filter((f) => data?.[f] !== undefined);
+    if (!usable.length) return res.status(400).json({ error: "No fields provided" });
+    const values = usable.map((f) => data[f]);
+    const rows = await sql(
+      `INSERT INTO gallery (${cols(usable)}) VALUES (${usable.map((_, i) => `$${i + 1}`).join(", ")}) RETURNING id, ${cols(COLS)}`,
+      values
+    );
+    return res.status(200).json({ item: rows[0] });
+  }
+
+  if (action === "update") {
+    if (!id) return res.status(400).json({ error: "Missing id" });
+    const usable = COLS.filter((f) => data?.[f] !== undefined);
+    if (!usable.length) return res.status(400).json({ error: "No fields provided" });
+    const sets = usable.map((f, i) => `"${f}" = $${i + 1}`).join(", ");
+    const values = [...usable.map((f) => data[f]), id];
+    const rows = await sql(
+      `UPDATE gallery SET ${sets} WHERE id = $${values.length} RETURNING id, ${cols(COLS)}`,
+      values
+    );
+    return res.status(200).json({ item: rows[0] });
+  }
+
+  if (action === "delete") {
+    if (!id) return res.status(400).json({ error: "Missing id" });
+    await sql(`DELETE FROM gallery WHERE id = $1`, [id]);
     return res.status(200).json({ ok: true });
   }
 

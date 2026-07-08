@@ -427,9 +427,14 @@
       document.documentElement.style.overflow = "";
       img.src = "";
     };
-    document.querySelectorAll(".gallery-item img").forEach((el) => {
-      el.addEventListener("click", () => open(el.currentSrc || el.src, el.alt));
-    });
+    /* Bind items that haven't been bound yet (supports dynamic gallery) */
+    window.bindLightboxItems = function () {
+      document.querySelectorAll(".gallery-item img:not([data-lb])").forEach((el) => {
+        el.dataset.lb = "1";
+        el.addEventListener("click", () => open(el.currentSrc || el.src, el.alt));
+      });
+    };
+    window.bindLightboxItems();
     lb.addEventListener("click", (e) => {
       if (e.target === lb || e.target.closest(".lightbox__close")) close();
     });
@@ -450,8 +455,9 @@
 })();
 
 /* ---------- Gallery: "View More" progressive disclosure ---------- */
-(function galleryCollapse() {
-  document.querySelectorAll(".gallery-grid--collapsible").forEach(function (grid) {
+window.initGalleryCollapse = function () {
+  document.querySelectorAll(".gallery-grid--collapsible:not([data-gc])").forEach(function (grid) {
+    grid.dataset.gc = "1";
     var items = grid.querySelectorAll(".gallery-item");
     var total = items.length;
     if (total <= 4) return;
@@ -473,7 +479,6 @@
       grid.classList.toggle("is-collapsed");
 
       if (isCollapsed) {
-        /* Expanding: mark hidden items as visible so reveal CSS fires */
         grid.querySelectorAll(".gallery-item.reveal").forEach(function (item) {
           item.classList.add("is-visible");
         });
@@ -490,4 +495,5 @@
       }
     });
   });
-})();
+};
+window.initGalleryCollapse();
