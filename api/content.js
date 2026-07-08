@@ -1,5 +1,6 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { SEED } from "../lib/seed-data.js";
+import { ensureNewColumns } from "../lib/migrate.js";
 
 const SITE_URL = "https://fenil-dholariya.vercel.app";
 
@@ -23,6 +24,7 @@ async function loadContent() {
 
   try {
     const sql = getSql();
+    await ensureNewColumns(sql);
     const [profileRows, stats, services, steps, projects, posts, testimonials, skills, timeline] = await Promise.all([
       sql(`SELECT * FROM profile WHERE id = 1`),
       sql(`SELECT value, suffix, label, trend FROM stats ORDER BY sort_order, id`),

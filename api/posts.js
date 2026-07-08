@@ -1,5 +1,6 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { SEED } from "../lib/seed-data.js";
+import { ensureNewColumns } from "../lib/migrate.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
@@ -16,6 +17,7 @@ export default async function handler(req, res) {
 
   try {
     const sql = getSql();
+    await ensureNewColumns(sql);
 
     if (slug) {
       const rows = await sql(

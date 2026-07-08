@@ -1,5 +1,6 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
+import { ensureNewColumns } from "../lib/migrate.js";
 
 function slugify(str) {
   return String(str || "")
@@ -134,6 +135,7 @@ async function handleProfile(sql, action, data, res) {
 
 /* ---------- Projects (slug + JSONB metrics) ---------- */
 async function handleProjects(sql, action, id, data, res) {
+  await ensureNewColumns(sql);
   const RETURNING = `id, slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body`;
 
   if (action === "list") {
@@ -194,6 +196,7 @@ async function handleProjects(sql, action, id, data, res) {
 
 /* ---------- Posts (slug + body HTML) ---------- */
 async function handlePosts(sql, action, id, data, res) {
+  await ensureNewColumns(sql);
   const RETURNING = `id, slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, COALESCE(image_url,'') AS image_url`;
 
   if (action === "list") {
