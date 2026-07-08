@@ -25,7 +25,7 @@ async function loadContent() {
   try {
     const sql = getSql();
     await ensureNewColumns(sql);
-    const [profileRows, stats, services, steps, projects, posts, testimonials, skills, timeline] = await Promise.all([
+    const [profileRows, stats, rawServices, steps, projects, posts, testimonials, rawSkills, rawTimeline] = await Promise.all([
       sql(`SELECT * FROM profile WHERE id = 1`),
       sql(`SELECT value, suffix, label, trend FROM stats ORDER BY sort_order, id`),
       sql(`SELECT icon, title, description AS "desc" FROM services ORDER BY sort_order, id`),
@@ -37,8 +37,13 @@ async function loadContent() {
       sql(`SELECT role, org, period FROM timeline ORDER BY sort_order, id`),
     ]);
 
-    const isEmpty = !profileRows.length && !stats.length && !services.length && !projects.length && !posts.length;
+    const isEmpty = !profileRows.length && !stats.length && !rawServices.length && !projects.length && !posts.length;
     if (isEmpty) return SEED;
+
+    // Auto-add any seed services / skills / timeline entries missing from the DB
+    const services  = await syncMissing(sql, "services",  rawServices,  SEED.services,  (s) => s.title, (s, i) => [`INSERT INTO services (icon, title, description, sort_order) VALUES ($1,$2,$3,$4)`, [s.icon, s.title, s.desc, rawServices.length + i]], `SELECT icon, title, description AS "desc" FROM services ORDER BY sort_order, id`);
+    const skills    = await syncMissing(sql, "skills",    rawSkills,    SEED.skills.map((n) => ({ name: n })), (s) => s.name, (s, i) => [`INSERT INTO skills (name, sort_order) VALUES ($1,$2)`, [s.name, rawSkills.length + i]], `SELECT name FROM skills ORDER BY sort_order, id`);
+    const timeline  = await syncMissing(sql, "timeline",  rawTimeline,  SEED.timeline,  (t) => `${t.role}|${t.org}`, (t, i) => [`INSERT INTO timeline (role, org, period, sort_order) VALUES ($1,$2,$3,$4)`, [t.role, t.org, t.period, rawTimeline.length + i]], `SELECT role, org, period FROM timeline ORDER BY sort_order, id`);
 
     return {
       profile: profileRows[0]
@@ -63,18 +68,32 @@ async function loadContent() {
           }
         : SEED.profile,
       stats: stats.length ? stats : SEED.stats,
-      services: services.length ? services : SEED.services,
+      services,
       process: steps.length ? steps : SEED.process,
       projects: projects.length ? projects : SEED.projects,
       posts: posts.length ? posts : SEED.posts,
       testimonials: testimonials.length ? testimonials : SEED.testimonials,
-      skills: skills.length ? skills.map((s) => s.name) : SEED.skills,
-      timeline: timeline.length ? timeline : SEED.timeline,
+      skills: skills.map((s) => s.name || s),
+      timeline,
     };
   } catch (err) {
     console.error("content api error", err);
     return SEED;
   }
+}
+
+/* Auto-inserts any seed entries missing from the DB, then re-fetches.
+   key(row) → comparable string; insertFn(seedRow, index) → [sql, params]; fetchSql → re-fetch query */
+async function syncMissing(sql, _table, dbRows, seedRows, key, insertFn, fetchSql) {
+  if (!dbRows.length) return dbRows; // table is empty — seed.js handles full init
+  const existing = new Set(dbRows.map((r) => key(r).toLowerCase()));
+  const missing = seedRows.filter((r) => !existing.has(key(r).toLowerCase()));
+  if (!missing.length) return dbRows;
+  await Promise.all(missing.map((r, i) => {
+    const [q, p] = insertFn(r, i);
+    return sql(q, p).catch(() => {});
+  }));
+  return sql(fetchSql);
 }
 
 function escapeXml(str) {

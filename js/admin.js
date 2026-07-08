@@ -988,7 +988,7 @@
       title: "Services",
       hint: "What you offer - shown on the home page.",
       fields: [
-        { key: "icon", label: "Icon", type: "select", options: ["audit","content","local","funnel","ai","research","strategy","analytics","sem","cro","affiliate","email","social","video","mobile","brand","ecommerce","pr","web","automation"] },
+        { key: "icon", label: "Icon", type: "select", options: ["audit","content","local","keyword","backlink","ranking","ai","research","chatbot","automation","strategy","analytics","trend","report","dashboard","data","pie","sem","cro","campaign","ab","remarketing","affiliate","email","social","video","mobile","push","influencer","brand","ecommerce","pr","web","funnel"] },
         { key: "title", label: "Title" },
         { key: "description", label: "Description", type: "textarea", wide: true },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
