@@ -58,6 +58,16 @@ const DDL = [
     sort_order INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gallery_sections (
+    id SERIAL PRIMARY KEY,
+    key TEXT UNIQUE NOT NULL,
+    label TEXT NOT NULL DEFAULT '',
+    eyebrow TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    position INT DEFAULT 99,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `ALTER TABLE gallery ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`,
 ];
 
 export default async function handler(req, res) {
@@ -152,6 +162,19 @@ async function insertSeedIfEmpty(sql) {
       await sql(`INSERT INTO timeline (role, org, period, sort_order) VALUES ($1,$2,$3,$4)`, [t.role, t.org, t.period, i]);
     }
     inserted.timeline = SEED.timeline.length;
+  }
+
+  if ((await count("gallery_sections")) === 0) {
+    const SECS = [
+      { key: "d2c-revenue",    label: "D2C Revenue Month-on-Month",   eyebrow: "Looker Studio · D2C e-commerce",    desc: "Looker Studio SEO reports showing organic revenue, purchases and sessions compounding month over month for a D2C brand.",       pos: 1 },
+      { key: "lead-gen",       label: "Lead Gen Dashboard Reports",    eyebrow: "Looker Studio · lead generation",   desc: "Overall SEO Performance Summary dashboards tracking total leads, phone calls, form submissions and emails month over month.", pos: 2 },
+      { key: "ai-search",      label: "AI Search Visibility Results",  eyebrow: "AI search · monthly reports",       desc: "Monthly reports showing client brand visibility across ChatGPT, Google AI Mode, Grok, Perplexity, Copilot and AI Overviews.", pos: 3 },
+      { key: "search-console", label: "Search Console Performance",    eyebrow: "Google Search Console · analytics", desc: "Raw Google Search Console and Analytics screenshots showing clicks, impressions, CTR and organic sessions across client accounts.", pos: 4 },
+    ];
+    for (const s of SECS) {
+      await sql(`INSERT INTO gallery_sections (key, label, eyebrow, description, position) VALUES ($1,$2,$3,$4,$5)`, [s.key, s.label, s.eyebrow, s.desc, s.pos]);
+    }
+    inserted.gallery_sections = SECS.length;
   }
 
   if ((await count("gallery")) === 0) {

@@ -430,37 +430,476 @@
     return card;
   }
 
+  /* ---------- Gallery (custom renderer — section-by-section, image upload, pin) ---------- */
+  const galleryResource = {
+    async render(panel) {
+      let sections = [];
+      let items = [];
+      let view = "gallery"; // "gallery" | "sections"
+
+      async function loadAll() {
+        const [sr, ir] = await Promise.all([
+          window.API.admin("gallery-sections", "list"),
+          window.API.admin("gallery", "list"),
+        ]);
+        if (noteDbStatus(sr.ok, sr.data)) {
+          panel.innerHTML = `<p class="admin-empty">Connect the database to manage gallery.</p>`;
+          return false;
+        }
+        if (!sr.ok) { panel.innerHTML = `<p class="admin-empty">${esc(sr.data?.error || "Failed to load sections.")}</p>`; return false; }
+        if (!ir.ok) { panel.innerHTML = `<p class="admin-empty">${esc(ir.data?.error || "Failed to load images.")}</p>`; return false; }
+        sections = sr.data.items || [];
+        items = ir.data.items || [];
+        return true;
+      }
+
+      async function compressImage(file) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const MAX = 1280;
+              const ratio = Math.min(1, MAX / img.naturalWidth, MAX / img.naturalHeight);
+              const w = Math.round(img.naturalWidth * ratio);
+              const h = Math.round(img.naturalHeight * ratio);
+              const canvas = document.createElement("canvas");
+              canvas.width = w; canvas.height = h;
+              canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL("image/jpeg", 0.82));
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function buildItemForm(item, defaultSection) {
+        const secKey = defaultSection || item?.section || (sections[0]?.key || "");
+        const sectionOpts = sections.map((s) =>
+          `<option value="${esc(s.key)}" ${s.key === secKey ? "selected" : ""}>${esc(s.label || s.key)}</option>`
+        ).join("");
+        const imgSrc = item?.image_url || "";
+        const previewHtml = imgSrc
+          ? `<img class="gallery-upload__preview" src="${esc(imgSrc)}" alt="">`
+          : `<span class="gallery-upload__placeholder">Click to upload image (JPEG / PNG / WebP)</span>`;
+
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <div class="admin-form__grid">
+            <div class="field" style="grid-column:1/-1">
+              <label>Section</label>
+              <select class="select" data-field="section">${sectionOpts}</select>
+            </div>
+            <div class="gallery-upload" style="grid-column:1/-1">
+              <label style="display:block;font-size:.85rem;color:var(--text-soft);margin-bottom:.5rem;font-family:var(--font-mono);letter-spacing:.05em">Image — click to upload</label>
+              <div class="gallery-upload__area">
+                ${previewHtml}
+                <input type="file" accept="image/*" class="gallery-upload__input">
+                <input type="hidden" data-field="image_url" value="${esc(imgSrc)}">
+              </div>
+              <p class="admin-form__hint">Auto-resized to max 1280 px and saved as JPEG.</p>
+            </div>
+            <div class="field">
+              <label>Alt text</label>
+              <input class="input" type="text" data-field="alt" value="${esc(item?.alt || "")}" placeholder="Looker Studio SEO Report March 2026 showing ₹26K revenue">
+            </div>
+            <div class="field">
+              <label>Badge label</label>
+              <input class="input" type="text" data-field="badge" value="${esc(item?.badge || "")}" placeholder="Mar 2026">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Caption text</label>
+              <input class="input" type="text" data-field="caption" value="${esc(item?.caption || "")}" placeholder="Revenue ₹26.48K · Clicks 315 · Purchases 13">
+            </div>
+            <label class="admin-checkbox" style="grid-column:1/-1">
+              <input type="checkbox" data-field="highlight" ${item?.highlight ? "checked" : ""}>
+              <span>Highlighted card style (Looker Studio / AI reports)</span>
+            </label>
+          </div>`;
+
+        const uploadArea = div.querySelector(".gallery-upload__area");
+        const fileInput = uploadArea.querySelector(".gallery-upload__input");
+        const hiddenInput = uploadArea.querySelector('[data-field="image_url"]');
+        fileInput.addEventListener("change", async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          fileInput.disabled = true;
+          const dataUrl = await compressImage(file);
+          hiddenInput.value = dataUrl;
+          const existing = uploadArea.querySelector(".gallery-upload__preview");
+          if (existing) { existing.src = dataUrl; }
+          else {
+            const img = document.createElement("img");
+            img.className = "gallery-upload__preview";
+            img.src = dataUrl;
+            uploadArea.querySelector(".gallery-upload__placeholder")?.replaceWith(img);
+          }
+          fileInput.disabled = false;
+        });
+        return div;
+      }
+
+      function readItemForm(container) {
+        return {
+          section:   container.querySelector('[data-field="section"]')?.value || "",
+          image_url: container.querySelector('[data-field="image_url"]')?.value || "",
+          alt:       container.querySelector('[data-field="alt"]')?.value || "",
+          badge:     container.querySelector('[data-field="badge"]')?.value || "",
+          caption:   container.querySelector('[data-field="caption"]')?.value || "",
+          highlight: container.querySelector('[data-field="highlight"]')?.checked || false,
+        };
+      }
+
+      /* ---- Gallery view (section by section) ---- */
+      function renderGalleryView() {
+        const bySection = {};
+        for (const item of items) {
+          (bySection[item.section] || (bySection[item.section] = [])).push(item);
+        }
+
+        let html = `
+          <div class="admin__panel-head">
+            <div><h2>Gallery</h2><p>Screenshots on the /gallery page, organised by section. Newest images appear first.</p></div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn btn--ghost btn--sm" data-action="manage-sections">Manage Sections</button>
+              <button class="btn btn--primary btn--sm" data-action="add-image">+ Add Image</button>
+            </div>
+          </div>
+          <div id="gal-add-form" style="display:none"></div>`;
+
+        if (!sections.length) {
+          html += `<p class="admin-empty">No sections yet — click <strong>Manage Sections</strong> to create one first.</p>`;
+        } else {
+          const knownKeys = new Set(sections.map((s) => s.key));
+          for (const sec of sections) {
+            const secItems = bySection[sec.key] || [];
+            html += `<div class="gallery-sec" data-section="${esc(sec.key)}">
+              <div class="gallery-sec__head">
+                <span class="gallery-sec__name">${esc(sec.label || sec.key)}</span>
+                <span class="gallery-sec__key">${esc(sec.key)}</span>
+                <span class="gallery-sec__count">${secItems.length} image${secItems.length !== 1 ? "s" : ""}</span>
+              </div>
+              <div class="gallery-sec__items" id="sec-${esc(sec.key)}">
+                ${secItems.length ? secItems.map(buildItemCardHtml).join("") : `<p class="gallery-sec__empty">No images yet.</p>`}
+              </div>
+            </div>`;
+          }
+          const orphans = items.filter((i) => !knownKeys.has(i.section));
+          if (orphans.length) {
+            html += `<div class="gallery-sec"><div class="gallery-sec__head"><span class="gallery-sec__name">Other</span><span class="gallery-sec__count">${orphans.length}</span></div>
+              <div class="gallery-sec__items">${orphans.map(buildItemCardHtml).join("")}</div></div>`;
+          }
+        }
+
+        panel.innerHTML = html;
+
+        panel.querySelector('[data-action="manage-sections"]')?.addEventListener("click", () => {
+          view = "sections"; renderSectionsView();
+        });
+        panel.querySelector('[data-action="add-image"]')?.addEventListener("click", () => showAddForm(null));
+        wireItemCards(panel);
+      }
+
+      function buildItemCardHtml(item) {
+        const pinned = item.pinned;
+        const thumb = item.image_url
+          ? `<img class="gallery-item-thumb" src="${esc(item.image_url)}" alt="" loading="lazy">`
+          : `<div class="gallery-item-thumb" style="background:var(--surface-2)"></div>`;
+        return `<div class="gallery-item-card${pinned ? " is-pinned" : ""}" data-id="${item.id}">
+          ${thumb}
+          <div class="gallery-item-meta">
+            ${item.badge ? `<div class="gallery-item-badge">${esc(item.badge)}</div>` : ""}
+            <div class="gallery-item-caption">${esc(item.caption || "—")}</div>
+          </div>
+          <div class="gallery-item-actions">
+            <button class="btn btn--sm ${pinned ? "btn--primary" : "btn--ghost"}" data-action="pin" title="${pinned ? "Unpin" : "Pin to top"}" style="padding:.35em .6em;font-size:.9rem">${pinned ? "📌" : "📍"}</button>
+            <button class="btn btn--ghost btn--sm" data-action="edit">Edit</button>
+            <button class="btn btn--danger btn--sm" data-action="delete">Del</button>
+          </div>
+          <div class="gallery-item-form"></div>
+        </div>`;
+      }
+
+      function wireItemCards(root) {
+        root.querySelectorAll(".gallery-item-card").forEach((card) => {
+          const itemId = Number(card.dataset.id);
+          const item = items.find((i) => i.id === itemId);
+          if (!item) return;
+
+          card.querySelector('[data-action="pin"]')?.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            const { ok } = await window.API.admin("gallery", "update", { id: itemId, data: { pinned: !item.pinned } });
+            btn.disabled = false;
+            if (ok) { if (await loadAll()) renderGalleryView(); }
+          });
+
+          card.querySelector('[data-action="edit"]')?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const formEl = card.querySelector(".gallery-item-form");
+            if (card.classList.contains("is-editing")) {
+              card.classList.remove("is-editing"); formEl.innerHTML = ""; return;
+            }
+            card.classList.add("is-editing");
+            const form = buildItemForm(item);
+            const actions = document.createElement("div");
+            actions.className = "admin-form__actions";
+            actions.innerHTML = `<button class="btn btn--primary btn--sm" data-action="save">Save</button>
+              <button class="btn btn--ghost btn--sm" data-action="cancel">Cancel</button>
+              <p class="form-status"></p>`;
+            formEl.append(form, actions);
+
+            actions.querySelector('[data-action="cancel"]').addEventListener("click", () => {
+              card.classList.remove("is-editing"); formEl.innerHTML = "";
+            });
+            actions.querySelector('[data-action="save"]').addEventListener("click", async () => {
+              const btn = actions.querySelector('[data-action="save"]');
+              const status = actions.querySelector(".form-status");
+              const fd = readItemForm(formEl);
+              if (!fd.image_url) { status.className = "form-status is-err"; status.textContent = "Please upload an image."; return; }
+              btn.disabled = true; btn.textContent = "Saving…";
+              const { ok, data } = await window.API.admin("gallery", "update", { id: itemId, data: fd });
+              btn.disabled = false; btn.textContent = "Save";
+              if (ok) {
+                Object.assign(item, data.item);
+                card.classList.remove("is-editing"); formEl.innerHTML = "";
+                const tmp = document.createElement("div");
+                tmp.innerHTML = buildItemCardHtml(item);
+                const fresh = tmp.firstElementChild;
+                card.replaceWith(fresh);
+                wireItemCards(fresh.parentElement);
+              } else { status.className = "form-status is-err"; status.textContent = data?.error || "Save failed."; }
+            });
+          });
+
+          card.querySelector('[data-action="delete"]')?.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            if (!confirm("Delete this image permanently?")) return;
+            const { ok } = await window.API.admin("gallery", "delete", { id: itemId });
+            if (ok) {
+              items = items.filter((i) => i.id !== itemId);
+              const secItems = card.closest(".gallery-sec__items");
+              card.remove();
+              if (secItems && !secItems.querySelector(".gallery-item-card")) {
+                secItems.innerHTML = `<p class="gallery-sec__empty">No images yet.</p>`;
+              }
+              const sec = card.closest(".gallery-sec");
+              const cnt = sec?.querySelectorAll(".gallery-item-card").length || 0;
+              const cntEl = sec?.querySelector(".gallery-sec__count");
+              if (cntEl) cntEl.textContent = `${cnt} image${cnt !== 1 ? "s" : ""}`;
+            }
+          });
+        });
+      }
+
+      function showAddForm(defaultSection) {
+        const wrap = panel.querySelector("#gal-add-form");
+        if (!wrap) return;
+        wrap.style.display = "";
+        const card = document.createElement("div");
+        card.className = "admin-card is-open";
+        card.innerHTML = `<div class="admin-card__row"><div class="admin-card__title">New Image</div></div>
+          <div class="admin-card__body" style="display:block;border-top:none;padding-top:0"></div>`;
+        const body = card.querySelector(".admin-card__body");
+        const form = buildItemForm(null, defaultSection);
+        const actions = document.createElement("div");
+        actions.className = "admin-form__actions";
+        actions.innerHTML = `<button class="btn btn--primary btn--sm" data-action="save">Save image</button>
+          <button class="btn btn--ghost btn--sm" data-action="cancel">Cancel</button>
+          <p class="form-status"></p>`;
+        body.append(form, actions);
+        wrap.innerHTML = ""; wrap.append(card);
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        actions.querySelector('[data-action="cancel"]').addEventListener("click", () => {
+          wrap.style.display = "none"; wrap.innerHTML = "";
+        });
+        actions.querySelector('[data-action="save"]').addEventListener("click", async () => {
+          const btn = actions.querySelector('[data-action="save"]');
+          const status = actions.querySelector(".form-status");
+          const fd = readItemForm(body);
+          if (!fd.image_url) { status.className = "form-status is-err"; status.textContent = "Please upload an image first."; return; }
+          btn.disabled = true; btn.textContent = "Saving…";
+          const { ok, data } = await window.API.admin("gallery", "create", { data: fd });
+          btn.disabled = false; btn.textContent = "Save image";
+          if (ok) {
+            items.unshift(data.item);
+            wrap.style.display = "none"; wrap.innerHTML = "";
+            const secKey = data.item.section;
+            const secEl = panel.querySelector(`#sec-${secKey}`);
+            if (secEl) {
+              secEl.querySelector(".gallery-sec__empty")?.remove();
+              const tmp = document.createElement("div"); tmp.innerHTML = buildItemCardHtml(data.item);
+              secEl.prepend(tmp.firstElementChild);
+              wireItemCards(secEl);
+              const cnt = secEl.querySelectorAll(".gallery-item-card").length;
+              const cntEl = panel.querySelector(`[data-section="${secKey}"] .gallery-sec__count`);
+              if (cntEl) cntEl.textContent = `${cnt} image${cnt !== 1 ? "s" : ""}`;
+            }
+          } else { status.className = "form-status is-err"; status.textContent = data?.error || "Save failed."; }
+        });
+      }
+
+      /* ---- Sections management view ---- */
+      function renderSectionsView() {
+        let html = `
+          <div class="admin__panel-head">
+            <div><h2>Manage Sections</h2><p>Define the sections that group screenshots on the /gallery page.</p></div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn--ghost btn--sm" data-action="back">← Gallery</button>
+              <button class="btn btn--primary btn--sm" data-action="add-section">+ Add Section</button>
+            </div>
+          </div>
+          <div id="sec-add-form" style="display:none"></div>
+          <div id="sec-list">`;
+        html += sections.length
+          ? sections.map(buildSectionCardHtml).join("")
+          : `<p class="admin-empty">No sections yet — click + Add Section.</p>`;
+        html += `</div>`;
+        panel.innerHTML = html;
+
+        panel.querySelector('[data-action="back"]')?.addEventListener("click", () => { view = "gallery"; renderGalleryView(); });
+        panel.querySelector('[data-action="add-section"]')?.addEventListener("click", showAddSectionForm);
+        wireSectionCards(panel);
+      }
+
+      function buildSectionCardHtml(sec) {
+        return `<div class="admin-card" data-sec-id="${sec.id}">
+          <div class="admin-card__row" data-action="toggle">
+            <div>
+              <div class="admin-card__title">${esc(sec.label || sec.key)}</div>
+              <div class="admin-card__sub">key: ${esc(sec.key)} · position: ${esc(String(sec.position ?? 99))}</div>
+            </div>
+            <div class="admin-card__actions">
+              <button class="btn btn--danger btn--sm" data-action="delete-section">Delete</button>
+              <svg class="admin-card__chevron" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="admin-card__body">
+            <div class="admin-form__grid">
+              <div class="field"><label>Heading (label)</label><input class="input" data-field="label" value="${esc(sec.label || "")}"></div>
+              <div class="field"><label>Eyebrow text</label><input class="input" data-field="eyebrow" value="${esc(sec.eyebrow || "")}"></div>
+              <div class="field" style="grid-column:1/-1"><label>Description</label><input class="input" data-field="description" value="${esc(sec.description || "")}"></div>
+              <div class="field"><label>Position (1 = first)</label><input class="input" type="number" data-field="position" value="${esc(String(sec.position ?? 99))}"></div>
+            </div>
+            <div class="admin-form__actions">
+              <button class="btn btn--primary btn--sm" data-action="save-section">Save</button>
+              <p class="form-status"></p>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      function wireSectionCards(root) {
+        root.querySelectorAll(".admin-card[data-sec-id]").forEach((card) => {
+          const secId = Number(card.dataset.secId);
+          const sec = sections.find((s) => s.id === secId);
+          if (!sec) return;
+
+          card.querySelector('[data-action="toggle"]')?.addEventListener("click", () => card.classList.toggle("is-open"));
+
+          card.querySelector('[data-action="save-section"]')?.addEventListener("click", async () => {
+            const btn = card.querySelector('[data-action="save-section"]');
+            const status = card.querySelector(".form-status");
+            const fd = {
+              label:       card.querySelector('[data-field="label"]')?.value || "",
+              eyebrow:     card.querySelector('[data-field="eyebrow"]')?.value || "",
+              description: card.querySelector('[data-field="description"]')?.value || "",
+              position:    Number(card.querySelector('[data-field="position"]')?.value) || 99,
+            };
+            btn.disabled = true;
+            const { ok, data } = await window.API.admin("gallery-sections", "update", { id: secId, data: fd });
+            btn.disabled = false;
+            if (ok) {
+              Object.assign(sec, data.item);
+              status.className = "form-status is-ok"; status.textContent = "Saved.";
+              card.querySelector(".admin-card__title").textContent = sec.label || sec.key;
+              card.querySelector(".admin-card__sub").textContent = `key: ${sec.key} · position: ${sec.position}`;
+            } else { status.className = "form-status is-err"; status.textContent = data?.error || "Save failed."; }
+          });
+
+          card.querySelector('[data-action="delete-section"]')?.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const inUse = items.filter((i) => i.section === sec.key).length;
+            if (inUse) { alert(`This section has ${inUse} image(s). Delete or reassign them first.`); return; }
+            if (!confirm(`Delete section "${sec.label || sec.key}"?`)) return;
+            const { ok } = await window.API.admin("gallery-sections", "delete", { id: secId });
+            if (ok) {
+              sections = sections.filter((s) => s.id !== secId);
+              card.remove();
+              const list = panel.querySelector("#sec-list");
+              if (list && !list.querySelector(".admin-card")) list.innerHTML = `<p class="admin-empty">No sections yet — click + Add Section.</p>`;
+            }
+          });
+        });
+      }
+
+      function showAddSectionForm() {
+        const wrap = panel.querySelector("#sec-add-form");
+        if (!wrap) return;
+        wrap.style.display = "";
+        wrap.innerHTML = `<div class="admin-card is-open" style="margin-bottom:1rem">
+          <div class="admin-card__row"><div class="admin-card__title">New Section</div></div>
+          <div class="admin-card__body" style="display:block;border-top:none;padding-top:0">
+            <div class="admin-form__grid">
+              <div class="field"><label>Section key (letters, numbers, hyphens)</label><input class="input" id="ns-key" placeholder="my-section"></div>
+              <div class="field"><label>Heading (label)</label><input class="input" id="ns-label" placeholder="My Section Title"></div>
+              <div class="field"><label>Eyebrow text</label><input class="input" id="ns-eyebrow" placeholder="Category · subcategory"></div>
+              <div class="field" style="grid-column:1/-1"><label>Description</label><input class="input" id="ns-desc" placeholder="One sentence describing this section."></div>
+              <div class="field"><label>Position (1 = first)</label><input class="input" type="number" id="ns-pos" value="99"></div>
+            </div>
+            <div class="admin-form__actions">
+              <button class="btn btn--primary btn--sm" id="ns-save">Create section</button>
+              <button class="btn btn--ghost btn--sm" id="ns-cancel">Cancel</button>
+              <p class="form-status" id="ns-status"></p>
+            </div>
+          </div>
+        </div>`;
+
+        panel.querySelector("#ns-cancel").addEventListener("click", () => { wrap.style.display = "none"; wrap.innerHTML = ""; });
+        panel.querySelector("#ns-save").addEventListener("click", async () => {
+          const btn = panel.querySelector("#ns-save");
+          const status = panel.querySelector("#ns-status");
+          const rawKey = (panel.querySelector("#ns-key")?.value || "").trim();
+          const fd = {
+            key:         rawKey.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+            label:       panel.querySelector("#ns-label")?.value || "",
+            eyebrow:     panel.querySelector("#ns-eyebrow")?.value || "",
+            description: panel.querySelector("#ns-desc")?.value || "",
+            position:    Number(panel.querySelector("#ns-pos")?.value) || 99,
+          };
+          if (!fd.key) { status.className = "form-status is-err"; status.textContent = "Section key is required."; return; }
+          btn.disabled = true;
+          const { ok, data } = await window.API.admin("gallery-sections", "create", { data: fd });
+          btn.disabled = false;
+          if (ok) {
+            sections.push(data.item);
+            wrap.style.display = "none"; wrap.innerHTML = "";
+            const list = panel.querySelector("#sec-list");
+            if (list) {
+              list.querySelector(".admin-empty")?.remove();
+              list.insertAdjacentHTML("beforeend", buildSectionCardHtml(data.item));
+              wireSectionCards(list);
+            }
+          } else { status.className = "form-status is-err"; status.textContent = data?.error || "Create failed."; }
+        });
+      }
+
+      /* ---- Boot ---- */
+      if (await loadAll()) renderGalleryView();
+    },
+  };
+
   /* ---------- Resource registry ---------- */
   const VIZ_OPTIONS = ["network", "bars", "orbit", "wave"];
   const ACCENT_OPTIONS = ["violet", "cyan"];
-  const GALLERY_SECTIONS = ["d2c-revenue", "lead-gen", "ai-search", "search-console"];
 
   const RESOURCES = {
     profile: profileResource,
     leads: leadsResource,
-
-    gallery: listResource({
-      resource: "gallery",
-      title: "Gallery",
-      hint: "Screenshots shown on the /gallery page. Each item belongs to a section. Changes go live immediately.",
-      fields: [
-        { key: "section",        label: "Section key",           type: "select", options: GALLERY_SECTIONS },
-        { key: "section_label",  label: "Section title",         placeholder: "D2C Revenue Month-on-Month" },
-        { key: "section_eyebrow",label: "Section eyebrow",       placeholder: "Looker Studio · D2C e-commerce" },
-        { key: "section_desc",   label: "Section description",   type: "textarea", wide: true, placeholder: "One sentence shown under the section heading." },
-        { key: "section_order",  label: "Section order (1 = first on page)", type: "number", default: 99 },
-        { key: "image_url",      label: "Image path",            placeholder: "/assets/gallery/D2C.PNG", wide: true, hint: "Use the exact filename including any URL-encoded spaces (%20). Files must be uploaded to /assets/gallery/ first." },
-        { key: "alt",            label: "Alt text",              placeholder: "Looker Studio SEO Report March 2026 showing ₹26K revenue", wide: true },
-        { key: "badge",          label: "Badge label",           placeholder: "Mar 2026" },
-        { key: "caption",        label: "Caption text",          placeholder: "Revenue ₹26.48K · Clicks 315 · Purchases 13", wide: true },
-        { key: "highlight",      label: "Highlighted card style (Looker Studio / AI reports)", type: "checkbox", default: false },
-        { key: "sort_order",     label: "Order within section (lower = earlier)", type: "number", default: 0 },
-      ],
-      summary: (i) => ({
-        title: `[${i.section || "—"}]  ${i.badge ? i.badge + "  ·  " : ""}${i.caption || i.image_url || "New image"}`,
-        sub: i.image_url,
-      }),
-    }),
+    gallery: galleryResource,
 
     stats: listResource({
       resource: "stats",
