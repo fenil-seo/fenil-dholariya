@@ -33,6 +33,8 @@ window.API = (() => {
     getContent: () => request("/api/content"),
     getPost: (slug) => request(`/api/posts?slug=${encodeURIComponent(slug)}`),
     getPosts: () => request("/api/posts"),
+    getProject: (slug) => request(`/api/projects?slug=${encodeURIComponent(slug)}`),
+    getProjects: () => request("/api/projects"),
 
     // Public write
     sendLead: (payload) => request("/api/leads", { method: "POST", body: JSON.stringify(payload) }),

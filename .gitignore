@@ -22,3 +22,6 @@ npm-debug.log*
 .agents/
 .neon
 skills-lock.json
+
+.vercel
+.env*

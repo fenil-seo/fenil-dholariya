@@ -68,6 +68,9 @@ const DDL = [
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
   `ALTER TABLE gallery ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE`,
+  `ALTER TABLE posts ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS body TEXT DEFAULT ''`,
 ];
 
 export default async function handler(req, res) {

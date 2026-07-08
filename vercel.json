@@ -4,6 +4,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/post/:slug", "destination": "/post" },
+    { "source": "/work/:slug", "destination": "/project" },
     { "source": "/sitemap.xml", "destination": "/api/content?format=sitemap" }
   ],
   "headers": [

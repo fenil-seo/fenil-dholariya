@@ -156,12 +156,22 @@
       const wide = f.wide ? ' style="grid-column:1/-1"' : "";
       return `<div class="field"${wide}><label>${esc(f.label)}</label><textarea class="textarea" data-field="${esc(f.key)}" placeholder="${esc(f.placeholder || "")}">${esc(text)}</textarea>${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}</div>`;
     }
+    if (f.type === "richtext") {
+      const html = String(value || "");
+      const wide = f.wide ? ' style="grid-column:1/-1"' : "";
+      return `<div class="field"${wide}><label>${esc(f.label)}</label><div class="rte-wrap" data-rte-key="${esc(f.key)}" data-initial="${esc(html)}"></div>${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}</div>`;
+    }
     return `<div class="field"><label>${esc(f.label)}</label><input class="input" type="${f.type || "text"}" data-field="${esc(f.key)}" value="${esc(value)}" placeholder="${esc(f.placeholder || "")}" /></div>`;
   }
 
   function readForm(container, fields) {
     const data = {};
     fields.forEach((f) => {
+      if (f.type === "richtext") {
+        const wrapper = container.querySelector(`.rte-wrap[data-rte-key="${f.key}"]`);
+        data[f.key] = wrapper && typeof wrapper.getValue === "function" ? wrapper.getValue() : "";
+        return;
+      }
       const el = container.querySelector(`[data-field="${f.key}"]`);
       if (!el) return;
       if (f.type === "checkbox") data[f.key] = el.checked;
@@ -178,6 +188,112 @@
       } else data[f.key] = el.value;
     });
     return data;
+  }
+
+  /* ---------- Rich text editor ---------- */
+  function createRichEditor(wrapper) {
+    const initial = wrapper.dataset.initial || "";
+    wrapper.innerHTML = `
+      <div class="rte-toolbar">
+        <select class="rte-block">
+          <option value="p">Paragraph</option>
+          <option value="h1">Heading 1</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+          <option value="h4">Heading 4</option>
+          <option value="h5">Heading 5</option>
+          <option value="h6">Heading 6</option>
+          <option value="blockquote">Quote</option>
+          <option value="pre">Code block</option>
+        </select>
+        <span class="rte-sep"></span>
+        <button type="button" class="rte-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
+        <button type="button" class="rte-btn" data-cmd="italic" title="Italic"><em>I</em></button>
+        <button type="button" class="rte-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+        <button type="button" class="rte-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+        <span class="rte-sep"></span>
+        <button type="button" class="rte-btn" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
+        <button type="button" class="rte-btn" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+        <span class="rte-sep"></span>
+        <button type="button" class="rte-btn" data-cmd="createLink" title="Insert link">Link</button>
+        <button type="button" class="rte-btn" data-cmd="unlink" title="Remove link">Unlink</button>
+        <button type="button" class="rte-btn" data-cmd="insertHorizontalRule" title="Horizontal rule">HR</button>
+        <span class="rte-sep"></span>
+        <button type="button" class="rte-btn" data-action="source" title="Toggle HTML source">HTML</button>
+      </div>
+      <div class="rte-editor" contenteditable="true" data-placeholder="Write your content here…"></div>
+      <textarea class="textarea rte-source" style="display:none;border:none;border-top:1px solid var(--line);border-radius:0;min-height:200px;resize:vertical;font-family:var(--font-mono);font-size:0.82rem"></textarea>
+    `;
+
+    const editor = wrapper.querySelector(".rte-editor");
+    const source = wrapper.querySelector(".rte-source");
+    const blockSel = wrapper.querySelector(".rte-block");
+
+    editor.innerHTML = initial;
+
+    function updateActive() {
+      wrapper.querySelectorAll(".rte-btn[data-cmd]").forEach((btn) => {
+        try { btn.classList.toggle("is-active", document.queryCommandState(btn.dataset.cmd)); } catch {}
+      });
+      try {
+        const block = document.queryCommandValue("formatBlock").toLowerCase().replace(/^<|>$/g, "") || "p";
+        if (blockSel.querySelector(`option[value="${block}"]`)) blockSel.value = block;
+      } catch {}
+    }
+
+    wrapper.querySelector(".rte-toolbar").addEventListener("mousedown", (e) => {
+      const btn = e.target.closest("[data-cmd]");
+      if (btn) {
+        e.preventDefault();
+        const cmd = btn.dataset.cmd;
+        if (cmd === "createLink") {
+          const url = prompt("Enter URL (include https://):");
+          if (url) document.execCommand("createLink", false, url);
+        } else {
+          document.execCommand(cmd, false, null);
+        }
+        editor.focus();
+        updateActive();
+        return;
+      }
+      if (e.target.closest("[data-action='source']")) {
+        e.preventDefault();
+        const srcBtn = wrapper.querySelector("[data-action='source']");
+        if (editor.style.display === "none") {
+          editor.innerHTML = source.value;
+          source.style.display = "none";
+          editor.style.display = "";
+          srcBtn.classList.remove("is-active");
+        } else {
+          source.value = editor.innerHTML;
+          editor.style.display = "none";
+          source.style.display = "";
+          srcBtn.classList.add("is-active");
+        }
+      }
+    });
+
+    blockSel.addEventListener("change", (e) => {
+      const val = e.target.value;
+      document.execCommand("formatBlock", false, `<${val}>`);
+      editor.focus();
+    });
+
+    editor.addEventListener("keyup", updateActive);
+    editor.addEventListener("mouseup", updateActive);
+    editor.addEventListener("focus", updateActive);
+
+    wrapper.getValue = () => editor.style.display === "none" ? source.value : editor.innerHTML;
+    wrapper.setValue = (html) => { editor.innerHTML = html || ""; if (source.style.display !== "none") source.value = html || ""; };
+  }
+
+  function postInitFields(container, fields) {
+    if (!container) return;
+    fields.forEach((f) => {
+      if (f.type !== "richtext") return;
+      const wrapper = container.querySelector(`.rte-wrap[data-rte-key="${f.key}"]`);
+      if (wrapper) createRichEditor(wrapper);
+    });
   }
 
   /* ---------- Generic list-resource CRUD (stats, services, process, projects, posts, testimonials, skills, timeline) ---------- */
@@ -240,6 +356,7 @@
               <p class="form-status" data-role="status"></p>
             </div>
           `;
+          postInitFields(card.querySelector(".admin-card__body"), fields);
           if (isNew) card.classList.add("is-open");
 
           card.querySelector('[data-action="toggle"]').addEventListener("click", () => card.classList.toggle("is-open"));
@@ -901,7 +1018,8 @@
         { key: "category", label: "Category", placeholder: "D2C / E-commerce" },
         { key: "client", label: "Client", placeholder: "Silver jewellery brand" },
         { key: "desc", label: "Description", type: "textarea", wide: true },
-        { key: "viz", label: "Visual", type: "select", options: VIZ_OPTIONS },
+        { key: "image_url", label: "Cover image path (16:9)", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Commit the image to GitHub under /assets/, paste the path here. Use 16:9 images for best results. Leave blank to show the animated visual instead." },
+        { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
         { key: "metrics", label: "Metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label" },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
@@ -913,6 +1031,7 @@
           wide: true,
           hint: "Optional. Paste any schema.org JSON-LD object (or array) - e.g. a Review or Product node for this case study. Leave blank to skip.",
         },
+        { key: "body", label: "Case study body", type: "richtext", wide: true, hint: "Full case study content shown on the /work/<slug> page." },
       ],
       summary: (i) => ({ title: i.title, sub: `${i.category || ""} · /work/${i.slug}` }),
     }),
@@ -926,8 +1045,9 @@
         { key: "slug", label: "URL slug", placeholder: "(auto from title if left blank)" },
         { key: "category", label: "Category", placeholder: "AI & SEO" },
         { key: "excerpt", label: "Excerpt", type: "textarea", wide: true },
-        { key: "body", label: "Body (HTML)", type: "textarea", wide: true, hint: "Tags like <p>, <h2>, <em>, <strong>, <a> are allowed.", placeholder: "<p>Article content…</p>" },
-        { key: "viz", label: "Visual", type: "select", options: VIZ_OPTIONS },
+        { key: "image_url", label: "Cover image path (16:9)", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Commit the image to GitHub under /assets/, paste the path here. Use 16:9 images for best results. Leave blank to show the animated visual instead." },
+        { key: "body", label: "Article body", type: "richtext", wide: true },
+        { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
         { key: "reading_time", label: "Reading time (min)", type: "number", default: 5 },
         { key: "date", label: "Publish date", type: "date" },

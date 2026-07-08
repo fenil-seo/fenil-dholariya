@@ -24,9 +24,12 @@
     document.getElementById("postMeta").innerHTML =
       `<span>${R.esc(R.fmtDate(post.date))}</span><span>·</span><span>${R.esc(post.reading_time || 5)} min read</span>`;
 
-    const cover = document.getElementById("postCover");
-    cover.dataset.viz = post.viz || "network";
-    cover.dataset.accent = post.accent || "violet";
+    const heroWrap = document.getElementById("postHeroWrap");
+    if (post.image_url) {
+      heroWrap.innerHTML = `<div class="post-hero-img reveal" data-delay="2"><img src="${R.esc(post.image_url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
+    } else {
+      heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
+    }
 
     document.getElementById("postBody").innerHTML = post.body || `<p>${R.esc(post.excerpt || "")}</p>`;
 
@@ -74,7 +77,7 @@
     document.getElementById("postTitle").textContent = "This article doesn't exist (yet).";
     document.getElementById("postBody").innerHTML =
       `<p>It may have been moved or unpublished. <a class="text-link" href="/blog">Browse the blog →</a></p>`;
-    document.getElementById("postCover").style.display = "none";
+    document.getElementById("postHeroWrap").style.display = "none";
     window.refreshAnimations?.();
   }
 

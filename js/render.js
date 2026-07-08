@@ -67,9 +67,16 @@ window.Render = (() => {
   function renderProjects(projects, el, { full = false } = {}) {
     if (!el || !projects?.length) return;
     if (full) {
-      el.innerHTML = projects.map((p) => `
+      el.innerHTML = projects.map((p) => {
+        const media = p.image_url
+          ? `<div class="case__media case__media--img"><img src="${esc(p.image_url)}" alt="${esc(p.title)}" loading="lazy"></div>`
+          : `<div class="case__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}"></div>`;
+        const link = p.slug
+          ? `<a class="case__readmore" href="/work/${esc(p.slug)}">Read case study →</a>`
+          : "";
+        return `
         <article class="case reveal is-in">
-          <div class="case__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}"></div>
+          ${media}
           <div>
             <span class="tag">${esc(p.category)}</span>
             <div class="case__client">CLIENT - ${esc(p.client || "")}</div>
@@ -78,14 +85,18 @@ window.Render = (() => {
             <div class="case__metrics">
               ${(p.metrics || []).map((m) => `<div class="case__metric"><b>${esc(m.value)}</b><span>${esc(m.label)}</span></div>`).join("")}
             </div>
+            ${link}
           </div>
-        </article>`).join("");
+        </article>`;
+      }).join("");
     } else {
-      el.innerHTML = projects.map((p, i) => `
+      el.innerHTML = projects.map((p, i) => {
+        const media = p.image_url
+          ? `<div class="project__media project__media--img"><img src="${esc(p.image_url)}" alt="${esc(p.title)}" loading="lazy"><span class="project__tag">${esc(p.category)}</span></div>`
+          : `<div class="project__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}"><span class="project__tag">${esc(p.category)}</span></div>`;
+        return `
         <article class="project reveal is-in" data-delay="${i % 5}" data-cursor>
-          <div class="project__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}">
-            <span class="project__tag">${esc(p.category)}</span>
-          </div>
+          ${media}
           <div class="project__body">
             <h3 class="project__title">${esc(p.title)}</h3>
             <p class="project__desc">${esc(p.desc)}</p>
@@ -93,14 +104,18 @@ window.Render = (() => {
               ${(p.metrics || []).slice(0, 3).map((m) => `<div class="project__metric"><b>${esc(m.value)}</b><span>${esc(m.label)}</span></div>`).join("")}
             </div>
           </div>
-        </article>`).join("");
+        </article>`;
+      }).join("");
     }
   }
 
   function postCard(p, delay) {
+    const media = p.image_url
+      ? `<div class="post-card__media post-card__media--img"><img src="${esc(p.image_url)}" alt="${esc(p.title)}" loading="lazy"></div>`
+      : `<div class="post-card__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}"></div>`;
     return `
       <a class="post-card reveal is-in" ${delay ? `data-delay="${delay}"` : ""} href="/post/${esc(p.slug)}" data-category="${esc(p.category)}" data-cursor>
-        <div class="post-card__media viz" data-viz="${esc(p.viz || "network")}" data-accent="${esc(p.accent || "violet")}"></div>
+        ${media}
         <div class="post-card__body">
           <div class="post-card__meta"><span class="post-card__cat">${esc(p.category)}</span><span>·</span><span>${esc(fmtDate(p.date))}</span><span>·</span><span>${esc(p.reading_time || 5)} min</span></div>
           <h3 class="post-card__title">${esc(p.title)}</h3>
