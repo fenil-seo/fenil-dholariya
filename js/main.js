@@ -448,3 +448,46 @@
   window.addEventListener("content:hydrated", () => bindAll(document));
   window.refreshAnimations = () => bindAll(document);
 })();
+
+/* ---------- Gallery: "View More" progressive disclosure ---------- */
+(function galleryCollapse() {
+  document.querySelectorAll(".gallery-grid--collapsible").forEach(function (grid) {
+    var items = grid.querySelectorAll(".gallery-item");
+    var total = items.length;
+    if (total <= 4) return;
+
+    grid.classList.add("is-collapsed");
+    var hidden = total - 4;
+
+    var btn = document.createElement("button");
+    btn.className = "gallery-more-btn";
+    btn.setAttribute("type", "button");
+    btn.setAttribute("aria-expanded", "false");
+    btn.innerHTML =
+      "Show " + hidden + " more photos" +
+      ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+    grid.after(btn);
+
+    btn.addEventListener("click", function () {
+      var isCollapsed = grid.classList.contains("is-collapsed");
+      grid.classList.toggle("is-collapsed");
+
+      if (isCollapsed) {
+        /* Expanding: mark hidden items as visible so reveal CSS fires */
+        grid.querySelectorAll(".gallery-item.reveal").forEach(function (item) {
+          item.classList.add("is-visible");
+        });
+        btn.setAttribute("aria-expanded", "true");
+        btn.innerHTML =
+          "Show less" +
+          ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>';
+      } else {
+        btn.setAttribute("aria-expanded", "false");
+        btn.innerHTML =
+          "Show " + hidden + " more photos" +
+          ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+        grid.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+  });
+})();
