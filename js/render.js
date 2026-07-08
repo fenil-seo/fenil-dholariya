@@ -27,6 +27,8 @@ window.Render = (() => {
     funnel: '<path d="M3 4h18l-7 8v6l-4 2v-8L3 4Z"/>',
     ai: '<path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/>',
     research: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
+    sem: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/>',
+    web: '<path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>',
   };
 
   function renderStats(stats, el) {

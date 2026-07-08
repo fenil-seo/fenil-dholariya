@@ -117,6 +117,18 @@ async function insertSeedIfEmpty(sql) {
       await sql(`INSERT INTO services (icon, title, description, sort_order) VALUES ($1,$2,$3,$4)`, [s.icon, s.title, s.desc, i]);
     }
     inserted.services = SEED.services.length;
+  } else {
+    // Add new services (SEM, web) if they don't exist yet
+    let newServices = 0;
+    const currentCount = await count("services");
+    for (const [i, s] of SEED.services.entries()) {
+      const exists = await sql(`SELECT 1 FROM services WHERE LOWER(title)=LOWER($1) LIMIT 1`, [s.title]);
+      if (!exists.length) {
+        await sql(`INSERT INTO services (icon, title, description, sort_order) VALUES ($1,$2,$3,$4)`, [s.icon, s.title, s.desc, currentCount + i]);
+        newServices++;
+      }
+    }
+    if (newServices) inserted.new_services = newServices;
   }
 
   if ((await count("process_steps")) === 0) {
@@ -129,11 +141,23 @@ async function insertSeedIfEmpty(sql) {
   if ((await count("projects")) === 0) {
     for (const [i, p] of SEED.projects.entries()) {
       await sql(
-        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10)`,
-        [p.slug, p.title, p.category, p.client, p.desc, p.viz || "network", p.accent || "violet", JSON.stringify(p.metrics || []), p.featured !== false, i]
+        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, image_url, body) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12)`,
+        [p.slug, p.title, p.category, p.client, p.desc, p.viz || "network", p.accent || "violet", JSON.stringify(p.metrics || []), p.featured !== false, i, p.image_url || "", p.body || ""]
       );
     }
     inserted.projects = SEED.projects.length;
+  } else {
+    // Upsert project body content into existing rows (only fills empty body columns)
+    let bodyUpdated = 0;
+    for (const p of SEED.projects) {
+      if (!p.body) continue;
+      const rows = await sql(
+        `UPDATE projects SET body=$1 WHERE slug=$2 AND (body IS NULL OR body='') RETURNING id`,
+        [p.body, p.slug]
+      );
+      bodyUpdated += rows.length;
+    }
+    if (bodyUpdated) inserted.project_bodies = bodyUpdated;
   }
 
   if ((await count("posts")) === 0) {
@@ -158,6 +182,18 @@ async function insertSeedIfEmpty(sql) {
       await sql(`INSERT INTO skills (name, sort_order) VALUES ($1,$2)`, [s, i]);
     }
     inserted.skills = SEED.skills.length;
+  } else {
+    // Add new skills if they don't exist yet
+    let newSkills = 0;
+    const skillCount = await count("skills");
+    for (const [i, s] of SEED.skills.entries()) {
+      const exists = await sql(`SELECT 1 FROM skills WHERE LOWER(name)=LOWER($1) LIMIT 1`, [s]);
+      if (!exists.length) {
+        await sql(`INSERT INTO skills (name, sort_order) VALUES ($1,$2)`, [s, skillCount + i]);
+        newSkills++;
+      }
+    }
+    if (newSkills) inserted.new_skills = newSkills;
   }
 
   if ((await count("timeline")) === 0) {
@@ -165,6 +201,18 @@ async function insertSeedIfEmpty(sql) {
       await sql(`INSERT INTO timeline (role, org, period, sort_order) VALUES ($1,$2,$3,$4)`, [t.role, t.org, t.period, i]);
     }
     inserted.timeline = SEED.timeline.length;
+  } else {
+    // Add new timeline entries (e.g. education) if not already there
+    let newTimeline = 0;
+    const tlCount = await count("timeline");
+    for (const [i, t] of SEED.timeline.entries()) {
+      const exists = await sql(`SELECT 1 FROM timeline WHERE LOWER(role)=LOWER($1) AND LOWER(org)=LOWER($2) LIMIT 1`, [t.role, t.org]);
+      if (!exists.length) {
+        await sql(`INSERT INTO timeline (role, org, period, sort_order) VALUES ($1,$2,$3,$4)`, [t.role, t.org, t.period, tlCount + i]);
+        newTimeline++;
+      }
+    }
+    if (newTimeline) inserted.new_timeline = newTimeline;
   }
 
   if ((await count("gallery_sections")) === 0) {

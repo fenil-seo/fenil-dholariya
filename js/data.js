@@ -36,32 +36,42 @@ window.SITE_DATA = {
     {
       icon: "audit",
       title: "SEO & Technical Audits",
-      desc: "Deep crawl, Core Web Vitals, indexation and architecture fixes that remove the brakes on your rankings.",
+      desc: "Deep crawl, Core Web Vitals, indexation and architecture fixes that remove the invisible ceiling on your rankings — and keep it gone.",
     },
     {
       icon: "content",
       title: "Content That Converts",
-      desc: "Search-led content and copy engineered for humans and algorithms - built around buyer intent, not keyword stuffing.",
+      desc: "Search-led content built around genuine buyer intent. Pages that earn the click, answer the question and move readers toward a decision.",
     },
     {
       icon: "local",
       title: "Local SEO & Google Business",
-      desc: "Map-pack visibility, GBP optimization and review systems that turn nearby searches into phone calls and walk-ins.",
+      desc: "Map-pack dominance, GBP optimization and a review velocity system that turns nearby searches into phone calls, walk-ins and booked jobs.",
     },
     {
       icon: "funnel",
       title: "Lead Gen & Funnel Optimization",
-      desc: "From first click to closed deal - landing pages, tracking and funnels tuned to lift qualified leads, not just traffic.",
+      desc: "From first click to closed deal — landing pages, tracking and funnels aligned to the way real buyers make decisions, not just traffic volume.",
     },
     {
       icon: "ai",
       title: "AI & Prompt Engineering",
-      desc: "Custom AI workflows that scale research, briefs and production without sacrificing quality or brand voice.",
+      desc: "Custom AI workflows that 3x content output without sacrificing quality, brand voice or accuracy. Scale the work — not the headcount.",
     },
     {
       icon: "research",
       title: "Market & Competitive Intel",
-      desc: "Know exactly where the demand and the gaps are, so every campaign targets high-impact opportunities first.",
+      desc: "Know exactly where demand sits and where competitors are vulnerable before a single piece of content is commissioned or a single dollar spent.",
+    },
+    {
+      icon: "sem",
+      title: "Search Engine Marketing (SEM)",
+      desc: "Precision Google Ads campaigns engineered for return, not just reach. Smart bidding, intent-matched ad copy and landing pages that convert — every ad dollar made accountable.",
+    },
+    {
+      icon: "web",
+      title: "Performance Web Development",
+      desc: "Fast, clean, SEO-ready websites that score 90+ on PageSpeed, pass Core Web Vitals and are built to rank from day one — no technical debt, no bloat.",
     },
   ],
 
@@ -86,63 +96,186 @@ window.SITE_DATA = {
   projects: [
     {
       slug: "d2c-silver-jewellery",
-      title: "D2C Silver Jewellery - Organic Growth Engine",
+      title: "D2C Silver Jewellery — Organic Growth Engine",
       category: "D2C / E-commerce",
-      client: "Silver jewellery brand",
-      desc: "Rebuilt product-page architecture and search-led content to turn organic search into a primary sales channel for a direct-to-consumer silver brand.",
+      client: "Direct-to-consumer silver jewellery brand",
+      desc: "Rebuilt product-page architecture and search-led content to turn organic search into a primary sales channel — doubling revenue without a single extra dollar in ad spend.",
       viz: "network",
       accent: "violet",
       metrics: [
-        { value: "2.1x", label: "Organic sales" },
-        { value: "+64%", label: "PDP visibility" },
-        { value: "40+", label: "Keywords on pg.1" },
+        { value: "2.1x", label: "Organic revenue" },
+        { value: "+64%", label: "Product page visibility" },
+        { value: "40+", label: "Keywords on page 1" },
       ],
       featured: true,
+      body: `<h2>The Challenge</h2>
+<p>A direct-to-consumer silver jewellery brand was running paid ads just to keep the lights on. Their product pages were thin, structurally broken and invisible in organic search for the high-intent queries that drive purchases. Despite a strong product range, organic was contributing almost nothing to revenue.</p>
+
+<h2>The Audit Findings</h2>
+<p>A full technical and content audit surfaced four core problems blocking organic growth:</p>
+<ul>
+<li><strong>Duplicate title tags across PDPs</strong> — Google couldn't distinguish between product pages</li>
+<li><strong>Flat, intent-agnostic URL structure</strong> — no topical clusters, no hierarchy</li>
+<li><strong>Thin product descriptions</strong> — less than 80 words per page, no schema, no entities</li>
+<li><strong>Zero internal linking strategy</strong> — authority wasn't being concentrated anywhere useful</li>
+</ul>
+
+<h2>The Approach</h2>
+<h3>Product page architecture rebuild</h3>
+<p>We restructured URLs around buyer intent clusters — material + style + occasion. Parent category pages were built to capture head-term traffic and funnel it to specific product pages. Each tier had a clear job in the conversion path.</p>
+
+<h3>Content depth and entity coverage</h3>
+<p>Each product description was rewritten using search-informed briefs: material purity, craftsmanship notes, care instructions, styling advice and social proof signals. Not keyword stuffing — content that genuinely helps buyers decide and gives search engines the entity context they need.</p>
+
+<h3>Schema markup implementation</h3>
+<p>Product, BreadcrumbList and Review schema was implemented across all PDPs. Rich result eligibility increased within six weeks, improving click-through rate from search results without any ranking change.</p>
+
+<h3>Internal link architecture</h3>
+<p>A hub-and-spoke structure was built connecting collection pages to individual PDPs with descriptive anchor text. Authority that was previously diffused across hundreds of undifferentiated pages was now concentrated where it could convert.</p>
+
+<h2>Results — 6 Months</h2>
+<ul>
+<li>Organic revenue <strong>doubled (2.1x)</strong> with zero increase in ad spend</li>
+<li>Product page impressions in Google Search Console <strong>+64%</strong></li>
+<li><strong>40+ high-intent keywords</strong> — including category-level terms — moved to page 1</li>
+<li>Organic search became the brand's primary acquisition channel for the first time</li>
+</ul>
+
+<h2>Key Takeaway</h2>
+<p>For D2C brands, the highest-ROI SEO move is almost always the least glamorous one: fixing the structural foundation. A clean product page architecture combined with genuinely useful content consistently outperforms any volume-first content strategy built on a broken base.</p>`,
     },
     {
       slug: "local-construction-gmb",
-      title: "Construction & Fencing - Local Lead Machine",
+      title: "Construction & Fencing — Local Lead Machine",
       category: "Local SEO",
-      client: "Local contractor",
-      desc: "Optimized the Google Business Profile, built a review engine and local landing pages to scale qualified, ready-to-buy leads.",
+      client: "Local construction & fencing contractor",
+      desc: "Optimized the Google Business Profile, built a review velocity system and created local landing pages — tripling qualified inbound calls in 90 days.",
       viz: "bars",
       accent: "cyan",
       metrics: [
-        { value: "3x", label: "Qualified leads" },
+        { value: "3x", label: "Qualified inbound calls" },
         { value: "+120%", label: "Calls from search" },
-        { value: "Top 3", label: "Map-pack rank" },
+        { value: "Top 3", label: "Map-pack position" },
       ],
       featured: true,
+      body: `<h2>The Challenge</h2>
+<p>A local construction and fencing contractor had a strong reputation in their area — but was nearly invisible in local search. Competitors with weaker services consistently ranked above them in the Google Map Pack, capturing the calls that should have been theirs. Their Google Business Profile was incomplete, they had fewer than 10 reviews, and their website had no location-specific pages.</p>
+
+<h2>The Approach</h2>
+<p>Local SEO is a compounding game — every improvement feeds the next. We ran a structured four-phase sprint over 90 days, targeting the three pillars Google uses for local ranking: relevance, prominence and proximity.</p>
+
+<h3>Phase 1 — Google Business Profile overhaul</h3>
+<p>We rebuilt the GBP from scratch: corrected primary and secondary business categories, added a comprehensive service list with descriptions, uploaded professional project photos on a weekly schedule, activated messaging, and set up a Q&amp;A response system. An active, complete profile consistently outranks a neglected one — regardless of the business's actual quality.</p>
+
+<h3>Phase 2 — Review velocity system</h3>
+<p>We built a simple post-job review workflow: a personalised SMS sent 48 hours after project completion with a direct link to the GBP review form. In 90 days, review count grew from 8 to 60+. Volume, recency and response rate all improved in parallel — exactly the signals Google weights most heavily in local ranking.</p>
+
+<h3>Phase 3 — Local landing pages</h3>
+<p>Individual service-area pages were created for each service and location combination — unique content, real project photos, accurate NAP data, and service-specific FAQs. These pages supported the GBP listing's authority signals while capturing long-tail local traffic the GBP alone couldn't reach.</p>
+
+<h3>Phase 4 — Citation clean-up</h3>
+<p>NAP inconsistencies across 40+ local directories were audited and corrected. Inconsistent name, address and phone data is a silent local ranking killer most businesses never diagnose.</p>
+
+<h2>Results — 90 Days</h2>
+<ul>
+<li>Qualified inbound calls from Google <strong>tripled (3x)</strong></li>
+<li>Calls directly attributed to search <strong>+120%</strong></li>
+<li>Moved from outside the Map Pack to a <strong>consistent Top 3 position</strong> for core service + location searches</li>
+</ul>
+
+<h2>Key Takeaway</h2>
+<p>For service businesses, three Map Pack slots decide who gets the call. You can't control proximity — but relevance (a complete, correctly categorised GBP) and prominence (review velocity + citation consistency) are entirely within your control. Nail those two, and the leads follow.</p>`,
     },
     {
       slug: "b2b-saas-pipeline",
-      title: "B2B SaaS - Content-Led Pipeline",
+      title: "B2B SaaS — Content-Led Pipeline",
       category: "SaaS / B2B",
-      client: "SaaS company",
-      desc: "Built an intent-mapped content engine and AI-driven nurture sequences that grew trials and tripled marketing-qualified leads.",
+      client: "B2B SaaS company",
+      desc: "Built an intent-mapped content engine and AI-driven nurture sequences that tripled marketing-qualified leads and reduced paid acquisition dependence.",
       viz: "orbit",
       accent: "violet",
       metrics: [
-        { value: "3x", label: "MQLs" },
+        { value: "3x", label: "Marketing-qualified leads" },
         { value: "+58%", label: "Trial signups" },
         { value: "-22%", label: "Cost per lead" },
       ],
       featured: true,
+      body: `<h2>The Challenge</h2>
+<p>A B2B SaaS company had a capable product and a reasonable marketing budget — but a broken organic acquisition model. Their blog produced content on trending topics with no search intent alignment, their trial signup funnel leaked at every stage, and customer acquisition cost from paid channels was climbing quarter over quarter. They needed a scalable, compounding alternative to paid spend.</p>
+
+<h2>The Diagnosis</h2>
+<p>The root cause was a misalignment between content topics and buyer stages. The blog was producing awareness-level content for visitors who were already solution-aware. The pages that should have driven trial signups — feature comparisons, use-case guides, integration deep-dives — either didn't exist or ranked for nothing.</p>
+
+<h2>The Approach</h2>
+<h3>Stage 1 — Intent mapping</h3>
+<p>Every keyword cluster was mapped to a buyer stage: <em>unaware</em> (industry pain-point content), <em>problem-aware</em> (comparison content, use-case guides), <em>solution-aware</em> (feature deep-dives, alternatives, integrations) and <em>purchase-ready</em> (pricing, ROI calculators, case studies). Every content brief was tied to a stage and a measurable downstream outcome — not just a search volume number.</p>
+
+<h3>Stage 2 — AI-assisted content production</h3>
+<p>We built an AI-accelerated production workflow: keyword research → intent brief → AI draft → expert editing → internal accuracy review → publish. The system let the marketing team publish technically accurate, high-quality content at 3× their previous velocity — without the output reading like it was generated by a machine.</p>
+
+<h3>Stage 3 — Conversion layer retrofit</h3>
+<p>Every existing page was retrofitted with contextually relevant CTAs matched to the reader's stage. Awareness content got low-friction offers. Comparison content got free trial CTAs with clear differentiators. The generic "Start Free Trial" button that appeared everywhere was replaced with intent-specific offers — and blog-to-trial conversion rate lifted immediately.</p>
+
+<h3>Stage 4 — Intent-triggered nurture sequences</h3>
+<p>We built email nurture sequences aligned to content clusters. Visitors who read comparison content received competitor-focused nurture. Those reading integration guides received feature-depth sequences. Personalised nurture compressed time-to-trial and reduced the number of touchpoints required to convert.</p>
+
+<h2>Results — 6 Months</h2>
+<ul>
+<li>Marketing-qualified leads from organic <strong>tripled (3x)</strong></li>
+<li>Trial signups from content channels <strong>+58%</strong></li>
+<li>Cost per lead from organic channels <strong>fell 22%</strong> as paid dependence reduced</li>
+<li>Organic search overtook paid as the leading MQL source in month 5</li>
+</ul>
+
+<h2>Key Takeaway</h2>
+<p>SaaS content that doesn't align to buyer intent is expensive noise. Map every piece to a stage, match the conversion offer to that stage, and build nurture sequences that continue the conversation. The compounding effect of a well-mapped content engine typically takes 3–4 months to appear — and then it accelerates faster than any paid channel can match.</p>`,
     },
     {
       slug: "ayurvedic-technical-seo",
-      title: "Ayurvedic D2C - Technical SEO Turnaround",
+      title: "Ayurvedic D2C — Technical SEO Turnaround",
       category: "Technical SEO",
-      client: "Ayurvedic brand",
-      desc: "Resolved crawl, indexation and Core Web Vitals issues that were capping growth, unlocking a steady organic traffic climb.",
+      client: "Ayurvedic D2C brand",
+      desc: "Resolved crawl waste, Core Web Vitals failures and duplicate content issues that were silently capping growth — unlocking a 60% organic traffic lift in 90 days.",
       viz: "wave",
       accent: "cyan",
       metrics: [
-        { value: "-85%", label: "Crawl errors" },
-        { value: "+60%", label: "Organic traffic" },
-        { value: "96", label: "Core Web Vitals" },
+        { value: "-85%", label: "Technical errors eliminated" },
+        { value: "+60%", label: "Organic traffic in 90 days" },
+        { value: "96", label: "PageSpeed score" },
       ],
       featured: true,
+      body: `<h2>The Challenge</h2>
+<p>An Ayurvedic D2C brand was producing solid content and building out their product range — but organic traffic had plateaued for 18 months. Rankings wouldn't move despite consistent publishing. A working hypothesis emerged: something at the technical level was acting as a ceiling, preventing Google from properly crawling, evaluating and ranking the content that already existed.</p>
+
+<h2>The Audit Findings</h2>
+<p>A deep technical crawl confirmed the hypothesis. The site had accumulated significant technical debt across four problem areas:</p>
+<ul>
+<li><strong>Crawl budget waste</strong> — 40% of crawl budget was being consumed by paginated URLs, session-parameter variants and faceted navigation URLs that should never have been indexed.</li>
+<li><strong>Core Web Vitals failures</strong> — LCP of 4.8s on mobile (threshold: 2.5s), driven by unoptimised hero images and render-blocking third-party scripts loaded synchronously in the document head.</li>
+<li><strong>Duplicate content at scale</strong> — Product variant URLs (size, pack quantity) were generating hundreds of near-identical pages, splitting link authority across thin duplicates instead of concentrating it on the canonical PDP.</li>
+<li><strong>Broken internal link graph</strong> — 200+ internal links pointing to 404 pages, leaking page authority into dead ends throughout the site architecture.</li>
+</ul>
+
+<h2>The Fix — 90-Day Sprint</h2>
+<h3>Month 1 — Crawlability and indexation</h3>
+<p>We restructured robots.txt directives and meta robots tags to block parameter variants and faceted navigation URLs from crawling. The XML sitemap was rebuilt to include only canonical, indexable pages. All 200+ broken internal links were identified and corrected. Within 30 days, crawl error volume dropped by 85%.</p>
+
+<h3>Month 2 — Core Web Vitals</h3>
+<p>The entire image pipeline was rebuilt: all hero and product images converted to WebP/AVIF, lazy loading enabled for below-fold media, and the LCP image preloaded. Render-blocking third-party scripts were audited and non-critical tags deferred. LCP improved from 4.8s to 1.6s on mobile. CLS was eliminated by adding explicit width and height attributes to all media elements.</p>
+
+<h3>Month 3 — Consolidation and architecture</h3>
+<p>Product variant URLs were canonicalized to their primary PDPs. Thin category and ingredient pages were either consolidated or refreshed with substantive, intent-aligned content. An internal link audit redistributed authority toward the pages with the highest conversion potential.</p>
+
+<h2>Results — 90 Days</h2>
+<ul>
+<li>Technical SEO errors <strong>reduced by 85%</strong></li>
+<li>Organic traffic <strong>+60%</strong> in 90 days — rankings moved once crawlers could properly access and evaluate existing content</li>
+<li>PageSpeed Insights score reached <strong>96/100</strong> across key pages</li>
+<li>Content published before the engagement began started ranking — no new content required</li>
+</ul>
+
+<h2>Key Takeaway</h2>
+<p>Technical debt is a silent ranking ceiling. You can publish excellent content for months and see no movement if crawlers can't access it efficiently, pages are too slow to rank competitively, or authority is being diluted across hundreds of duplicate URLs. Fix the foundation first — and the content you already have starts working harder immediately.</p>`,
     },
   ],
 
@@ -269,6 +402,7 @@ window.SITE_DATA = {
     "Technical SEO", "On-Page SEO", "Content Strategy", "Local SEO", "Google Business Profile",
     "Prompt Engineering", "AI Workflows", "Keyword Research", "Core Web Vitals", "Link Building",
     "Google Analytics 4", "Search Console", "Screaming Frog", "Funnel Optimization", "Copywriting",
+    "Google Ads", "SEM / PPC", "HTML / CSS / JS", "Web Performance",
   ],
 
   timeline: [
@@ -276,5 +410,6 @@ window.SITE_DATA = {
     { role: "SEO Head", org: "Ark Intelligence", period: "Nov 2024 - Aug 2025" },
     { role: "SEO Executive", org: "Dexoc Solutions", period: "Jan 2024 - Oct 2024" },
     { role: "Freelance Content Writer", org: "Independent", period: "2022 - 2023" },
+    { role: "B.Tech · Information Technology", org: "CHARUSAT University", period: "2020 - 2024" },
   ],
 };
