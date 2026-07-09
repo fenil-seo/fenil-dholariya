@@ -141,23 +141,26 @@ async function insertSeedIfEmpty(sql) {
   if ((await count("projects")) === 0) {
     for (const [i, p] of SEED.projects.entries()) {
       await sql(
-        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, image_url, body) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12)`,
-        [p.slug, p.title, p.category, p.client, p.desc, p.viz || "network", p.accent || "violet", JSON.stringify(p.metrics || []), p.featured !== false, i, p.image_url || "", p.body || ""]
+        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, image_url, body, period, services, challenge, approach, results_text, takeaway)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
+        [p.slug, p.title, p.category, p.client, p.desc, p.viz || "network", p.accent || "violet", JSON.stringify(p.metrics || []), p.featured !== false, i, p.image_url || "", p.body || "",
+         p.period || "", p.services || "", p.challenge || "", p.approach || "", p.results_text || "", p.takeaway || ""]
       );
     }
     inserted.projects = SEED.projects.length;
   } else {
-    // Upsert project body content into existing rows (only fills empty body columns)
-    let bodyUpdated = 0;
+    // Backfill structured case-study fields into rows that have no content yet
+    let filled = 0;
     for (const p of SEED.projects) {
-      if (!p.body) continue;
+      if (!p.challenge) continue;
       const rows = await sql(
-        `UPDATE projects SET body=$1 WHERE slug=$2 AND (body IS NULL OR body='') RETURNING id`,
-        [p.body, p.slug]
+        `UPDATE projects SET period=$2, services=$3, challenge=$4, approach=$5, results_text=$6, takeaway=$7
+         WHERE slug=$1 AND COALESCE(challenge,'')='' AND COALESCE(approach,'')='' AND COALESCE(body,'')='' RETURNING id`,
+        [p.slug, p.period || "", p.services || "", p.challenge, p.approach || "", p.results_text || "", p.takeaway || ""]
       );
-      bodyUpdated += rows.length;
+      filled += rows.length;
     }
-    if (bodyUpdated) inserted.project_bodies = bodyUpdated;
+    if (filled) inserted.project_case_studies = filled;
   }
 
   if ((await count("posts")) === 0) {
