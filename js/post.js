@@ -26,7 +26,8 @@
 
     const heroWrap = document.getElementById("postHeroWrap");
     if (post.image_url) {
-      heroWrap.innerHTML = `<div class="post-hero-img reveal" data-delay="2"><img src="${R.esc(post.image_url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
+      // No reveal class — image animates in via CSS keyframe so it's never stuck invisible
+      heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(post.image_url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
     } else {
       heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
     }
