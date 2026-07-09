@@ -26,8 +26,15 @@
 
     const heroWrap = document.getElementById("postHeroWrap");
     if (post.image_url) {
-      // No reveal class — image animates in via CSS keyframe so it's never stuck invisible
       heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(post.image_url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
+      const img = heroWrap.querySelector("img");
+      if (img) {
+        img.addEventListener("error", () => {
+          console.warn("[post] hero image failed to load — falling back to animation. URL was:", post.image_url);
+          heroWrap.innerHTML = `<div class="article-cover viz" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
+          window.refreshAnimations?.();
+        });
+      }
     } else {
       heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
     }
