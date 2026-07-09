@@ -161,6 +161,24 @@
       const wide = f.wide ? ' style="grid-column:1/-1"' : "";
       return `<div class="field"${wide}><label>${esc(f.label)}</label><div class="rte-wrap" data-rte-key="${esc(f.key)}" data-initial="${esc(html)}"></div>${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}</div>`;
     }
+    if (f.type === "image") {
+      const wide = f.wide ? ' style="grid-column:1/-1"' : "";
+      const hasSrc = Boolean(value);
+      return `<div class="field"${wide}>
+        <label>${esc(f.label)}</label>
+        <input class="input" type="text" data-field="${esc(f.key)}" value="${esc(value)}" placeholder="${esc(f.placeholder || "")}"
+          oninput="(function(inp){var w=inp.closest('.field');var img=w.querySelector('.img-prev__img');var ok=w.querySelector('.img-prev__ok');var err=w.querySelector('.img-prev__err');var wrap=w.querySelector('.img-prev');if(!inp.value.trim()){wrap.style.display='none';return;}wrap.style.display='block';ok.style.display='none';err.style.display='none';img.src=inp.value.trim();})(this)" />
+        <div class="img-prev" style="margin-top:8px;${hasSrc ? '' : 'display:none'}">
+          <img class="img-prev__img" src="${esc(value)}" alt="preview"
+            style="max-height:160px;width:auto;border-radius:8px;object-fit:cover;border:1px solid var(--line-strong);display:block"
+            onload="this.closest('.img-prev').querySelector('.img-prev__ok').style.display='block';this.closest('.img-prev').querySelector('.img-prev__err').style.display='none'"
+            onerror="this.closest('.img-prev').querySelector('.img-prev__ok').style.display='none';this.closest('.img-prev').querySelector('.img-prev__err').style.display='block'">
+          <p class="img-prev__ok admin-form__hint" style="color:#48bb78;display:none">✓ Image loaded successfully</p>
+          <p class="img-prev__err admin-form__hint" style="color:#f56565;display:none">✗ Cannot load this image — use a path like /assets/gallery/name.jpg (file committed to GitHub) or a direct https:// image URL</p>
+        </div>
+        ${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}
+      </div>`;
+    }
     return `<div class="field"><label>${esc(f.label)}</label><input class="input" type="${f.type || "text"}" data-field="${esc(f.key)}" value="${esc(value)}" placeholder="${esc(f.placeholder || "")}" /></div>`;
   }
 
@@ -1018,7 +1036,7 @@
         { key: "category", label: "Category", placeholder: "D2C / E-commerce" },
         { key: "client", label: "Client", placeholder: "Silver jewellery brand" },
         { key: "desc", label: "Description", type: "textarea", wide: true },
-        { key: "image_url", label: "Cover image path (16:9)", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Commit the image to GitHub under /assets/, paste the path here. Use 16:9 images for best results. Leave blank to show the animated visual instead." },
+        { key: "image_url", label: "Cover image (16:9)", type: "image", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Paste any https:// image URL, or a /assets/gallery/name.jpg path (file must be committed to GitHub). Leave blank to show the animated visual." },
         { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
         { key: "metrics", label: "Metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label" },
@@ -1045,8 +1063,8 @@
         { key: "slug", label: "URL slug", placeholder: "(auto from title if left blank)" },
         { key: "category", label: "Category", placeholder: "AI & SEO" },
         { key: "excerpt", label: "Excerpt", type: "textarea", wide: true },
-        { key: "image_url", label: "Card thumbnail (blog listing page)", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Shown as the card image on /blog. Commit the image to GitHub under /assets/, then paste the path here." },
-        { key: "blog_image_url", label: "Post hero image (inside the blog post)", placeholder: "/assets/gallery/my-post-hero.webp", wide: true, hint: "Large image shown at the top of the post page. Can be the same as the card thumbnail or a different one. If left blank, falls back to the card thumbnail." },
+        { key: "image_url", label: "Card thumbnail (blog listing page)", type: "image", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Shown as the card image on /blog. Paste any https:// image URL, or a /assets/gallery/name.jpg path (file must be committed to GitHub)." },
+        { key: "blog_image_url", label: "Post hero image (inside the blog post)", type: "image", placeholder: "/assets/gallery/my-post-hero.webp", wide: true, hint: "Large image at the top of the post. Can be same as card thumbnail or different. If blank, falls back to the card thumbnail." },
         { key: "body", label: "Article body", type: "richtext", wide: true },
         { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },

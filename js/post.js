@@ -25,17 +25,23 @@
       `<span>${R.esc(R.fmtDate(post.date))}</span><span>·</span><span>${R.esc(post.reading_time || 5)} min read</span>`;
 
     const heroWrap = document.getElementById("postHeroWrap");
-    const heroImg = post.blog_image_url || post.image_url;
-    if (heroImg) {
-      heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(heroImg)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
-      const img = heroWrap.querySelector("img");
-      if (img) {
-        img.addEventListener("error", () => {
-          console.warn("[post] hero image failed to load. URL was:", heroImg);
-          heroWrap.innerHTML = `<div class="article-cover viz" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
-          window.refreshAnimations?.();
-        });
-      }
+    const vizFallback = () => {
+      heroWrap.innerHTML = `<div class="article-cover viz" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
+      window.refreshAnimations?.();
+    };
+    // Cascade: blog_image_url → image_url → viz animation
+    function tryHeroUrl(urls) {
+      const url = urls.shift();
+      if (!url) { vizFallback(); return; }
+      heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
+      heroWrap.querySelector("img").addEventListener("error", () => {
+        console.warn("[post] hero image failed:", url, urls.length ? "→ trying next" : "→ using animation");
+        tryHeroUrl(urls);
+      });
+    }
+    const candidates = [post.blog_image_url, post.image_url].filter(Boolean);
+    if (candidates.length) {
+      tryHeroUrl(candidates);
     } else {
       heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
     }
