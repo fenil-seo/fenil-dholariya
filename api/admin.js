@@ -197,7 +197,7 @@ async function handleProjects(sql, action, id, data, res) {
 /* ---------- Posts (slug + body HTML) ---------- */
 async function handlePosts(sql, action, id, data, res) {
   await ensureNewColumns(sql);
-  const RETURNING = `id, slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, COALESCE(image_url,'') AS image_url`;
+  const RETURNING = `id, slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url`;
 
   if (action === "list") {
     const rows = await sql(`SELECT ${RETURNING} FROM posts ORDER BY date DESC, id DESC`);
@@ -221,12 +221,13 @@ async function handlePosts(sql, action, id, data, res) {
       data?.published !== false,
       schemaJson,
       data?.image_url || "",
+      data?.blog_image_url || "",
     ];
 
     if (action === "create") {
       const rows = await sql(
-        `INSERT INTO posts (slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, image_url)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12)
+        `INSERT INTO posts (slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, image_url, blog_image_url)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13)
          RETURNING ${RETURNING}`,
         params
       );
@@ -236,8 +237,8 @@ async function handlePosts(sql, action, id, data, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     params.push(id);
     const rows = await sql(
-      `UPDATE posts SET slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12
-       WHERE id = $13
+      `UPDATE posts SET slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13
+       WHERE id = $14
        RETURNING ${RETURNING}`,
       params
     );

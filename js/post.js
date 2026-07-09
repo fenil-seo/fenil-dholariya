@@ -25,12 +25,13 @@
       `<span>${R.esc(R.fmtDate(post.date))}</span><span>·</span><span>${R.esc(post.reading_time || 5)} min read</span>`;
 
     const heroWrap = document.getElementById("postHeroWrap");
-    if (post.image_url) {
-      heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(post.image_url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
+    const heroImg = post.blog_image_url || post.image_url;
+    if (heroImg) {
+      heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(heroImg)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
       const img = heroWrap.querySelector("img");
       if (img) {
         img.addEventListener("error", () => {
-          console.warn("[post] hero image failed to load — falling back to animation. URL was:", post.image_url);
+          console.warn("[post] hero image failed to load. URL was:", heroImg);
           heroWrap.innerHTML = `<div class="article-cover viz" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
           window.refreshAnimations?.();
         });

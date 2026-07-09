@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     if (slug) {
       const rows = await sql(
-        `SELECT slug, title, category, excerpt, body, viz, accent, reading_time, date, schema_markup, COALESCE(image_url,'') AS image_url FROM posts WHERE slug = $1 AND published = true LIMIT 1`,
+        `SELECT slug, title, category, excerpt, body, viz, accent, reading_time, date, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url FROM posts WHERE slug = $1 AND published = true LIMIT 1`,
         [slug]
       );
       if (rows.length) return res.status(200).json({ post: rows[0] });
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     }
 
     const rows = await sql(
-      `SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url FROM posts WHERE published = true ORDER BY date DESC, id DESC`
+      `SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url FROM posts WHERE published = true ORDER BY date DESC, id DESC`
     );
     return res.status(200).json({ posts: rows.length ? rows : SEED.posts });
   } catch (err) {

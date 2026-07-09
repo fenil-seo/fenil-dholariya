@@ -31,7 +31,7 @@ async function loadContent() {
       sql(`SELECT icon, title, description AS "desc" FROM services ORDER BY sort_order, id`),
       sql(`SELECT title, description AS "desc" FROM process_steps ORDER BY sort_order, id`),
       sql(`SELECT slug, title, category, client, description AS "desc", viz, accent, metrics, featured, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body FROM projects ORDER BY sort_order, id`),
-      sql(`SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url FROM posts WHERE published = true ORDER BY date DESC, id DESC`),
+      sql(`SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url FROM posts WHERE published = true ORDER BY date DESC, id DESC`),
       sql(`SELECT quote, name, role, initials FROM testimonials ORDER BY sort_order, id`),
       sql(`SELECT name FROM skills ORDER BY sort_order, id`),
       sql(`SELECT role, org, period FROM timeline ORDER BY sort_order, id`),
