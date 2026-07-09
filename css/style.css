@@ -930,3 +930,52 @@ p { color: var(--text-soft); }
   .reveal, .reveal-line > span { opacity: 1 !important; transform: none !important; }
   .cursor-dot, .cursor-ring { display: none; }
 }
+
+/* ===================== Case study structured layout ===================== */
+.cs-glance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1.2rem;
+  margin: 0 auto clamp(2.2rem, 5vw, 3.5rem);
+  padding: 1.4rem 1.7rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  max-width: 900px;
+}
+.cs-glance__item span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+}
+.cs-glance__item b { font-size: 0.98rem; font-weight: 600; color: var(--text); }
+.cs-glance__item--tags { grid-column: 1 / -1; }
+.cs-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.cs-section { max-width: 900px; margin: 0 auto clamp(2.4rem, 5vw, 3.8rem); }
+.cs-section .eyebrow { display: inline-block; }
+.cs-section h2 { font-size: clamp(1.5rem, 1.2rem + 1.6vw, 2.2rem); margin: 0.5rem 0 1.1rem; }
+
+.cs-takeaway {
+  max-width: 900px;
+  margin: 0 auto clamp(2.4rem, 5vw, 3.8rem);
+  padding: 1.6rem 1.9rem;
+  border-left: 3px solid var(--blue);
+  border-radius: 0 18px 18px 0;
+  background: var(--surface);
+}
+.cs-takeaway p { font-size: 1.12rem; line-height: 1.7; color: var(--text); margin-top: 0.55rem; }
+
+.cs-quote {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto clamp(2.4rem, 5vw, 3.8rem);
+  padding: 2rem 2.2rem;
+  border-radius: 18px;
+}
+.cs-quote p { font-size: 1.12rem; line-height: 1.75; color: var(--text-soft); }
+.cs-quote__by { margin-top: 1rem; color: var(--text-muted); font-family: var(--font-mono); font-size: 0.85rem; }

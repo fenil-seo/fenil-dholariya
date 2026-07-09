@@ -48,11 +48,60 @@
       metricsSection.style.display = "";
     }
 
-    // Body prose
+    // Structured case study sections (challenge / approach / results …)
+    const cs = document.getElementById("caseStudySections");
+    let hasStructured = false;
+    if (cs) {
+      const parts = [];
+
+      const glance = [
+        project.client && ["Client", project.client],
+        project.category && ["Industry", project.category],
+        project.period && ["Timeline", project.period],
+      ].filter(Boolean);
+      const services = String(project.services || "").split(",").map((s) => s.trim()).filter(Boolean);
+      if (glance.length || services.length) {
+        parts.push(`<div class="cs-glance reveal">
+          ${glance.map(([k, v]) => `<div class="cs-glance__item"><span>${R.esc(k)}</span><b>${R.esc(v)}</b></div>`).join("")}
+          ${services.length ? `<div class="cs-glance__item cs-glance__item--tags"><span>Services</span><div class="cs-tags">${services.map((s) => `<span class="tag">${R.esc(s)}</span>`).join("")}</div></div>` : ""}
+        </div>`);
+      }
+
+      [["The Challenge", project.challenge], ["The Approach", project.approach], ["The Results", project.results_text]]
+        .filter(([, html]) => html && String(html).trim())
+        .forEach(([label, html], i) => {
+          parts.push(`<div class="cs-section reveal">
+            <span class="eyebrow">${String(i + 1).padStart(2, "0")}</span>
+            <h2>${R.esc(label)}</h2>
+            <div class="prose">${html}</div>
+          </div>`);
+        });
+
+      if (project.takeaway) {
+        parts.push(`<div class="cs-takeaway reveal"><span class="eyebrow">Key takeaway</span><p>${R.esc(project.takeaway)}</p></div>`);
+      }
+      if (project.testimonial) {
+        parts.push(`<div class="cs-quote glass reveal">
+          <div class="quote__mark">"</div>
+          <p>${R.esc(project.testimonial)}</p>
+          ${project.testimonial_author ? `<div class="cs-quote__by">— ${R.esc(project.testimonial_author)}</div>` : ""}
+        </div>`);
+      }
+
+      hasStructured = parts.length > 0;
+      cs.innerHTML = parts.join("");
+      cs.style.display = hasStructured ? "" : "none";
+    }
+
+    // Body prose (extra / legacy content shown after the structured sections)
     const bodySection = document.getElementById("projectBodySection");
     const bodyEl = document.getElementById("projectBody");
     if (project.body) {
       bodyEl.innerHTML = project.body;
+      bodySection.style.display = "";
+    } else if (hasStructured) {
+      // No extra body, but keep the section visible so the author box shows
+      bodyEl.innerHTML = "";
       bodySection.style.display = "";
     }
 

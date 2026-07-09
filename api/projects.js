@@ -19,7 +19,9 @@ export default async function handler(req, res) {
   try {
     const sql = getSql();
     await ensureNewColumns(sql);
-    const cols = `slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body`;
+    const cols = `slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body,
+      COALESCE(period,'') AS period, COALESCE(services,'') AS services, COALESCE(challenge,'') AS challenge, COALESCE(approach,'') AS approach,
+      COALESCE(results_text,'') AS results_text, COALESCE(takeaway,'') AS takeaway, COALESCE(testimonial,'') AS testimonial, COALESCE(testimonial_author,'') AS testimonial_author`;
 
     if (slug) {
       const rows = await sql(`SELECT ${cols} FROM projects WHERE slug = $1 LIMIT 1`, [slug]);

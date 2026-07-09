@@ -16,6 +16,115 @@
       .replace(/'/g, "&#39;");
   }
 
+  /* ---------- Image URLs: accept GitHub links and auto-convert them ----------
+     The site's images live in the GitHub repo (fenil-seo/fenil-dholariya) and
+     Vercel serves every committed file at the same path. So:
+     - github.com/<this repo>/blob/<branch>/assets/x.jpg  →  /assets/x.jpg
+     - github.com/<other repo>/blob/...                   →  raw.githubusercontent.com/...
+     - /assets/... paths and direct https:// image URLs pass through untouched. */
+  const SITE_REPO = "fenil-seo/fenil-dholariya";
+
+  function normalizeImageUrl(raw) {
+    let url = String(raw || "").trim();
+    if (!url) return "";
+    const gh = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/(?:blob|raw)\/([^/]+)\/(.+?)(?:[?#].*)?$/);
+    if (gh) {
+      const [, user, repo, branch, path] = gh;
+      if (`${user}/${repo}`.toLowerCase() === SITE_REPO) return `/${path}`;
+      return `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${path}`;
+    }
+    const rawGh = url.match(/^https?:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/[^/]+\/(.+)$/);
+    if (rawGh && `${rawGh[1]}/${rawGh[2]}`.toLowerCase() === SITE_REPO) return `/${rawGh[3]}`;
+    return url;
+  }
+
+  /* Live preview + auto-convert for every image field (delegated, so it works
+     in forms rendered at any time) */
+  document.addEventListener("input", (e) => {
+    const inp = e.target;
+    if (inp.matches?.(".icon-picker__filter")) {
+      const q = inp.value.trim().toLowerCase();
+      inp.closest(".field").querySelectorAll(".icon-picker__btn").forEach((b) => {
+        b.style.display = !q || b.dataset.label.includes(q) || b.dataset.icon.includes(q) ? "" : "none";
+      });
+      return;
+    }
+    if (!inp.matches?.("[data-img-input]")) return;
+    const normalized = normalizeImageUrl(inp.value);
+    if (normalized !== inp.value) inp.value = normalized;
+    const field = inp.closest(".field");
+    const wrap = field.querySelector(".img-prev");
+    const img = field.querySelector(".img-prev__img");
+    const value = inp.value.trim();
+    if (!value) { wrap.style.display = "none"; return; }
+    wrap.style.display = "block";
+    field.querySelector(".img-prev__ok").style.display = "none";
+    field.querySelector(".img-prev__err").style.display = "none";
+    img.src = value;
+  });
+
+  /* Icon picker selection (delegated) */
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".icon-picker__btn");
+    if (!btn) return;
+    e.preventDefault();
+    const field = btn.closest(".field");
+    const hidden = field.querySelector("input[type='hidden'][data-field]");
+    if (hidden) hidden.value = btn.dataset.icon;
+    field.querySelectorAll(".icon-picker__btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+  });
+
+  /* Icon library — keys match ICONS in js/render.js (what the public site draws) */
+  const ICON_LIB = {
+    /* Core SEO */
+    seo:         ["SEO", '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'],
+    audit:       ["SEO Audit", '<path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/>'],
+    keyword:     ["Keywords", '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>'],
+    backlink:    ["Backlinks", '<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/>'],
+    ranking:     ["Rankings", '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>'],
+    content:     ["Content", '<path d="M4 6h16M4 12h16M4 18h10"/>'],
+    local:       ["Local SEO", '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>'],
+    funnel:      ["Funnel", '<path d="M3 4h18l-7 8v6l-4 2v-8L3 4Z"/>'],
+    /* AI & research */
+    ai:          ["AI", '<path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/>'],
+    research:    ["Research", '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'],
+    chatbot:     ["Chatbot", '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/>'],
+    automation:  ["Automation", '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'],
+    /* Strategy, analytics & data visualization */
+    strategy:    ["Strategy", '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'],
+    analytics:   ["Analytics", '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>'],
+    trend:       ["Trends", '<path d="m23 6-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>'],
+    report:      ["Reports", '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/>'],
+    dashboard:   ["Dashboard", '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>'],
+    datavis:     ["Data Visualization", '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 13v-3M12 13V7M17 13v-5"/>'],
+    data:        ["Database", '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>'],
+    pie:         ["Pie Chart", '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>'],
+    /* Paid & performance */
+    sem:         ["SEM / Google Ads", '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/>'],
+    campaign:    ["Campaigns", '<path d="M3 11l19-9-9 19-2-8-8-2z"/>'],
+    cro:         ["CRO", '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'],
+    ab:          ["A/B Testing", '<path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/>'],
+    remarketing: ["Remarketing", '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'],
+    affiliate:   ["Affiliate", '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'],
+    /* Digital marketing channels */
+    digital:     ["Digital Marketing", '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>'],
+    email:       ["Email Marketing", '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>'],
+    social:      ["Social Media", '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/>'],
+    video:       ["Video", '<path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/>'],
+    mobile:      ["Mobile", '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
+    push:        ["Push / Alerts", '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'],
+    influencer:  ["Influencer", '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'],
+    /* Brand, commerce & PR */
+    brand:       ["Brand", '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'],
+    ecommerce:   ["E-commerce", '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>'],
+    pr:          ["PR / Outreach", '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'],
+    /* Web & tech */
+    web:         ["Web Development", '<path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>'],
+    vibecoding:  ["Vibe Coding", '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/><path d="M19 3l.75 1.75L21.5 5.5l-1.75.75L19 8l-.75-1.75L16.5 5.5l1.75-.75L19 3z"/>'],
+    ux:          ["UI/UX Design", '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>'],
+    speed:       ["Site Speed", '<path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>'],
+  };
+
   const loginView = document.getElementById("loginView");
   const dashboardView = document.getElementById("dashboardView");
   const loginForm = document.getElementById("loginForm");
@@ -166,17 +275,32 @@
       const hasSrc = Boolean(value);
       return `<div class="field"${wide}>
         <label>${esc(f.label)}</label>
-        <input class="input" type="text" data-field="${esc(f.key)}" value="${esc(value)}" placeholder="${esc(f.placeholder || "")}"
-          oninput="(function(inp){var w=inp.closest('.field');var img=w.querySelector('.img-prev__img');var ok=w.querySelector('.img-prev__ok');var err=w.querySelector('.img-prev__err');var wrap=w.querySelector('.img-prev');if(!inp.value.trim()){wrap.style.display='none';return;}wrap.style.display='block';ok.style.display='none';err.style.display='none';img.src=inp.value.trim();})(this)" />
+        <input class="input" type="text" data-field="${esc(f.key)}" data-img-input value="${esc(value)}" placeholder="${esc(f.placeholder || "/assets/gallery/my-image.webp or GitHub link")}" />
         <div class="img-prev" style="margin-top:8px;${hasSrc ? '' : 'display:none'}">
           <img class="img-prev__img" src="${esc(value)}" alt="preview"
             style="max-height:160px;width:auto;border-radius:8px;object-fit:cover;border:1px solid var(--line-strong);display:block"
             onload="this.closest('.img-prev').querySelector('.img-prev__ok').style.display='block';this.closest('.img-prev').querySelector('.img-prev__err').style.display='none'"
             onerror="this.closest('.img-prev').querySelector('.img-prev__ok').style.display='none';this.closest('.img-prev').querySelector('.img-prev__err').style.display='block'">
-          <p class="img-prev__ok admin-form__hint" style="color:#48bb78;display:none">✓ Image loaded successfully</p>
-          <p class="img-prev__err admin-form__hint" style="color:#f56565;display:none">✗ Cannot load this image — use a path like /assets/gallery/name.jpg (file committed to GitHub) or a direct https:// image URL</p>
+          <p class="img-prev__ok admin-form__hint" style="color:#48bb78;display:none">✓ Image loads — it will show on the site</p>
+          <p class="img-prev__err admin-form__hint" style="color:#f56565;display:none">✗ This link can't load as an image yet. If you just uploaded it to GitHub, the site redeploys in ~1 minute — wait and re-paste. Otherwise check the path/URL.</p>
         </div>
         ${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}
+        <p class="admin-form__hint">Tip: upload the image to GitHub (assets/gallery folder), open it, copy the browser URL and paste it here — it converts to the right path automatically.</p>
+      </div>`;
+    }
+    if (f.type === "icon") {
+      const current = value || "audit";
+      return `<div class="field" style="grid-column:1/-1">
+        <label>${esc(f.label)}</label>
+        <input type="hidden" data-field="${esc(f.key)}" value="${esc(current)}">
+        <input class="input icon-picker__filter" type="text" placeholder="Search icons… e.g. seo, coding, data" style="margin-bottom:8px">
+        <div class="icon-picker">
+          ${Object.entries(ICON_LIB).map(([key, [label, svg]]) => `
+            <button type="button" class="icon-picker__btn${key === current ? " is-active" : ""}" data-icon="${esc(key)}" data-label="${esc(label.toLowerCase())}" title="${esc(label)}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${svg}</svg>
+              <span>${esc(label)}</span>
+            </button>`).join("")}
+        </div>
       </div>`;
     }
     return `<div class="field"><label>${esc(f.label)}</label><input class="input" type="${f.type || "text"}" data-field="${esc(f.key)}" value="${esc(value)}" placeholder="${esc(f.placeholder || "")}" /></div>`;
@@ -233,9 +357,18 @@
         <button type="button" class="rte-btn" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
         <button type="button" class="rte-btn" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
         <span class="rte-sep"></span>
+        <button type="button" class="rte-btn" data-cmd="justifyLeft" title="Align left">⯇</button>
+        <button type="button" class="rte-btn" data-cmd="justifyCenter" title="Align center">⯀</button>
+        <button type="button" class="rte-btn" data-cmd="justifyRight" title="Align right">⯈</button>
+        <span class="rte-sep"></span>
         <button type="button" class="rte-btn" data-cmd="createLink" title="Insert link">Link</button>
         <button type="button" class="rte-btn" data-cmd="unlink" title="Remove link">Unlink</button>
+        <button type="button" class="rte-btn" data-action="image" title="Insert image">Image</button>
         <button type="button" class="rte-btn" data-cmd="insertHorizontalRule" title="Horizontal rule">HR</button>
+        <span class="rte-sep"></span>
+        <button type="button" class="rte-btn" data-cmd="undo" title="Undo">↶</button>
+        <button type="button" class="rte-btn" data-cmd="redo" title="Redo">↷</button>
+        <button type="button" class="rte-btn" data-cmd="removeFormat" title="Clear formatting">Clear</button>
         <span class="rte-sep"></span>
         <button type="button" class="rte-btn" data-action="source" title="Toggle HTML source">HTML</button>
       </div>
@@ -272,6 +405,16 @@
         }
         editor.focus();
         updateActive();
+        return;
+      }
+      if (e.target.closest("[data-action='image']")) {
+        e.preventDefault();
+        const url = prompt("Paste the image link (GitHub link, /assets/gallery/… path, or direct https:// image URL):");
+        if (url) {
+          const clean = normalizeImageUrl(url);
+          editor.focus();
+          document.execCommand("insertHTML", false, `<img src="${esc(clean)}" alt="" style="max-width:100%;height:auto;border-radius:12px">`);
+        }
         return;
       }
       if (e.target.closest("[data-action='source']")) {
@@ -601,11 +744,7 @@
               <label>Section</label>
               <select class="select" data-field="section">${sectionOpts}</select>
             </div>
-            <div class="field" style="grid-column:1/-1">
-              <label>Image path</label>
-              <input class="input" type="text" data-field="image_url" value="${esc(item?.image_url || "")}" placeholder="/assets/gallery/D2C.webp">
-              <p class="admin-form__hint">Commit the image to your GitHub repo under <code>/assets/gallery/</code>, then paste the path here (e.g. <code>/assets/gallery/my-screenshot.webp</code>).</p>
-            </div>
+            ${fieldHtml({ key: "image_url", label: "Image", type: "image", wide: true }, item || {})}
             <div class="field">
               <label>Alt text</label>
               <input class="input" type="text" data-field="alt" value="${esc(item?.alt || "")}" placeholder="Looker Studio SEO Report March 2026 showing ₹26K revenue">
@@ -1006,7 +1145,7 @@
       title: "Services",
       hint: "What you offer - shown on the home page.",
       fields: [
-        { key: "icon", label: "Icon", type: "select", options: ["audit","content","local","keyword","backlink","ranking","ai","research","chatbot","automation","strategy","analytics","trend","report","dashboard","data","pie","sem","cro","campaign","ab","remarketing","affiliate","email","social","video","mobile","push","influencer","brand","ecommerce","pr","web","funnel"] },
+        { key: "icon", label: "Icon — click to choose", type: "icon" },
         { key: "title", label: "Title" },
         { key: "description", label: "Description", type: "textarea", wide: true },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
@@ -1028,18 +1167,27 @@
 
     projects: listResource({
       resource: "projects",
-      title: "Projects",
-      hint: "Case studies shown on the home page and /work.",
+      title: "Projects / Case Studies",
+      hint: "Each project is a full case study page at /work/<slug>. Fill in the Challenge → Approach → Results sections for a professional case study layout.",
       fields: [
         { key: "title", label: "Title" },
         { key: "slug", label: "URL slug", placeholder: "(auto from title if left blank)" },
-        { key: "category", label: "Category", placeholder: "D2C / E-commerce" },
+        { key: "category", label: "Industry / category", placeholder: "D2C / E-commerce" },
         { key: "client", label: "Client", placeholder: "Silver jewellery brand" },
-        { key: "desc", label: "Description", type: "textarea", wide: true },
-        { key: "image_url", label: "Cover image (16:9)", type: "image", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Paste any https:// image URL, or a /assets/gallery/name.jpg path (file must be committed to GitHub). Leave blank to show the animated visual." },
+        { key: "period", label: "Timeline", placeholder: "Jan 2026 – Jun 2026" },
+        { key: "services", label: "Services provided", placeholder: "SEO, Content, CRO", hint: "Comma-separated. Shown as tags in the case study overview." },
+        { key: "desc", label: "Short summary", type: "textarea", wide: true, hint: "1–2 sentences. Shown on project cards and under the case study title." },
+        { key: "image_url", label: "Cover image (16:9)", type: "image", wide: true, hint: "Shown on the /work cards and at the top of the case study. Leave blank to show the animated visual." },
         { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
-        { key: "metrics", label: "Metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label" },
+        { key: "metrics", label: "Headline metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label. Shown in the metrics bar under the hero." },
+        { key: "challenge", label: "01 · The Challenge", type: "richtext", wide: true, hint: "Where the client was stuck — the problem you were hired to solve." },
+        { key: "approach", label: "02 · The Approach", type: "richtext", wide: true, hint: "What you actually did, step by step. Use headings and lists freely." },
+        { key: "results_text", label: "03 · The Results", type: "richtext", wide: true, hint: "The outcome, with numbers. You can insert screenshots with the Image button." },
+        { key: "takeaway", label: "Key takeaway", type: "textarea", wide: true, hint: "1–2 sentences. Shown as a highlighted card at the end of the case study." },
+        { key: "testimonial", label: "Client testimonial (optional)", type: "textarea", wide: true },
+        { key: "testimonial_author", label: "Testimonial author", placeholder: "Founder, D2C jewellery brand" },
+        { key: "body", label: "Extra content (optional)", type: "richtext", wide: true, hint: "Shown after the structured sections. Case studies written before the structured fields still live here — you can move that content into the sections above." },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
         { key: "featured", label: "Show in home page highlights", type: "checkbox", default: true },
         {
@@ -1049,7 +1197,6 @@
           wide: true,
           hint: "Optional. Paste any schema.org JSON-LD object (or array) - e.g. a Review or Product node for this case study. Leave blank to skip.",
         },
-        { key: "body", label: "Case study body", type: "richtext", wide: true, hint: "Full case study content shown on the /work/<slug> page." },
       ],
       summary: (i) => ({ title: i.title, sub: `${i.category || ""} · /work/${i.slug}` }),
     }),
@@ -1063,8 +1210,8 @@
         { key: "slug", label: "URL slug", placeholder: "(auto from title if left blank)" },
         { key: "category", label: "Category", placeholder: "AI & SEO" },
         { key: "excerpt", label: "Excerpt", type: "textarea", wide: true },
-        { key: "image_url", label: "Card thumbnail (blog listing page)", type: "image", placeholder: "/assets/gallery/my-image.webp", wide: true, hint: "Shown as the card image on /blog. Paste any https:// image URL, or a /assets/gallery/name.jpg path (file must be committed to GitHub)." },
-        { key: "blog_image_url", label: "Post hero image (inside the blog post)", type: "image", placeholder: "/assets/gallery/my-post-hero.webp", wide: true, hint: "Large image at the top of the post. Can be same as card thumbnail or different. If blank, falls back to the card thumbnail." },
+        { key: "image_url", label: "Card thumbnail (blog listing page)", type: "image", wide: true, hint: "Shown as the card image on /blog." },
+        { key: "blog_image_url", label: "Post hero image (inside the blog post)", type: "image", wide: true, hint: "Large image at the top of the post. Leave blank to reuse the card thumbnail." },
         { key: "body", label: "Article body", type: "richtext", wide: true },
         { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
