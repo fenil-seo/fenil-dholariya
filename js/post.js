@@ -26,27 +26,25 @@
 
     const heroWrap = document.getElementById("postHeroWrap");
     const vizFallback = () => {
-      heroWrap.innerHTML = `<div class="article-cover viz" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
+      heroWrap.innerHTML = R.editorialCover(post, "article-cover");
       window.refreshAnimations?.();
     };
-    // Cascade: blog_image_url → image_url → viz animation
-    function tryHeroUrl(urls) {
-      const url = urls.shift();
+    function tryHeroUrl(url) {
       if (!url) { vizFallback(); return; }
-      heroWrap.innerHTML = `<div class="post-hero-img"><img src="${R.esc(url)}" alt="${R.esc(post.title)}" loading="eager"></div>`;
+      heroWrap.innerHTML = `<div class="post-hero-img post-hero-img--editorial editorial-media ${R.mediaClass(post.slug)}"><img src="${R.esc(url)}" alt="Editorial image for ${R.esc(post.title)}" loading="eager" fetchpriority="high" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`;
       heroWrap.querySelector("img").addEventListener("error", () => {
-        console.warn("[post] hero image failed:", url, urls.length ? "→ trying next" : "→ using animation");
-        tryHeroUrl(urls);
+        console.warn("[post] hero image failed, using the editorial cover:", url);
+        vizFallback();
       });
     }
-    const candidates = [post.blog_image_url, post.image_url].filter(Boolean);
-    if (candidates.length) {
-      tryHeroUrl(candidates);
+    const heroImage = R.postMediaUrl(post);
+    if (heroImage) {
+      tryHeroUrl(heroImage);
     } else {
-      heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(post.viz || "network")}" data-accent="${R.esc(post.accent || "violet")}"></div>`;
+      heroWrap.innerHTML = R.editorialCover(post, "article-cover reveal");
     }
 
-    document.getElementById("postBody").innerHTML = post.body || `<p>${R.esc(post.excerpt || "")}</p>`;
+    document.getElementById("postBody").innerHTML = post.body ? R.stripGalleryImages(post.body) : `<p>${R.esc(post.excerpt || "")}</p>`;
 
     document.title = `${post.title} - Fenil Dholariya`;
     setMeta("metaDesc", "content", post.excerpt || "");

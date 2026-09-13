@@ -29,10 +29,16 @@
     document.getElementById("projectTitle").textContent = project.title;
     document.getElementById("projectDesc").textContent = project.desc || "";
 
-    // Hero: image or viz animation
+    // Hero: editorial context photography. Performance screenshots stay in Gallery.
     const heroWrap = document.getElementById("projectHeroWrap");
-    if (project.image_url) {
-      heroWrap.innerHTML = `<div class="post-hero-img reveal" data-delay="2"><img src="${R.esc(project.image_url)}" alt="${R.esc(project.title)}" loading="eager"></div>`;
+    const projectImage = R.projectMediaUrl(project);
+    if (projectImage) {
+      const currentImage = heroWrap.querySelector("img");
+      if (!currentImage || currentImage.getAttribute("src") !== projectImage) {
+        heroWrap.innerHTML = `<div class="post-hero-img post-hero-img--editorial editorial-media ${R.mediaClass(project.slug)} reveal" data-delay="2"><img src="${R.esc(projectImage)}" alt="Editorial context image representing ${R.esc(project.category || project.title)}" loading="eager" fetchpriority="high" decoding="async"><span class="media-context-label">Editorial context photo · Not client photography</span></div>`;
+      } else {
+        currentImage.alt = `Editorial context image representing ${project.category || project.title}`;
+      }
     } else {
       heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(project.viz || "network")}" data-accent="${R.esc(project.accent || "violet")}"></div>`;
     }
@@ -73,7 +79,7 @@
           parts.push(`<div class="cs-section reveal">
             <span class="eyebrow">${String(i + 1).padStart(2, "0")}</span>
             <h2>${R.esc(label)}</h2>
-            <div class="prose">${html}</div>
+            <div class="prose">${R.stripGalleryImages(html)}</div>
           </div>`);
         });
 
@@ -84,7 +90,7 @@
         parts.push(`<div class="cs-quote glass reveal">
           <div class="quote__mark">"</div>
           <p>${R.esc(project.testimonial)}</p>
-          ${project.testimonial_author ? `<div class="cs-quote__by">— ${R.esc(project.testimonial_author)}</div>` : ""}
+          ${project.testimonial_author ? `<div class="cs-quote__by">- ${R.esc(project.testimonial_author)}</div>` : ""}
         </div>`);
       }
 
@@ -97,7 +103,7 @@
     const bodySection = document.getElementById("projectBodySection");
     const bodyEl = document.getElementById("projectBody");
     if (project.body) {
-      bodyEl.innerHTML = project.body;
+      bodyEl.innerHTML = R.stripGalleryImages(project.body);
       bodySection.style.display = "";
     } else if (hasStructured) {
       // No extra body, but keep the section visible so the author box shows
@@ -112,8 +118,8 @@
     setMeta("ogDesc", "content", project.desc || "");
     setMeta("twitterTitle", "content", project.title);
     setMeta("twitterDesc", "content", project.desc || "");
-    if (project.image_url) {
-      const abs = project.image_url.startsWith("http") ? project.image_url : `https://fenil-dholariya.vercel.app${project.image_url}`;
+    if (projectImage) {
+      const abs = projectImage.startsWith("http") ? projectImage : `https://fenil-dholariya.vercel.app${projectImage}`;
       setMeta("ogImage", "content", abs);
       setMeta("twitterImage", "content", abs);
     }

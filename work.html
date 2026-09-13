@@ -10,7 +10,7 @@
   })(window,document,"script","dataLayer","GTM-M2G872J9");</script>
   <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#05060a" />
+  <meta name="theme-color" content="#f3f0e8" />
 
   <title>Case Studies - Fenil Dholariya | AI + SEO Growth Strategist</title>
   <meta name="description" content="Real growth case studies from Fenil Dholariya: D2C jewellery, local services, B2B SaaS and ayurvedic brands - traffic, leads and revenue results." />
@@ -27,10 +27,7 @@
   <meta name="twitter:image" content="https://fenil-dholariya.vercel.app/assets/og.png" />
 
   <link rel="icon" href="/assets/favicon.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/style.css?v=20260709e" />
+  <link rel="stylesheet" href="/css/premium.css?v=20260913" />
 
   <!-- Structured data: refreshed at runtime by js/schema.js from live content -->
   <script type="application/ld+json" id="ldJsonBreadcrumb">
@@ -68,13 +65,91 @@
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
 
-  <div class="loader" id="loader">
-    <div class="loader__inner">
-      <div class="loader__count"><span id="loaderCount">0</span><span class="gradient-text">%</span></div>
-      <div class="loader__bar"><i id="loaderBar"></i></div>
-    </div>
+  <div class="brand-intro" id="loader" aria-label="Opening Fenil Dholariya portfolio" role="status">
+    <svg class="brand-intro__mark" viewBox="0 0 512 512" aria-hidden="true">
+      <defs>
+        <clipPath id="introFSpine"><rect class="intro-clip intro-clip--spine" x="42" y="96" width="70" height="320" /></clipPath>
+        <clipPath id="introFTop"><rect class="intro-clip intro-clip--top" x="44" y="98" width="258" height="68" /></clipPath>
+        <clipPath id="introFMid"><rect class="intro-clip intro-clip--mid" x="44" y="210" width="258" height="68" /></clipPath>
+        <mask id="introDMask">
+          <rect width="512" height="512" fill="#000" />
+          <path class="intro-draw" d="M281 132H319C383 132 435 187 435 256S383 381 319 381H228" fill="none" stroke="#fff" stroke-width="62" stroke-linecap="square" pathLength="1" />
+        </mask>
+      </defs>
+      <g class="brand-intro__guides" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M30 105H482M30 407H482M50 82V430M462 82V430" />
+        <path class="brand-intro__axis" d="M102 430L278 191" />
+        <circle cx="50" cy="105" r="4" /><circle cx="462" cy="105" r="4" />
+        <circle cx="50" cy="407" r="4" /><circle cx="462" cy="407" r="4" />
+      </g>
+      <g class="brand-intro__build" fill="#f7f7f3">
+        <path clip-path="url(#introFSpine)" d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" />
+        <path clip-path="url(#introFTop)" d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" />
+        <path clip-path="url(#introFMid)" d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" />
+        <path class="brand-intro__d" mask="url(#introDMask)" d="M319 105C398 105 462 173 462 256S398 407 319 407H209L248 354H319C368 354 408 310 408 256S368 158 319 158H281Z" />
+        <path class="brand-intro__slash" d="M195 307H252L178 408H121Z" fill="#2f6bff" />
+      </g>
+      <g class="brand-intro__final">
+        <path d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" fill="#f7f7f3" />
+        <path d="M319 105C398 105 462 173 462 256S398 407 319 407H209L248 354H319C368 354 408 310 408 256S368 158 319 158H281Z" fill="#f7f7f3" />
+        <path d="M195 307H252L178 408H121Z" fill="#2f6bff" />
+      </g>
+    </svg>
+    <span class="sr-only">Fenil Dholariya portfolio is ready</span>
   </div>
 
+  <script data-intro-boot>
+  (() => {
+    const intro = document.getElementById("loader");
+    if (!intro) return;
+    intro.dataset.introBooted = "1";
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem("fd-intro-v3") === "seen";
+      if (!seen) sessionStorage.setItem("fd-intro-v3", "seen");
+    } catch {}
+    if (seen) {
+      intro.remove();
+      return;
+    }
+
+    document.documentElement.classList.add("is-loading");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let complete = false;
+    const unlock = () => {
+      document.documentElement.classList.remove("is-loading");
+      intro.classList.add("is-done");
+      window.removeEventListener("pointerdown", skip);
+      window.removeEventListener("keydown", skip);
+      window.setTimeout(() => intro.remove(), reduced ? 20 : 260);
+    };
+    const finish = (skipMotion) => {
+      if (complete || !intro.isConnected) return;
+      complete = true;
+      const mark = intro.querySelector(".brand-intro__mark");
+      const target = document.querySelector(".nav .brand__mark img");
+      if (!skipMotion && !reduced && mark && target) {
+        const from = mark.getBoundingClientRect();
+        const to = target.getBoundingClientRect();
+        intro.style.setProperty("--intro-x", `${to.left + (to.width / 2) - (from.left + (from.width / 2))}px`);
+        intro.style.setProperty("--intro-y", `${to.top + (to.height / 2) - (from.top + (from.height / 2))}px`);
+        intro.style.setProperty("--intro-scale", String(Math.max(0.08, to.width / from.width)));
+        intro.classList.add("is-compressing");
+        window.setTimeout(unlock, 250);
+      } else {
+        unlock();
+      }
+    };
+    function skip(event) {
+      if (event.type === "keydown" && ["Shift", "Control", "Alt", "Meta"].includes(event.key)) return;
+      finish(true);
+    }
+    window.addEventListener("pointerdown", skip, { once: true });
+    window.addEventListener("keydown", skip);
+    window.setTimeout(() => finish(false), reduced ? 80 : 960);
+    window.setTimeout(() => finish(true), 1550);
+  })();
+  </script>
   <div class="scroll-progress" id="scrollProgress"></div>
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
@@ -82,36 +157,35 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
 
-  <header class="nav" id="nav">
+  <header class="nav nav--inverse" id="nav">
     <div class="nav__inner">
-      <a href="/" class="brand" data-cursor><span class="brand__mark"><img src="/assets/logo.png" alt="" width="34" height="34" /></span> Fenil Dholariya</a>
-      <nav class="nav__menu">
+      <a href="/" class="brand" data-cursor><span class="brand__mark"><img src="/assets/fd-mark-v2.svg" alt="" width="34" height="34" /></span> Fenil Dholariya</a>
+      <nav class="nav__menu" aria-label="Primary navigation">
         <ul class="nav__links">
-          <li><a href="/services" class="nav__link">Services</a></li>
-          <li><a href="/work" class="nav__link is-active">Work</a></li>
+          <li><a href="/" class="nav__link">Home</a></li>
+          <li><a href="/work" class="nav__link" aria-current="page">Work</a></li>
+          <li><a href="/services" class="nav__link">Engagements</a></li>
           <li><a href="/gallery" class="nav__link">Gallery</a></li>
           <li><a href="/about" class="nav__link">About</a></li>
-          <li><a href="/blog" class="nav__link">Blog</a></li>
-          <li><a href="/contact" class="nav__link">Contact</a></li>
+          <li><a href="/blog" class="nav__link">Insights</a></li>
         </ul>
-        <a href="/contact" class="btn btn--primary nav__cta" data-cursor>Start a project
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
+        <a href="/contact" class="btn btn--nav nav__cta">Let's talk <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </nav>
       <button class="nav__toggle" id="navToggle" aria-label="Toggle menu"><span></span></button>
     </div>
   </header>
 
   <main>
-    <section class="page-hero container">
-      <span class="eyebrow reveal">Selected work</span>
-      <h1 class="reveal" data-delay="1">Case studies that <span class="gradient-text">compound.</span></h1>
-      <p class="lead reveal" data-delay="2">Four brands, four different growth problems - same system: find the highest-impact lever, fix it, measure it, scale it.</p>
-    </section>
+    <div class="hero-band">
+      <section class="container studio-hero work-intro" aria-labelledby="work-title">
+        <div class="studio-hero__copy"><p class="eyebrow">Selected work / Search &amp; growth</p><h1 id="work-title">Good work.<br>Built on <em>evidence.</em></h1><p class="lead">A closer look at the problems, decisions and work behind selected engagements.</p><div class="hero__actions"><a class="btn btn--primary" href="#caseList">Explore the case studies <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="text-link text-link--light" href="/gallery">Open work gallery <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div></div>
+        <figure class="studio-hero__visual work-intro__image"><img src="/assets/media/case-d2c-jewellery.webp" alt="Silver ring on a minimal sculptural surface, representing D2C commerce" width="2400" height="1600" fetchpriority="high"><figcaption><span>01 / D2C commerce</span><span>Editorial photography</span></figcaption></figure>
+      </section>
+    </div>
 
     <section class="container" id="caseList">
       <article class="case reveal">
-        <div class="case__media viz" data-viz="network" data-accent="violet"></div>
+        <div class="case__media case__media--img editorial-media media--d2c-silver-jewellery"><img src="/assets/media/case-d2c-jewellery.webp" alt="Editorial photograph of a silver ring representing the jewellery market" width="2400" height="1600" loading="eager" fetchpriority="high" decoding="async" /><span class="media-context-label">Editorial context photo · Not client photography</span></div>
         <div>
           <span class="tag">D2C / E-commerce</span>
           <div class="case__client">CLIENT - D2C Silver Jewellery Brand</div>
@@ -123,11 +197,12 @@
             <div class="case__metric"><b>+64%</b><span>PDP visibility</span></div>
             <div class="case__metric"><b>40+</b><span>Keywords on page 1</span></div>
           </div>
+          <a class="case__readmore" href="/work/d2c-silver-jewellery" data-track="work-d2c">Read the full case study <span aria-hidden="true">→</span></a>
         </div>
       </article>
 
       <article class="case reveal">
-        <div class="case__media viz" data-viz="bars" data-accent="cyan"></div>
+        <div class="case__media case__media--img editorial-media media--local-construction-gmb"><img src="/assets/media/case-local-construction.webp" alt="Editorial photograph of a construction workshop representing a local services engagement" width="2400" height="1800" loading="lazy" decoding="async" /><span class="media-context-label">Editorial context photo · Not client photography</span></div>
         <div>
           <span class="tag">Local SEO</span>
           <div class="case__client">CLIENT - Construction &amp; Fencing Contractor</div>
@@ -139,11 +214,12 @@
             <div class="case__metric"><b>+120%</b><span>Calls from search</span></div>
             <div class="case__metric"><b>Top 3</b><span>Map-pack ranking</span></div>
           </div>
+          <a class="case__readmore" href="/work/local-construction-gmb" data-track="work-local">Read the full case study <span aria-hidden="true">→</span></a>
         </div>
       </article>
 
       <article class="case reveal">
-        <div class="case__media viz" data-viz="orbit" data-accent="violet"></div>
+        <div class="case__media case__media--img editorial-media media--b2b-saas-pipeline"><img src="/assets/media/case-b2b-saas.webp" alt="Editorial photograph of network hardware representing a B2B software engagement" width="2400" height="1602" loading="lazy" decoding="async" /><span class="media-context-label">Editorial context photo · Not client photography</span></div>
         <div>
           <span class="tag">SaaS / B2B</span>
           <div class="case__client">CLIENT - B2B SaaS Company</div>
@@ -155,11 +231,12 @@
             <div class="case__metric"><b>+58%</b><span>Trial signups</span></div>
             <div class="case__metric"><b>-22%</b><span>Cost per lead</span></div>
           </div>
+          <a class="case__readmore" href="/work/b2b-saas-pipeline" data-track="work-saas">Read the full case study <span aria-hidden="true">→</span></a>
         </div>
       </article>
 
       <article class="case reveal">
-        <div class="case__media viz" data-viz="wave" data-accent="cyan"></div>
+        <div class="case__media case__media--img editorial-media media--ayurvedic-technical-seo"><img src="/assets/media/case-ayurveda.webp" alt="Editorial photograph of herbs and a mortar representing an Ayurvedic commerce engagement" width="2400" height="1600" loading="lazy" decoding="async" /><span class="media-context-label">Editorial context photo · Not client photography</span></div>
         <div>
           <span class="tag">Technical SEO</span>
           <div class="case__client">CLIENT - Ayurvedic D2C Brand</div>
@@ -171,17 +248,18 @@
             <div class="case__metric"><b>+60%</b><span>Organic traffic</span></div>
             <div class="case__metric"><b>96</b><span>Core Web Vitals score</span></div>
           </div>
+          <a class="case__readmore" href="/work/ayurvedic-technical-seo" data-track="work-technical">Read the full case study <span aria-hidden="true">→</span></a>
         </div>
       </article>
     </section>
 
-    <section class="section container">
+    <section class="section container cta-section">
       <div class="cta">
-        <span class="eyebrow reveal" style="justify-content:center">Next case study: yours</span>
-        <h2 class="reveal" data-delay="1">Got a growth problem<br/>worth <span class="gradient-text">solving?</span></h2>
+        <span class="eyebrow reveal" style="justify-content:center">A focused first conversation</span>
+        <h2 class="reveal" data-delay="1">Have a growth constraint worth solving?</h2>
         <div class="hero__actions" style="justify-content:center;margin-top:2rem">
           <a href="/contact" class="btn btn--primary btn--lg" data-cursor>
-            Start a project
+            Request a growth diagnosis
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
         </div>
@@ -193,16 +271,16 @@
     <div class="container">
       <div class="footer__top">
         <div>
-          <a href="/" class="brand"><span class="brand__mark"><img src="/assets/logo.png" alt="" width="34" height="34" /></span> Fenil Dholariya</a>
-          <p class="footer__tag">Practical AI + SEO to grow traffic, leads and revenue - for brands ready to compound.</p>
+          <a href="/" class="brand"><span class="brand__mark"><img src="/assets/fd-mark-v2.svg" alt="" width="34" height="34" /></span> Fenil Dholariya</a>
+          <p class="footer__tag">Organic growth strategy, technical execution and practical AI systems for teams ready to measure what matters.</p>
         </div>
         <div class="footer__col">
           <h5>Explore</h5>
-          <a href="/services">Services</a>
+          <a href="/services">Engagements</a>
           <a href="/work">Work</a>
           <a href="/gallery">Gallery</a>
           <a href="/about">About</a>
-          <a href="/blog">Blog</a>
+          <a href="/blog">Insights</a>
         </div>
         <div class="footer__col">
           <h5>Connect</h5>
@@ -223,10 +301,10 @@
     </div>
   </footer>
 
-  <script src="/js/data.js?v=20260709e"></script>
-  <script src="/js/api.js?v=20260710"></script>
-  <script src="/js/schema.js?v=20260629"></script>
-  <script src="/js/render.js?v=20260709e"></script>
-  <script src="/js/main.js?v=20260629"></script>
+  <script defer src="/js/main.js?v=20260913"></script>
+  <script defer src="/js/data.js?v=20260828"></script>
+  <script defer src="/js/api.js?v=20260710"></script>
+  <script defer src="/js/schema.js?v=20260629"></script>
+  <script defer src="/js/render.js?v=20260913"></script>
 </body>
 </html>

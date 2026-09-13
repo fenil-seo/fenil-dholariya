@@ -1,5 +1,11 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 
+function normalizeGalleryImage(url) {
+  const value = String(url || "");
+  if (!value.startsWith("/assets/gallery/")) return value;
+  return value.replace(/\.(?:png|jpe?g)$/i, ".webp");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   if (!isDbConfigured()) return res.status(200).json({ sections: [] });
@@ -44,7 +50,7 @@ export default async function handler(req, res) {
       }
       map.get(r.section).items.push({
         id: r.id,
-        image_url: r.image_url,
+        image_url: normalizeGalleryImage(r.image_url),
         alt: r.alt,
         badge: r.badge,
         caption: r.caption,

@@ -304,6 +304,10 @@ async function handleGallerySections(sql, action, id, data, res) {
 async function handleGallery(sql, action, id, data, res) {
   const COLS = ["section", "image_url", "alt", "badge", "caption", "highlight", "pinned"];
   const cols = (arr) => arr.map((f) => `"${f}"`).join(", ");
+  const normalizeLocalImage = (url) => {
+    const value = String(url || "");
+    return value.startsWith("/assets/gallery/") ? value.replace(/\.(?:png|jpe?g)$/i, ".webp") : value;
+  };
 
   if (action === "list") {
     let rows;
@@ -316,7 +320,9 @@ async function handleGallery(sql, action, id, data, res) {
         rows = rows.map((r) => ({ ...r, pinned: false }));
       } else throw e;
     }
-    return res.status(200).json({ items: rows });
+    return res.status(200).json({
+      items: rows.map((row) => ({ ...row, image_url: normalizeLocalImage(row.image_url) })),
+    });
   }
 
   if (action === "create") {

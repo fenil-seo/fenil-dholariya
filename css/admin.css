@@ -169,7 +169,7 @@ body[data-page="admin"] { overflow-x: hidden; }
   color: #e8e8f4;
 }
 
-/* ---------- Gallery panel — section headers ---------- */
+/* ---------- Gallery panel - section headers ---------- */
 .gallery-sec { margin-bottom: 2rem; }
 .gallery-sec__head {
   display: flex;

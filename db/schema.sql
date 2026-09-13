@@ -1,9 +1,9 @@
 -- =====================================================================
--- Fenil Dholariya portfolio — Neon Postgres schema
+-- Fenil Dholariya portfolio - Neon Postgres schema
 -- Safe to run multiple times (CREATE TABLE IF NOT EXISTS).
 -- This is also applied automatically by the admin dashboard's
 -- "Initialize database" action (POST /api/seed), which calls the same
--- statements programmatically — running this file by hand is optional.
+-- statements programmatically - running this file by hand is optional.
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS profile (

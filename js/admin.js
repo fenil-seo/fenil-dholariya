@@ -74,7 +74,7 @@
     field.querySelectorAll(".icon-picker__btn").forEach((b) => b.classList.toggle("is-active", b === btn));
   });
 
-  /* Icon library — keys match ICONS in js/render.js (what the public site draws) */
+  /* Icon library - keys match ICONS in js/render.js (what the public site draws) */
   const ICON_LIB = {
     /* Core SEO */
     seo:         ["SEO", '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'],
@@ -281,11 +281,11 @@
             style="max-height:160px;width:auto;border-radius:8px;object-fit:cover;border:1px solid var(--line-strong);display:block"
             onload="this.closest('.img-prev').querySelector('.img-prev__ok').style.display='block';this.closest('.img-prev').querySelector('.img-prev__err').style.display='none'"
             onerror="this.closest('.img-prev').querySelector('.img-prev__ok').style.display='none';this.closest('.img-prev').querySelector('.img-prev__err').style.display='block'">
-          <p class="img-prev__ok admin-form__hint" style="color:#48bb78;display:none">✓ Image loads — it will show on the site</p>
-          <p class="img-prev__err admin-form__hint" style="color:#f56565;display:none">✗ This link can't load as an image yet. If you just uploaded it to GitHub, the site redeploys in ~1 minute — wait and re-paste. Otherwise check the path/URL.</p>
+          <p class="img-prev__ok admin-form__hint" style="color:#48bb78;display:none">✓ Image loads - it will show on the site</p>
+          <p class="img-prev__err admin-form__hint" style="color:#f56565;display:none">✗ This link can't load as an image yet. If you just uploaded it to GitHub, the site redeploys in ~1 minute - wait and re-paste. Otherwise check the path/URL.</p>
         </div>
         ${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}
-        <p class="admin-form__hint">Tip: upload the image to GitHub (assets/gallery folder), open it, copy the browser URL and paste it here — it converts to the right path automatically.</p>
+        <p class="admin-form__hint">Tip: upload the image to GitHub (assets/gallery folder), open it, copy the browser URL and paste it here - it converts to the right path automatically.</p>
       </div>`;
     }
     if (f.type === "icon") {
@@ -708,7 +708,7 @@
     return card;
   }
 
-  /* ---------- Gallery (custom renderer — section-by-section, image upload, pin) ---------- */
+  /* ---------- Gallery (custom renderer - section-by-section, image upload, pin) ---------- */
   const galleryResource = {
     async render(panel) {
       let sections = [];
@@ -794,7 +794,7 @@
           <div id="gal-add-form" style="display:none"></div>`;
 
         if (!sections.length) {
-          html += `<p class="admin-empty">No sections yet — click <strong>Manage Sections</strong> to create one first.</p>`;
+          html += `<p class="admin-empty">No sections yet - click <strong>Manage Sections</strong> to create one first.</p>`;
         } else {
           const knownKeys = new Set(sections.map((s) => s.key));
           for (const sec of sections) {
@@ -835,7 +835,7 @@
           ${thumb}
           <div class="gallery-item-meta">
             ${item.badge ? `<div class="gallery-item-badge">${esc(item.badge)}</div>` : ""}
-            <div class="gallery-item-caption">${esc(item.caption || "—")}</div>
+            <div class="gallery-item-caption">${esc(item.caption || "-")}</div>
           </div>
           <div class="gallery-item-actions">
             <button class="btn btn--sm ${pinned ? "btn--primary" : "btn--ghost"}" data-action="pin" title="${pinned ? "Unpin" : "Pin to top"}" style="padding:.35em .6em;font-size:.9rem">${pinned ? "📌" : "📍"}</button>
@@ -981,7 +981,7 @@
           <div id="sec-list">`;
         html += sections.length
           ? sections.map(buildSectionCardHtml).join("")
-          : `<p class="admin-empty">No sections yet — click + Add Section.</p>`;
+          : `<p class="admin-empty">No sections yet - click + Add Section.</p>`;
         html += `</div>`;
         panel.innerHTML = html;
 
@@ -1055,7 +1055,7 @@
               sections = sections.filter((s) => s.id !== secId);
               card.remove();
               const list = panel.querySelector("#sec-list");
-              if (list && !list.querySelector(".admin-card")) list.innerHTML = `<p class="admin-empty">No sections yet — click + Add Section.</p>`;
+              if (list && !list.querySelector(".admin-card")) list.innerHTML = `<p class="admin-empty">No sections yet - click + Add Section.</p>`;
             }
           });
         });
@@ -1145,7 +1145,7 @@
       title: "Services",
       hint: "What you offer - shown on the home page.",
       fields: [
-        { key: "icon", label: "Icon — click to choose", type: "icon" },
+        { key: "icon", label: "Icon - click to choose", type: "icon" },
         { key: "title", label: "Title" },
         { key: "description", label: "Description", type: "textarea", wide: true },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
@@ -1181,13 +1181,13 @@
         { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
         { key: "metrics", label: "Headline metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label. Shown in the metrics bar under the hero." },
-        { key: "challenge", label: "01 · The Challenge", type: "richtext", wide: true, hint: "Where the client was stuck — the problem you were hired to solve." },
+        { key: "challenge", label: "01 · The Challenge", type: "richtext", wide: true, hint: "Where the client was stuck - the problem you were hired to solve." },
         { key: "approach", label: "02 · The Approach", type: "richtext", wide: true, hint: "What you actually did, step by step. Use headings and lists freely." },
         { key: "results_text", label: "03 · The Results", type: "richtext", wide: true, hint: "The outcome, with numbers. You can insert screenshots with the Image button." },
         { key: "takeaway", label: "Key takeaway", type: "textarea", wide: true, hint: "1–2 sentences. Shown as a highlighted card at the end of the case study." },
         { key: "testimonial", label: "Client testimonial (optional)", type: "textarea", wide: true },
         { key: "testimonial_author", label: "Testimonial author", placeholder: "Founder, D2C jewellery brand" },
-        { key: "body", label: "Extra content (optional)", type: "richtext", wide: true, hint: "Shown after the structured sections. Case studies written before the structured fields still live here — you can move that content into the sections above." },
+        { key: "body", label: "Extra content (optional)", type: "richtext", wide: true, hint: "Shown after the structured sections. Case studies written before the structured fields still live here - you can move that content into the sections above." },
         { key: "sort_order", label: "Order", type: "number", default: 0 },
         { key: "featured", label: "Show in home page highlights", type: "checkbox", default: true },
         {

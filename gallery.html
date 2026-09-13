@@ -10,7 +10,7 @@
   })(window,document,"script","dataLayer","GTM-M2G872J9");</script>
   <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#05060a" />
+  <meta name="theme-color" content="#f3f0e8" />
 
   <title>Results Gallery - Fenil Dholariya | AI + SEO Growth Strategist</title>
   <meta name="description" content="Real Looker Studio dashboards, Google Search Console and Analytics screenshots from D2C and lead-generation client accounts showing organic growth over time." />
@@ -27,10 +27,7 @@
   <meta name="twitter:image" content="https://fenil-dholariya.vercel.app/assets/og.png" />
 
   <link rel="icon" href="/assets/favicon.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/style.css?v=20260709e" />
+  <link rel="stylesheet" href="/css/premium.css?v=20260913" />
 
   <script type="application/ld+json" id="ldJsonBreadcrumb">
   {
@@ -49,13 +46,91 @@
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
 
-  <div class="loader" id="loader">
-    <div class="loader__inner">
-      <div class="loader__count"><span id="loaderCount">0</span><span class="gradient-text">%</span></div>
-      <div class="loader__bar"><i id="loaderBar"></i></div>
-    </div>
+  <div class="brand-intro" id="loader" aria-label="Opening Fenil Dholariya portfolio" role="status">
+    <svg class="brand-intro__mark" viewBox="0 0 512 512" aria-hidden="true">
+      <defs>
+        <clipPath id="introFSpine"><rect class="intro-clip intro-clip--spine" x="42" y="96" width="70" height="320" /></clipPath>
+        <clipPath id="introFTop"><rect class="intro-clip intro-clip--top" x="44" y="98" width="258" height="68" /></clipPath>
+        <clipPath id="introFMid"><rect class="intro-clip intro-clip--mid" x="44" y="210" width="258" height="68" /></clipPath>
+        <mask id="introDMask">
+          <rect width="512" height="512" fill="#000" />
+          <path class="intro-draw" d="M281 132H319C383 132 435 187 435 256S383 381 319 381H228" fill="none" stroke="#fff" stroke-width="62" stroke-linecap="square" pathLength="1" />
+        </mask>
+      </defs>
+      <g class="brand-intro__guides" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M30 105H482M30 407H482M50 82V430M462 82V430" />
+        <path class="brand-intro__axis" d="M102 430L278 191" />
+        <circle cx="50" cy="105" r="4" /><circle cx="462" cy="105" r="4" />
+        <circle cx="50" cy="407" r="4" /><circle cx="462" cy="407" r="4" />
+      </g>
+      <g class="brand-intro__build" fill="#f7f7f3">
+        <path clip-path="url(#introFSpine)" d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" />
+        <path clip-path="url(#introFTop)" d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" />
+        <path clip-path="url(#introFMid)" d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" />
+        <path class="brand-intro__d" mask="url(#introDMask)" d="M319 105C398 105 462 173 462 256S398 407 319 407H209L248 354H319C368 354 408 310 408 256S368 158 319 158H281Z" />
+        <path class="brand-intro__slash" d="M195 307H252L178 408H121Z" fill="#2f6bff" />
+      </g>
+      <g class="brand-intro__final">
+        <path d="M50 105H292L253 158H103V216H292L253 269H103V354L50 408Z" fill="#f7f7f3" />
+        <path d="M319 105C398 105 462 173 462 256S398 407 319 407H209L248 354H319C368 354 408 310 408 256S368 158 319 158H281Z" fill="#f7f7f3" />
+        <path d="M195 307H252L178 408H121Z" fill="#2f6bff" />
+      </g>
+    </svg>
+    <span class="sr-only">Fenil Dholariya portfolio is ready</span>
   </div>
 
+  <script data-intro-boot>
+  (() => {
+    const intro = document.getElementById("loader");
+    if (!intro) return;
+    intro.dataset.introBooted = "1";
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem("fd-intro-v3") === "seen";
+      if (!seen) sessionStorage.setItem("fd-intro-v3", "seen");
+    } catch {}
+    if (seen) {
+      intro.remove();
+      return;
+    }
+
+    document.documentElement.classList.add("is-loading");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let complete = false;
+    const unlock = () => {
+      document.documentElement.classList.remove("is-loading");
+      intro.classList.add("is-done");
+      window.removeEventListener("pointerdown", skip);
+      window.removeEventListener("keydown", skip);
+      window.setTimeout(() => intro.remove(), reduced ? 20 : 260);
+    };
+    const finish = (skipMotion) => {
+      if (complete || !intro.isConnected) return;
+      complete = true;
+      const mark = intro.querySelector(".brand-intro__mark");
+      const target = document.querySelector(".nav .brand__mark img");
+      if (!skipMotion && !reduced && mark && target) {
+        const from = mark.getBoundingClientRect();
+        const to = target.getBoundingClientRect();
+        intro.style.setProperty("--intro-x", `${to.left + (to.width / 2) - (from.left + (from.width / 2))}px`);
+        intro.style.setProperty("--intro-y", `${to.top + (to.height / 2) - (from.top + (from.height / 2))}px`);
+        intro.style.setProperty("--intro-scale", String(Math.max(0.08, to.width / from.width)));
+        intro.classList.add("is-compressing");
+        window.setTimeout(unlock, 250);
+      } else {
+        unlock();
+      }
+    };
+    function skip(event) {
+      if (event.type === "keydown" && ["Shift", "Control", "Alt", "Meta"].includes(event.key)) return;
+      finish(true);
+    }
+    window.addEventListener("pointerdown", skip, { once: true });
+    window.addEventListener("keydown", skip);
+    window.setTimeout(() => finish(false), reduced ? 80 : 960);
+    window.setTimeout(() => finish(true), 1550);
+  })();
+  </script>
   <div class="scroll-progress" id="scrollProgress"></div>
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
@@ -63,52 +138,46 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
 
-  <div class="lightbox" id="lightbox">
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Evidence image viewer" aria-hidden="true">
     <button class="lightbox__close" aria-label="Close">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
-    <img id="lightboxImg" src="" alt="" />
+    <img id="lightboxImg" src="/assets/fd-mark-v2.svg" alt="" />
   </div>
 
-  <header class="nav" id="nav">
+  <header class="nav nav--inverse" id="nav">
     <div class="nav__inner">
       <a href="/" class="brand" data-cursor>
-        <span class="brand__mark"><img src="/assets/logo.png" alt="" width="34" height="34" /></span>
+        <span class="brand__mark"><img src="/assets/fd-mark-v2.svg" alt="" width="34" height="34" /></span>
         Fenil Dholariya
       </a>
-      <nav class="nav__menu">
+      <nav class="nav__menu" aria-label="Primary navigation">
         <ul class="nav__links">
-          <li><a href="/services" class="nav__link">Services</a></li>
+          <li><a href="/" class="nav__link">Home</a></li>
           <li><a href="/work" class="nav__link">Work</a></li>
-          <li><a href="/gallery" class="nav__link is-active">Gallery</a></li>
+          <li><a href="/services" class="nav__link">Engagements</a></li>
+          <li><a href="/gallery" class="nav__link" aria-current="page">Gallery</a></li>
           <li><a href="/about" class="nav__link">About</a></li>
-          <li><a href="/blog" class="nav__link">Blog</a></li>
-          <li><a href="/contact" class="nav__link">Contact</a></li>
+          <li><a href="/blog" class="nav__link">Insights</a></li>
         </ul>
-        <a href="/contact" class="btn btn--primary nav__cta" data-cursor>
-          Start a project
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
+        <a href="/contact" class="btn btn--nav nav__cta">Let's talk <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </nav>
       <button class="nav__toggle" id="navToggle" aria-label="Toggle menu"><span></span></button>
     </div>
   </header>
 
   <main>
-    <section class="page-hero container">
-      <span class="eyebrow reveal">Proof, not promises</span>
-      <h1 class="reveal" data-delay="1">Results <span class="gradient-text">gallery.</span></h1>
-      <p class="lead reveal" data-delay="2">Real Looker Studio dashboards, Search Console and Analytics data from client accounts. Client domains blurred for confidentiality. Click any screenshot to enlarge.</p>
-    </section>
+    <div class="hero-band">
+      <section class="container gallery-intro" aria-labelledby="gallery-title">
+        <p class="eyebrow">Work gallery / Behind the case studies</p><h1 id="gallery-title">The work,<br><em>in full view.</em></h1><div class="gallery-intro__bottom"><p class="lead">Browse the supplied Analytics, Search Console and Looker Studio screenshots. Open an image to inspect the detail.</p><p class="gallery-intro__note">Reports &amp; dashboards<br><span>From selected engagements</span></p></div>
+      </section>
+    </div>
+    <nav class="container gallery-index" aria-label="Gallery categories"><a href="#gallery-reports">D2C reports</a><a href="#gallery-local">Lead generation</a><a href="#gallery-ai">AI search</a><a href="#gallery-search">Search &amp; Analytics</a></nav>
 
     <div id="galleryRoot" style="min-height:40vh">
-      <p style="text-align:center;padding:4rem 0;color:var(--text-soft);font-family:var(--font-mono);font-size:0.85rem">Loading gallery…</p>
-    </div>
-
-    <!-- static fallback hidden — dynamic loader below fills galleryRoot from /api/gallery -->
-    <template id="galleryStatic">
+    <!-- Server-independent evidence remains visible while live content loads. -->
     <!-- ① D2C Revenue Month-on-Month -->
-    <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
+    <section class="container" id="gallery-reports" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
       <div class="section-head">
         <span class="eyebrow reveal">Looker Studio · D2C e-commerce</span>
         <h2 class="reveal" data-delay="1">D2C revenue <span class="gradient-text">month-on-month.</span></h2>
@@ -116,26 +185,26 @@
       </div>
       <div class="gallery-grid">
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/D2C.PNG" alt="Looker Studio SEO Report March 2026 - Organic Revenue ₹26.48K, 315 Clicks, 13 Purchases" loading="lazy" />
+          <img src="/assets/gallery/D2C.webp" alt="Looker Studio SEO Report March 2026 - Organic Revenue ₹26.48K, 315 Clicks, 13 Purchases" loading="lazy" />
           <figcaption><span class="gallery-badge">Mar 2026</span> Revenue ₹26.48K · Clicks 315 · Purchases 13</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-delay="1" data-cursor>
-          <img src="/assets/gallery/D2C1.PNG" alt="Looker Studio SEO Report April 2026 - Organic Revenue ₹38.93K, 425 Clicks, 19 Purchases" loading="lazy" />
+          <img src="/assets/gallery/D2C1.webp" alt="Looker Studio SEO Report April 2026 - Organic Revenue ₹38.93K, 425 Clicks, 19 Purchases" loading="lazy" />
           <figcaption><span class="gallery-badge">Apr 2026</span> Revenue ₹38.93K · Clicks 425 · Purchases 19</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-delay="2" data-cursor>
-          <img src="/assets/gallery/D2C2.PNG" alt="Looker Studio SEO Report May 2026 - Organic Revenue ₹70.80K, 491 Clicks, 31 Purchases" loading="lazy" />
+          <img src="/assets/gallery/D2C2.webp" alt="Looker Studio SEO Report May 2026 - Organic Revenue ₹70.80K, 491 Clicks, 31 Purchases" loading="lazy" />
           <figcaption><span class="gallery-badge">May 2026</span> Revenue ₹70.80K · Clicks 491 · Purchases 31</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/D2C3.PNG" alt="Looker Studio SEO Report June 2026 - Organic Revenue ₹75.68K, 436 Clicks, 37 Purchases" loading="lazy" />
+          <img src="/assets/gallery/D2C3.webp" alt="Looker Studio SEO Report June 2026 - Organic Revenue ₹75.68K, 436 Clicks, 37 Purchases" loading="lazy" />
           <figcaption><span class="gallery-badge">Jun 2026</span> Revenue ₹75.68K · Clicks 436 · Purchases 37</figcaption>
         </figure>
       </div>
     </section>
 
     <!-- ② Lead Gen Dashboard Reports -->
-    <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
+    <section class="container" id="gallery-local" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
       <div class="section-head">
         <span class="eyebrow reveal">Looker Studio · lead generation</span>
         <h2 class="reveal" data-delay="1">Lead gen dashboard <span class="gradient-text">reports.</span></h2>
@@ -143,26 +212,26 @@
       </div>
       <div class="gallery-grid">
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/Lead%20generation%20bsuiness%202.PNG" alt="Looker Studio Overall SEO Performance Summary May 2026 - 42 Leads, 5 Phone Calls, 19 Form Submissions, 18 Emails" loading="lazy" />
+          <img src="/assets/gallery/lead-generation-business-2.webp" alt="Looker Studio Overall SEO Performance Summary May 2026 - 42 Leads, 5 Phone Calls, 19 Form Submissions, 18 Emails" loading="lazy" />
           <figcaption><span class="gallery-badge">May 2026</span> 42 Leads · 5 Calls · 19 Forms · 18 Emails</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-delay="1" data-cursor>
-          <img src="/assets/gallery/Lead%20generation%20bsuiness.PNG" alt="Looker Studio Overall SEO Performance Summary June 2026 - 145 Leads, 27 Phone Calls, 41 Form Submissions, 77 Emails" loading="lazy" />
+          <img src="/assets/gallery/lead-generation-business-1.webp" alt="Looker Studio Overall SEO Performance Summary June 2026 - 145 Leads, 27 Phone Calls, 41 Form Submissions, 77 Emails" loading="lazy" />
           <figcaption><span class="gallery-badge">Jun 2026</span> 145 Leads · 27 Calls · 41 Forms · 77 Emails</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-delay="2" data-cursor>
-          <img src="/assets/gallery/Lead%20generation%20bsuiness%204.PNG" alt="Looker Studio Lead-Based Report May 2026 - 19 Leads, 3 Phone Calls, 14 Form Submissions" loading="lazy" />
+          <img src="/assets/gallery/lead-generation-business-4.webp" alt="Looker Studio Lead-Based Report May 2026 - 19 Leads, 3 Phone Calls, 14 Form Submissions" loading="lazy" />
           <figcaption><span class="gallery-badge">May 2026</span> 19 Leads · 3 Calls · 14 Forms · CTR 0.51%</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/Lead%20generation%20bsuiness%203.PNG" alt="Looker Studio Lead-Based Report June 2026 - 18 Leads, 5 Phone Calls, 12 Form Submissions" loading="lazy" />
+          <img src="/assets/gallery/lead-generation-business-3.webp" alt="Looker Studio Lead-Based Report June 2026 - 18 Leads, 5 Phone Calls, 12 Form Submissions" loading="lazy" />
           <figcaption><span class="gallery-badge">Jun 2026</span> 18 Leads · 5 Calls · 12 Forms · CTR 0.45%</figcaption>
         </figure>
       </div>
     </section>
 
-    <!-- ③ AI Search Visibility (9 images — collapsible) -->
-    <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
+    <!-- ③ AI Search Visibility (9 images - collapsible) -->
+    <section class="container" id="gallery-ai" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
       <div class="section-head">
         <span class="eyebrow reveal">AI search · monthly reports</span>
         <h2 class="reveal" data-delay="1">AI search <span class="gradient-text">visibility results.</span></h2>
@@ -170,77 +239,83 @@
       </div>
       <div class="gallery-grid gallery-grid--collapsible">
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches.PNG" alt="AI search responses monthly report - AI Overviews 4, AI Mode 6, AIO 29" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-1.webp" alt="AI search responses monthly report - AI Overviews 4, AI Mode 6, AIO 29" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 1</span> AI Responses · AIO 29 · AI Mode 6</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-delay="1" data-cursor>
-          <img src="/assets/gallery/AI%20Searches2.PNG" alt="AI citations monthly report - AI Overviews 6, ChatGPT 1, Gemini 2, Perplexity 3" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-2.webp" alt="AI citations monthly report - AI Overviews 6, ChatGPT 1, Gemini 2, Perplexity 3" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 2</span> AI Citations · AI Overviews 6 · Perplexity 3</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-delay="2" data-cursor>
-          <img src="/assets/gallery/AI%20Searches3.PNG" alt="AI search responses monthly report - ChatGPT 8, AI Mode 8, Grok 15" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-3.webp" alt="AI search responses monthly report - ChatGPT 8, AI Mode 8, Grok 15" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 3</span> AI Responses · ChatGPT 8 · Grok 15</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches4.PNG" alt="AI search responses monthly report - ChatGPT 57" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-4.webp" alt="AI search responses monthly report - ChatGPT 57" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 4</span> AI Responses · ChatGPT 57 · Grok 4</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches5.PNG" alt="AI search responses monthly report - Grok 7" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-5.webp" alt="AI search responses monthly report - Grok 7" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 5</span> AI Responses · ChatGPT 1 · Grok 7</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches6.PNG" alt="AI search responses monthly report - AI Overviews 6, AI Mode 5, Grok 11" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-6.webp" alt="AI search responses monthly report - AI Overviews 6, AI Mode 5, Grok 11" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 6</span> AI Responses · AI Overviews 6 · Grok 11</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches7.PNG" alt="AI search responses monthly report - AI Overviews 19, ChatGPT 43, Grok 52" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-7.webp" alt="AI search responses monthly report - AI Overviews 19, ChatGPT 43, Grok 52" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 7</span> AI Overviews 19 · ChatGPT 43 · Grok 52</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches8.PNG" alt="AI search responses monthly report - ChatGPT 13, Grok 42" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-8.webp" alt="AI search responses monthly report - ChatGPT 13, Grok 42" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 8</span> AI Responses · ChatGPT 13 · Grok 42</figcaption>
         </figure>
         <figure class="gallery-item gallery-item--highlight reveal" data-cursor>
-          <img src="/assets/gallery/AI%20Searches9.PNG" alt="AI search responses monthly report - AI Overviews 6, AIO 107" loading="lazy" />
+          <img src="/assets/gallery/ai-searches-9.webp" alt="AI search responses monthly report - AI Overviews 6, AIO 107" loading="lazy" />
           <figcaption><span class="gallery-badge">Report 9</span> AI Responses · AI Overviews 6 · AIO 107</figcaption>
         </figure>
       </div>
     </section>
 
-    <!-- ④ Search Console & Analytics (overview + d2c + leadgen — collapsible) -->
-    <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
+    <!-- ④ Search Console & Analytics (overview + d2c + leadgen - collapsible) -->
+    <section class="container" id="gallery-search" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
       <div class="section-head">
         <span class="eyebrow reveal">Google Search Console · analytics</span>
         <h2 class="reveal" data-delay="1">Search Console <span class="gradient-text">performance.</span></h2>
         <p class="lead reveal" data-delay="2" style="margin-top:0.8rem">Raw Google Search Console and Analytics screenshots showing clicks, impressions, CTR and organic sessions across D2C and lead generation client accounts.</p>
       </div>
       <div class="gallery-grid gallery-grid--collapsible">
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-1.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-delay="1" data-cursor><img src="/assets/gallery/overview-2.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-delay="2" data-cursor><img src="/assets/gallery/overview-3.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-4.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-5.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-6.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-7.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-8.jpg" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-1.jpg" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-2.jpg" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-3.jpg" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-4.jpg" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-5.jpg" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-6.jpg" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-7.jpg" alt="Analytics channels and sessions for a D2C client" loading="lazy" /><figcaption>D2C - Analytics channels &amp; sessions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-8.jpg" alt="Analytics channels and sessions for a D2C client" loading="lazy" /><figcaption>D2C - Analytics channels &amp; sessions</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-4.jpg" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-5.jpg" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
-        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-6.jpg" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-1.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-delay="1" data-cursor><img src="/assets/gallery/overview-2.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-delay="2" data-cursor><img src="/assets/gallery/overview-3.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-4.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-5.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-6.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-7.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/overview-8.webp" alt="Search Console clicks and impressions growth" loading="lazy" /><figcaption>Search Console - clicks &amp; impressions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-1.webp" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-2.webp" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-3.webp" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-4.webp" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-5.webp" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-6.webp" alt="Search Console performance for a D2C client" loading="lazy" /><figcaption>D2C - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-7.webp" alt="Analytics channels and sessions for a D2C client" loading="lazy" /><figcaption>D2C - Analytics channels &amp; sessions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/d2c-8.webp" alt="Analytics channels and sessions for a D2C client" loading="lazy" /><figcaption>D2C - Analytics channels &amp; sessions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-4.webp" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-5.webp" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-6.webp" alt="Search Console performance for a lead generation client" loading="lazy" /><figcaption>Lead gen - Search Console performance</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/D2C4.webp" alt="Google Analytics channel table with D2C organic revenue" loading="lazy" /><figcaption>D2C - Analytics channels and revenue</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-1.webp" alt="Google Analytics channel comparison for a lead generation engagement" loading="lazy" /><figcaption>Lead gen - Analytics channel comparison</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-2.webp" alt="Google Analytics landing page report for a lead generation engagement" loading="lazy" /><figcaption>Lead gen - Analytics landing pages</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/leadgen-3.webp" alt="Google Analytics landing page and conversion report for a lead generation engagement" loading="lazy" /><figcaption>Lead gen - Landing pages and conversions</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/search-console-insights-28-days.webp" alt="Search Console Insights performance over 28 days" loading="lazy" /><figcaption>Search Console Insights - 28-day view</figcaption></figure>
+        <figure class="gallery-item reveal" data-cursor><img src="/assets/gallery/search-console-insights-3-months.webp" alt="Search Console Insights performance over three months" loading="lazy" /><figcaption>Search Console Insights - three-month view</figcaption></figure>
       </div>
     </section>
-    </template><!-- end #galleryStatic -->
+    </div><!-- end #galleryRoot -->
 
     <!-- CTA -->
-    <section class="container" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
+    <section class="container cta-section" style="padding-bottom: clamp(4rem, 8vw, 7rem)">
       <div class="cta">
         <span class="eyebrow reveal" style="justify-content:center">Want results like these?</span>
         <h2 class="reveal" data-delay="1">Let's build your <span class="gradient-text">growth story.</span></h2>
@@ -258,16 +333,16 @@
     <div class="container">
       <div class="footer__top">
         <div>
-          <a href="/" class="brand"><span class="brand__mark"><img src="/assets/logo.png" alt="" width="34" height="34" /></span> Fenil Dholariya</a>
-          <p class="footer__tag">Practical AI + SEO to grow traffic, leads and revenue - for brands ready to compound.</p>
+          <a href="/" class="brand"><span class="brand__mark"><img src="/assets/fd-mark-v2.svg" alt="" width="34" height="34" /></span> Fenil Dholariya</a>
+          <p class="footer__tag">Organic growth strategy, technical execution and practical AI systems for teams ready to measure what matters.</p>
         </div>
         <div class="footer__col">
           <h5>Explore</h5>
-          <a href="/services">Services</a>
+          <a href="/services">Engagements</a>
           <a href="/work">Work</a>
           <a href="/gallery">Gallery</a>
           <a href="/about">About</a>
-          <a href="/blog">Blog</a>
+          <a href="/blog">Insights</a>
         </div>
         <div class="footer__col">
           <h5>Connect</h5>
@@ -288,11 +363,11 @@
     </div>
   </footer>
 
-  <script src="/js/data.js?v=20260709e"></script>
-  <script src="/js/api.js?v=20260710"></script>
-  <script src="/js/schema.js?v=20260629"></script>
-  <script src="/js/render.js?v=20260709e"></script>
-  <script src="/js/main.js?v=20260708"></script>
+  <script defer src="/js/main.js?v=20260913"></script>
+  <script defer src="/js/data.js?v=20260828"></script>
+  <script defer src="/js/api.js?v=20260710"></script>
+  <script defer src="/js/schema.js?v=20260629"></script>
+  <script defer src="/js/render.js?v=20260913"></script>
   <script>
   (function () {
     function esc(s) {
@@ -300,16 +375,55 @@
         .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
+    function safeMediaUrl(value) {
+      return String(value || "")
+        .replace(/AI(?:%20| )Searches(\d*)\.webp/gi, function (_, number) { return "ai-searches-" + (number || "1") + ".webp"; })
+        .replace(/Lead(?:%20| )generation(?:%20| )bsuiness(?:(?:%20| )(\d+))?\.webp/gi, function (_, number) { return "lead-generation-business-" + (number || "1") + ".webp"; });
+    }
+
+    // Preserve the complete supplied collection when live content contains fewer items.
+    var LOCAL_GALLERY = Array.from(document.querySelectorAll("#galleryRoot > section")).map(function (section, index) {
+      return {
+        key: ["d2c-revenue", "lead-gen", "ai-search", "search-console"][index],
+        anchor: section.id,
+        label: section.querySelector("h2").textContent.trim(),
+        eyebrow: section.querySelector(".eyebrow").textContent.trim(),
+        description: section.querySelector(".lead").textContent.trim(),
+        items: Array.from(section.querySelectorAll(".gallery-item")).map(function (figure) {
+          var img = figure.querySelector("img");
+          return { image_url: img.getAttribute("src"), alt: img.alt, caption: figure.querySelector("figcaption").textContent.trim(), highlight: figure.classList.contains("gallery-item--highlight") };
+        })
+      };
+    });
+
+    function includeRequiredEvidence(sections) {
+      var combined = LOCAL_GALLERY.map(function (section) { return Object.assign({}, section, { items: section.items.slice() }); });
+      var known = new Set(combined.flatMap(function (section) { return section.items.map(function (item) { return safeMediaUrl(item.image_url); }); }));
+      sections.forEach(function (section) {
+        var additions = (section.items || []).filter(function (item) {
+          var url = safeMediaUrl(item.image_url);
+          if (!url || known.has(url)) return false;
+          known.add(url);
+          return true;
+        });
+        if (!additions.length) return;
+        var target = combined.find(function (local) { return local.key === section.key; });
+        if (target) target.items = target.items.concat(additions);
+        else combined.push(Object.assign({}, section, { items: additions }));
+      });
+      return combined;
+    }
+
     function renderGallery(sections) {
       var root = document.getElementById("galleryRoot");
       if (!sections || !sections.length) {
-        root.innerHTML = '<p style="text-align:center;padding:4rem 0;color:var(--text-soft)">No gallery items yet.</p>';
+        enhanceGallery();
         return;
       }
       var html = "";
-      sections.forEach(function (sec) {
+      includeRequiredEvidence(sections).forEach(function (sec) {
         var collapsible = sec.items.length > 4 ? " gallery-grid--collapsible" : "";
-        html += '<section class="container" style="padding-bottom:clamp(4rem,8vw,7rem)">';
+        html += '<section class="container" id="' + esc(sec.anchor || sec.key || "") + '" style="padding-bottom:clamp(4rem,8vw,7rem)">';
         html += '<div class="section-head">';
         if (sec.eyebrow) html += '<span class="eyebrow reveal">' + esc(sec.eyebrow) + '</span>';
         html += '<h2 class="reveal" data-delay="1">' + esc(sec.label) + '</h2>';
@@ -320,7 +434,7 @@
           var hi = item.highlight ? " gallery-item--highlight" : "";
           var delay = i > 0 && i < 3 ? ' data-delay="' + i + '"' : "";
           html += '<figure class="gallery-item' + hi + ' reveal" data-cursor' + delay + '>';
-          html += '<img src="' + esc(item.image_url) + '" alt="' + esc(item.alt) + '" loading="lazy" />';
+          html += '<img src="' + esc(safeMediaUrl(item.image_url)) + '" alt="' + esc(item.alt) + '" loading="lazy" />';
           html += '<figcaption>';
           if (item.badge) html += '<span class="gallery-badge">' + esc(item.badge) + '</span> ';
           html += esc(item.caption);
@@ -329,18 +443,23 @@
         html += '</div></section>';
       });
       root.innerHTML = html;
+      enhanceGallery();
+    }
+
+    function enhanceGallery() {
       if (window.refreshAnimations) window.refreshAnimations();
       if (window.initGalleryCollapse) window.initGalleryCollapse();
       if (window.bindLightboxItems) window.bindLightboxItems();
     }
 
-    fetch("/api/gallery")
-      .then(function (r) { return r.json(); })
+    enhanceGallery();
+    var galleryController = typeof AbortController === "function" ? new AbortController() : null;
+    var galleryTimeout = setTimeout(function () { if (galleryController) galleryController.abort(); }, 2500);
+    fetch("/api/gallery", galleryController ? { signal: galleryController.signal } : {})
+      .then(function (r) { if (!r.ok) throw new Error("Gallery unavailable"); return r.json(); })
       .then(function (d) { renderGallery(d.sections || []); })
-      .catch(function () {
-        document.getElementById("galleryRoot").innerHTML =
-          '<p style="text-align:center;padding:4rem 0;color:var(--text-soft)">Gallery unavailable — please try again shortly.</p>';
-      });
+      .catch(enhanceGallery)
+      .finally(function () { clearTimeout(galleryTimeout); });
   })();
   </script>
 </body>

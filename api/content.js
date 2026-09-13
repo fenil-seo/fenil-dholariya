@@ -85,7 +85,7 @@ async function loadContent() {
 /* Auto-inserts any seed entries missing from the DB, then re-fetches.
    key(row) → comparable string; insertFn(seedRow, index) → [sql, params]; fetchSql → re-fetch query */
 async function syncMissing(sql, _table, dbRows, seedRows, key, insertFn, fetchSql) {
-  if (!dbRows.length) return dbRows; // table is empty — seed.js handles full init
+  if (!dbRows.length) return dbRows; // table is empty - seed.js handles full init
   const existing = new Set(dbRows.map((r) => key(r).toLowerCase()));
   const missing = seedRows.filter((r) => !existing.has(key(r).toLowerCase()));
   if (!missing.length) return dbRows;
@@ -115,6 +115,9 @@ function buildSitemap(data) {
     { loc: `${SITE_URL}/blog`, priority: "0.8" },
     { loc: `${SITE_URL}/contact`, priority: "0.6" },
   ];
+  (data.projects || []).forEach((project) => {
+    if (project.slug) urls.push({ loc: `${SITE_URL}/work/${project.slug}`, priority: "0.7" });
+  });
   (data.posts || []).forEach((p) => urls.push({ loc: `${SITE_URL}/post/${p.slug}`, lastmod: p.date, priority: "0.6" }));
 
   const body = urls

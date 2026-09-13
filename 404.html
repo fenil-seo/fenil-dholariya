@@ -10,57 +10,73 @@
   })(window,document,"script","dataLayer","GTM-M2G872J9");</script>
   <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#05060a" />
+  <meta name="theme-color" content="#f3f0e8" />
   <meta name="robots" content="noindex" />
 
   <title>Page not found - Fenil Dholariya</title>
   <meta name="description" content="This page doesn't exist or has moved." />
 
   <link rel="icon" href="/assets/favicon.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/style.css?v=20260709e" />
+  <link rel="stylesheet" href="/css/premium.css?v=20260913" />
 </head>
-<body>
+<body data-page="404">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M2G872J9"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
 
-  <header class="nav" id="nav">
+<header class="nav nav--inverse" id="nav">
     <div class="nav__inner">
-      <a href="/" class="brand" data-cursor>
-        <span class="brand__mark"><img src="/assets/logo.png" alt="" width="34" height="34" /></span>
-        Fenil Dholariya
-      </a>
+      <a href="/" class="brand" aria-label="Fenil Dholariya, home"><span class="brand__mark"><img src="/assets/fd-mark-v2.svg" alt="" width="34" height="34" /></span><span>Fenil Dholariya</span></a>
+      <nav class="nav__menu" aria-label="Primary navigation">
+        <ul class="nav__links">
+          <li><a href="/" class="nav__link">Home</a></li>
+          <li><a href="/work" class="nav__link">Work</a></li>
+          <li><a href="/services" class="nav__link">Engagements</a></li>
+          <li><a href="/gallery" class="nav__link">Gallery</a></li>
+          <li><a href="/about" class="nav__link">About</a></li>
+          <li><a href="/blog" class="nav__link">Insights</a></li>
+        </ul>
+        <a href="/contact" class="btn btn--nav nav__cta">Let's talk <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </nav>
+      <button class="nav__toggle" id="navToggle" type="button" aria-label="Open menu"><span></span></button>
     </div>
   </header>
 
-  <main>
-    <section class="container" style="min-height: 70vh; display: grid; place-items: center; text-align: center; padding-block: clamp(3rem, 8vw, 6rem);">
+  <main id="mainContent">
+<div class="hero-band">
+<section class="container not-found page-hero" aria-labelledby="not-found-title">
       <div>
-        <span class="eyebrow">404</span>
-        <h1 style="font-family: var(--font-display); font-size: var(--fs-h1); margin: 1rem 0;">This page doesn't exist.</h1>
-        <p class="lead" style="margin: 0 auto 2rem; max-width: 460px;">The link may be broken, or the page has moved. Let's get you back on track.</p>
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-          <a href="/" class="btn btn--primary">Back to home</a>
-          <a href="/blog" class="btn btn--ghost">Read the blog</a>
+        <span class="eyebrow">Wrong turn</span>
+        <h1 id="not-found-title">This signal leads nowhere.</h1>
+        <p class="lead">The URL may have moved. Continue with the work, or tell me about the growth problem you are trying to solve.</p>
+        <div class="not-found__actions">
+          <a href="/work" class="btn btn--primary">Review selected work</a>
+          <a href="/contact" class="btn btn--ghost">Request a diagnosis</a>
         </div>
       </div>
+      <div class="not-found__code" aria-hidden="true">404</div>
     </section>
+    </div>
   </main>
 
   <footer class="footer">
     <div class="container">
-      <div class="footer__bottom" style="border-top: none; padding-top: 0;">
-        <span>© <span id="year">2026</span> Fenil Dholariya · Surat, India</span>
+      <div class="footer__top">
+        <div class="footer__identity">
+          <a href="/" class="brand"><span class="brand__mark"><img src="/assets/fd-mark-v2.svg" alt="" width="34" height="34" /></span><span>Fenil Dholariya</span></a>
+          <p class="footer__tag">Organic growth strategy, technical execution and practical AI systems for teams ready to measure what matters.</p>
+        </div>
+        <nav class="footer__col" aria-label="Footer navigation"><h2>Explore</h2><a href="/work">Work</a><a href="/services">Engagements</a><a href="/gallery">Evidence</a><a href="/about">About</a><a href="/blog">Insights</a></nav>
+        <div class="footer__col"><h2>Connect</h2><a href="mailto:fenil.seo@gmail.com">fenil.seo@gmail.com</a><a href="https://www.linkedin.com/in/fenil-dholariya" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/916354646935" target="_blank" rel="noopener">WhatsApp</a></div>
       </div>
+      <div class="footer__bottom"><span>© <span id="year">2026</span> Fenil Dholariya · Surat, India</span></div>
     </div>
   </footer>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
+  <script defer src="/js/main.js?v=20260913"></script>
 </body>
 </html>
