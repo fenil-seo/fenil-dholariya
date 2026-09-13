@@ -41,7 +41,9 @@ async function loadContent() {
     if (isEmpty) return SEED;
 
     // Auto-add any seed services / skills / timeline entries missing from the DB
-    const services  = await syncMissing(sql, "services",  rawServices,  SEED.services,  (s) => s.title, (s, i) => [`INSERT INTO services (icon, title, description, sort_order) VALUES ($1,$2,$3,$4)`, [s.icon, s.title, s.desc, rawServices.length + i]], `SELECT icon, title, description AS "desc" FROM services ORDER BY sort_order, id`);
+    // Service labels can change during editorial updates. Match the stable icon
+    // key so renaming a capability does not create duplicate database services.
+    const services  = await syncMissing(sql, "services",  rawServices,  SEED.services,  (s) => s.icon || s.title, (s, i) => [`INSERT INTO services (icon, title, description, sort_order) VALUES ($1,$2,$3,$4)`, [s.icon, s.title, s.desc, rawServices.length + i]], `SELECT icon, title, description AS "desc" FROM services ORDER BY sort_order, id`);
     const skills    = await syncMissing(sql, "skills",    rawSkills,    SEED.skills.map((n) => ({ name: n })), (s) => s.name, (s, i) => [`INSERT INTO skills (name, sort_order) VALUES ($1,$2)`, [s.name, rawSkills.length + i]], `SELECT name FROM skills ORDER BY sort_order, id`);
     const timeline  = await syncMissing(sql, "timeline",  rawTimeline,  SEED.timeline,  (t) => `${t.role}|${t.org}`, (t, i) => [`INSERT INTO timeline (role, org, period, sort_order) VALUES ($1,$2,$3,$4)`, [t.role, t.org, t.period, rawTimeline.length + i]], `SELECT role, org, period FROM timeline ORDER BY sort_order, id`);
 

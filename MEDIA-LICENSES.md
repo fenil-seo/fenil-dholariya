@@ -1,8 +1,16 @@
 # Media licenses and provenance
 
-Last verified: 2026-08-28
+Last updated: 2026-09-13. New asset pages and the Pexels license were checked on this date; earlier records retain their original verification dates.
 
 This record covers third-party media stored in `assets/media`. Source pages and license terms should be checked again before any material redistribution outside this website.
+
+## September service and editorial refresh
+
+- `assets/media/services-planning.webp`: Darina Belonogova, [White table with electronic gadgets against a wall with sticky notes](https://www.pexels.com/photo/white-table-with-electronic-gadgets-against-a-wall-with-sticky-notes-8004029/). Retrieved from `https://images.pexels.com/photos/8004029/pexels-photo-8004029.jpeg?auto=compress&cs=tinysrgb&w=1400&fm=webp&q=82`. Used only in the Services introduction.
+- `assets/media/insights-reading.webp`: Beyzaa Yurtkuran, [The sun shining on a wall and desk in a room](https://www.pexels.com/photo/the-sun-shining-on-a-wall-and-desk-in-a-room-18313029/). Retrieved from `https://images.pexels.com/photos/18313029/pexels-photo-18313029.jpeg?auto=compress&cs=tinysrgb&w=1000&fm=webp&q=82`. Used only for the Insights editor's pick.
+- License for both: [Pexels License](https://www.pexels.com/license/), verified 2026-09-13. These are contextual photographs, not Fenil's office, team, clients or deliverables. No endorsement is implied.
+- Treatment: source CDN resizing and WebP compression; responsive CSS object-fit cropping. No local retouching or compositing.
+- Image assignment: Services has its own workspace image. Work uses one distinct category image per case study and no repeated hero cover. About uses the authentic portrait, its existing office-context image and the licensed collaboration photograph in the new working-relationship section. Insights uses a new editorial cover, distinct from its article cards. Case-specific photography may recur when linking to the same project from Home or its detail page, preserving project identity. Supplied analytics screenshots remain exclusively in Gallery.
 
 ## Ahmedabad office interior
 
@@ -30,7 +38,7 @@ This record covers third-party media stored in `assets/media`. Source pages and 
 - License: Pexels License
 - License URL: https://www.pexels.com/license/
 - Retrieval date: 2026-08-27
-- Placement intent: Editorial working-session context on the About or Services page.
+- Current placement: The About page's working-relationship section. A visible caption identifies it as editorial photography, not Fenil's team or a client meeting. This is an additional use of the existing licensed file, not a new photograph or generated likeness.
 - Modifications: Requested from the Pexels image service as a 2400 pixel wide WebP. No crop, retouching, compositing, or color effects were applied locally.
 - Usage note: The people shown are stock-photo subjects. Do not identify them as Fenil, employees, partners, or clients. Do not place this image next to testimonials, case-study outcomes, or copy that implies endorsement.
 
@@ -184,8 +192,8 @@ All images in this section are licensed stock photography. They provide editoria
 | Public page or route | Local media | Intended role | Truthful label or disclosure |
 | --- | --- | --- | --- |
 | Home | `analytics-work.webm`, `analytics-work.mp4`, `analytics-work-poster.webp` | Supporting process motion | Stock footage. The spreadsheet is not portfolio evidence or a client result. |
-| Services | `ahmedabad-collaboration.webp` | Working-session context | Stock photography. The people shown are not Fenil, employees, partners, or clients. |
-| About | `ahmedabad-office.webp` and the separately owned `assets/fenil.jpg` | Regional workspace atmosphere and verified personal portrait | The office image is stock photography and is not Fenil's office. |
+| Services | `services-planning.webp` | Planning and workspace context | Editorial photography, not Fenil's office or a client deliverable. |
+| About | `ahmedabad-office.webp`, `ahmedabad-collaboration.webp` and the separately owned `assets/fenil.jpg` | Workspace atmosphere, working-relationship context and verified personal portrait | The office and collaboration photographs are stock images, not Fenil's premises, team or clients. |
 | Work and `d2c-silver-jewellery` | `case-d2c-jewellery.webp` | D2C category context | Stock category image. Not a client product or campaign asset. |
 | Work and `local-construction-gmb` | `case-local-construction.webp` | Local construction category context | Stock category image. Not a photographed client site. |
 | Work and `b2b-saas-pipeline` | `case-b2b-saas.webp` | SaaS and B2B category context | Stock category image. Not client infrastructure or a product screenshot. |
@@ -196,7 +204,9 @@ All images in this section are licensed stock photography. They provide editoria
 | Blog and `content-that-converts` | `article-content.webp` | Editorial planning concept image | Editorial concept image. Not a client workspace or deliverable. |
 | Contact | `contact-path.webp` | Premium architectural pathway | Editorial environment image. Not Fenil's office or meeting location. |
 
-## September 2026 layout refresh
+## Earlier September 2026 layout refresh
+
+The following records the earlier placement pass. The current assignments above supersede it where a page has since changed.
 
 - The Engagements page now uses the licensed jewellery, city and content-planning photographs in three service cards, with collaboration photography in its introduction.
 - The Work introduction uses the jewellery photograph as industry context.

@@ -5,7 +5,8 @@
   "description": "Premium AI + SEO growth portfolio for Fenil Dholariya - static front-end with Neon Postgres-powered admin & blog, deployed on Vercel.",
   "type": "module",
   "scripts": {
-    "start": "vercel dev"
+    "start": "vercel dev",
+    "test": "node scripts/verify-portfolio.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4"

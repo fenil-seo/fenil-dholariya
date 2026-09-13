@@ -152,18 +152,24 @@ window.Render = (() => {
   function renderProjects(projects, target, options = {}) {
     if (!target || !projects?.length) return;
     if (options.full) {
-      target.innerHTML = projects.map((project) => `
-        <article class="case reveal is-in">
-          ${projectEvidence(project, "case__media")}
-          <div>
-            <span class="tag">${esc(project.category)}</span>
-            <div class="case__client">CLIENT CONTEXT: ${esc(project.client || "Anonymized engagement")}</div>
-            <h2 class="case__title">${esc(project.title)}</h2>
-            <p class="case__desc text-soft">${esc(project.desc)}</p>
-            <div class="case__metrics">${(project.metrics || []).slice(0, 3).map((metric) => `<div class="case__metric"><b>${esc(metric.value)}</b><span>${esc(metric.label)}</span></div>`).join("")}</div>
-            ${project.slug ? `<a class="case__readmore" href="/work/${esc(project.slug)}">Read the full case study <span aria-hidden="true">↗</span></a>` : ""}
-          </div>
-        </article>`).join("");
+      const indexCopy = {
+        "d2c-silver-jewellery": ["commerce", "D2C silver jewellery", "Product-page architecture and search-led content for a jewellery brand."],
+        "local-construction-gmb": ["local", "Construction & fencing", "Google Business Profile, review processes and location pages for a local contractor."],
+        "b2b-saas-pipeline": ["b2b", "B2B software", "Search intent, editorial planning and nurture journeys connected to the buying process."],
+        "ayurvedic-technical-seo": ["commerce", "Ayurvedic commerce", "Crawl, indexation and performance improvements to strengthen an existing website."]
+      };
+      target.innerHTML = projects.filter(project => project.slug).map((project, index) => {
+        const [category, title, description] = indexCopy[project.slug] || ["other", project.title, project.desc];
+        const metric = project.metrics?.[0];
+        const image = projectMediaUrl(project);
+        const href = `/work/${encodeURIComponent(project.slug)}`;
+        return `<article class="work-project" data-work-category="${esc(category)}">
+          <a class="work-project__image" href="${href}" tabindex="-1" aria-hidden="true">${image ? `<img src="${esc(image)}" alt="" width="1600" height="1067" loading="${index < 2 ? "eager" : "lazy"}" decoding="async">` : editorialCover(project)}<span aria-hidden="true">↗</span></a>
+          <div class="work-project__meta"><span>${esc(project.category)}</span><span>${String(index + 1).padStart(2, "0")}</span></div>
+          <h2><a href="${href}">${esc(title)}</a></h2><p>${esc(description)}</p>
+          <div class="work-project__outcome">${metric ? `<p><strong>${esc(metric.value)}</strong><span>${esc(metric.label)}</span></p>` : ""}<a class="text-link" href="${href}" aria-label="Read ${esc(title)} case study">View case study <span aria-hidden="true">↗</span></a></div>
+        </article>`;
+      }).join("");
       return;
     }
 

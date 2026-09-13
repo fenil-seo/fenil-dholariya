@@ -297,16 +297,20 @@
     form.dataset.formBound = "1";
     const button = document.getElementById("cfSubmit");
     const status = document.getElementById("formStatus");
-    const selectedFocus = {
-      "organic-revenue": "Organic growth",
-      "local-demand": "Local discovery",
-      "ai-content": "Better content systems"
-    }[new URLSearchParams(window.location.search).get("interest")];
-    if (selectedFocus) {
-      const guide = document.querySelector(".form-guide");
-      if (guide) guide.textContent = `Your focus: ${selectedFocus}. The four fields below are required.`;
-    }
+    const interest = new URLSearchParams(window.location.search).get("interest");
+    const legacyInterests = { "organic-revenue": ["technical-seo", "content-strategy"], "local-demand": ["local-seo"], "ai-content": ["ai-workflows", "content-strategy"] };
+    const selected = legacyInterests[interest] || [interest];
+    const serviceInputs = Array.from(form.querySelectorAll('input[name="services"]'));
+    serviceInputs.forEach(input => {
+      input.checked = selected.includes(input.value);
+      input.defaultChecked = input.checked;
+    });
     let started = false;
+    let sending = false;
+    [form.elements.name, form.elements.email, form.elements.message].forEach(input => {
+      input.addEventListener("input", () => input.setCustomValidity(""));
+      input.addEventListener("change", () => input.setCustomValidity(""));
+    });
 
     form.addEventListener("focusin", () => {
       if (started) return;
@@ -317,23 +321,31 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (!form.reportValidity()) return;
-      const businessModel = form.elements.business_model?.value || "";
-      const budget = form.elements.budget?.value || "";
+      [form.elements.name, form.elements.email, form.elements.message].forEach(input => {
+        input.setCustomValidity(input.value.trim() ? "" : "Please complete this field.");
+      });
+      if (sending || !form.reportValidity()) return;
+      const selectedServices = serviceInputs.filter(input => input.checked).map(input => input.nextElementSibling.textContent.trim());
+      const budget = form.elements.budget?.value.trim() || "";
+      const currency = form.elements.currency?.value || "";
       const timeline = form.elements.timeline?.value || "";
       const context = [
-        selectedFocus && `Engagement focus: ${selectedFocus}`,
-        businessModel && `Business model: ${businessModel}`,
-        budget && `Investment range: ${budget}`,
-        timeline && `Preferred timing: ${timeline}`
+        selectedServices.length && `Services: ${selectedServices.join(", ")}`,
+        form.elements.website?.value.trim() && `Website: ${form.elements.website.value.trim()}`,
+        form.elements.market?.value.trim() && `Target market: ${form.elements.market.value.trim()}`,
+        budget && `Total project budget: ${[currency, budget].filter(Boolean).join(" ")}`,
+        timeline && `Preferred start: ${timeline}`,
+        form.elements.timezone?.value.trim() && `Location / time zone: ${form.elements.timezone.value.trim()}`
       ].filter(Boolean).join("\n");
       const payload = {
         name: form.elements.name.value.trim(),
         email: form.elements.email.value.trim(),
         company: form.elements.company.value.trim(),
-        message: `${context}\n\nGrowth problem:\n${form.elements.message.value.trim()}`.trim()
+        message: `${context}\n\nProject brief:\n${form.elements.message.value.trim()}`.trim()
       };
 
+      sending = true;
+      form.setAttribute("aria-busy", "true");
       const original = button?.innerHTML || "Send your enquiry";
       if (button) {
         button.disabled = true;
@@ -351,17 +363,19 @@
         ok = false;
       }
 
+      sending = false;
+      form.removeAttribute("aria-busy");
       if (button) {
         button.disabled = false;
         button.innerHTML = original;
       }
       if (ok) {
         if (status) {
-          status.textContent = "Thank you. Fenil will reply after reviewing the fit.";
+          status.textContent = "Your brief has been received. Fenil will review it and reply by email. A copy of your project details is not sent automatically.";
           status.className = "form-status is-success";
         }
         window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ event: "portfolio_qualified_lead", business_model: businessModel || "not_provided", budget_range: budget || "not_provided", timeline: timeline || "not_provided" });
+        window.dataLayer.push({ event: "portfolio_qualified_lead", service_count: selectedServices.length, budget_provided: Boolean(budget), timeline: timeline || "not_provided" });
         form.reset();
       } else if (status) {
         status.innerHTML = 'The form could not send. Please email <a href="mailto:fenil.seo@gmail.com">fenil.seo@gmail.com</a>.';
@@ -378,6 +392,45 @@
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ event: "portfolio_cta_click", action: target.dataset.track || target.getAttribute("href") || "unknown", page: document.body.dataset.page || "unknown" });
     });
+  }
+
+  function bindWorkFilter() {
+    const bar = document.getElementById("workFilters");
+    if (!bar) return;
+    const buttons = Array.from(bar.querySelectorAll("[data-work-filter]"));
+    const apply = (category) => {
+      const cards = Array.from(document.querySelectorAll("#caseList .work-project"));
+      cards.forEach(card => { card.hidden = category !== "all" && card.dataset.workCategory !== category; });
+      buttons.forEach(button => {
+        const active = button.dataset.workFilter === category;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+      const count = cards.filter(card => !card.hidden).length;
+      const status = document.getElementById("workCount");
+      if (status) status.textContent = count ? `${count} case ${count === 1 ? "study" : "studies"}` : "No case studies in this category.";
+    };
+    bar.addEventListener("click", event => {
+      const button = event.target.closest("[data-work-filter]");
+      if (button) apply(button.dataset.workFilter);
+    });
+    apply("all");
+    window.addEventListener("content:hydrated", () => apply(bar.querySelector('[aria-pressed="true"]')?.dataset.workFilter || "all"));
+  }
+
+  function bindServiceAnchors() {
+    if (document.body.dataset.page !== "services") return;
+    const aliases = {"organic-revenue": "technical-seo", "local-demand": "local-seo", "ai-content": "ai-workflows"};
+    const reveal = () => {
+      const hash = location.hash.slice(1);
+      const target = document.getElementById(aliases[hash] || hash);
+      if (target?.classList.contains("capability")) {
+        target.open = true;
+        requestAnimationFrame(() => target.scrollIntoView({block: "start"}));
+      }
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
   }
 
   function bindBlogFilter() {
@@ -472,8 +525,9 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "gallery-toggle";
-      button.setAttribute("aria-expanded", "false");
-      button.textContent = `Show ${total - visible} more screenshots`;
+      const initiallyExpanded = grid.classList.contains("is-expanded");
+      button.setAttribute("aria-expanded", String(initiallyExpanded));
+      button.textContent = initiallyExpanded ? "Show fewer screenshots" : `Show ${total - visible} more screenshots`;
       grid.after(button);
       button.addEventListener("click", () => {
         const expanded = grid.classList.toggle("is-expanded");
@@ -499,6 +553,8 @@
   bindScrollTools();
   bindContactForm();
   bindTracking();
+  bindWorkFilter();
+  bindServiceAnchors();
   bindBlogFilter();
   bindLightbox();
   bindAll(document);

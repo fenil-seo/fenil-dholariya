@@ -33,46 +33,14 @@ window.SITE_DATA = {
   ],
 
   services: [
-    {
-      icon: "audit",
-      title: "SEO & Technical Audits",
-      desc: "Deep crawl, Core Web Vitals, indexation and architecture fixes that remove the invisible ceiling on your rankings - and keep it gone.",
-    },
-    {
-      icon: "content",
-      title: "Content That Converts",
-      desc: "Search-led content built around genuine buyer intent. Pages that earn the click, answer the question and move readers toward a decision.",
-    },
-    {
-      icon: "local",
-      title: "Local SEO & Google Business",
-      desc: "Map-pack dominance, GBP optimization and a review velocity system that turns nearby searches into phone calls, walk-ins and booked jobs.",
-    },
-    {
-      icon: "funnel",
-      title: "Lead Gen & Funnel Optimization",
-      desc: "From first click to closed deal - landing pages, tracking and funnels aligned to the way real buyers make decisions, not just traffic volume.",
-    },
-    {
-      icon: "ai",
-      title: "AI & Prompt Engineering",
-      desc: "Custom AI workflows that 3x content output without sacrificing quality, brand voice or accuracy. Scale the work - not the headcount.",
-    },
-    {
-      icon: "research",
-      title: "Market & Competitive Intel",
-      desc: "Know exactly where demand sits and where competitors are vulnerable before a single piece of content is commissioned or a single dollar spent.",
-    },
-    {
-      icon: "sem",
-      title: "Search Engine Marketing (SEM)",
-      desc: "Precision Google Ads campaigns engineered for return, not just reach. Smart bidding, intent-matched ad copy and landing pages that convert - every ad dollar made accountable.",
-    },
-    {
-      icon: "web",
-      title: "Performance Web Development",
-      desc: "Fast, clean, SEO-ready websites that score 90+ on PageSpeed, pass Core Web Vitals and are built to rank from day one - no technical debt, no bloat.",
-    },
+    { icon: "audit", title: "SEO & Technical Audits", desc: "Crawl, indexation, site architecture and performance reviews, with a prioritized implementation plan." },
+    { icon: "content", title: "Content Strategy & Copywriting", desc: "Search-led content planning and copywriting for product pages, landing pages and editorial content." },
+    { icon: "local", title: "Local SEO & Google Business", desc: "Google Business Profile optimization, location pages and review processes for service-area and local businesses." },
+    { icon: "funnel", title: "Lead Generation & CRO", desc: "Landing-page and funnel improvements, informed by how prospects actually find, evaluate and contact your business." },
+    { icon: "ai", title: "AI & Prompt Engineering", desc: "AI-assisted research, briefing and production systems with clear review standards and reusable prompts." },
+    { icon: "research", title: "Market & Competitive Research", desc: "Research into search demand, competitors and content gaps to inform positioning and marketing priorities." },
+    { icon: "sem", title: "Search Engine Marketing", desc: "Google Ads planning and optimization, connecting search terms, ad copy, landing pages and conversion measurement." },
+    { icon: "web", title: "Performance Web Development", desc: "Responsive website development with accessible interfaces, search-friendly foundations and performance testing." },
   ],
 
   process: [
