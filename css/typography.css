@@ -1,0 +1,102 @@
+/* Public type scale. Loaded last so every page uses the same hierarchy. */
+:root {
+  --type-display: clamp(2.5rem, 5.2vw, 5.25rem);
+  --type-section: clamp(2rem, 3.5vw, 3.25rem);
+  --type-subheading: clamp(1.5rem, 2.3vw, 2.25rem);
+  --type-card: clamp(1.25rem, 1.65vw, 1.5rem);
+  --type-body: 1rem;
+  --type-small: .875rem;
+  --type-caption: .75rem;
+  --type-label: .8125rem;
+  --serif-color: #2458d3;
+}
+body { font-size: var(--type-body); }
+h1, h2, h3, h4 { font-family: var(--font-sans); letter-spacing: -.02em; }
+button, input, select, textarea { font-family: var(--font-sans); }
+:is(.home-hero__title, .studio-hero h1, .service-intro h1, .work-heading h1,
+ .contact-stage h1, .page-hero h1, .journal-heading h1, .evidence-intro h1,
+ .article-heading h1, .not-found h1) {
+  font-size: var(--type-display); font-weight: 500; letter-spacing: -.025em; line-height: 1.1;
+}
+:is(.section-title, .section-head h2, .capability-section .section-head h2,
+ .depth-heading h2, .depth-sticky h2, .journal-library__heading h2,
+ .journal-note__grid h2, .article-related .section-head h2, .evidence-reading h2,
+ .footer--studio .footer-invitation h2, .closing-cta h2) {
+  font-size: var(--type-section); font-weight: 500; letter-spacing: -.02em; line-height: 1.15;
+}
+:is(.experience-panel h3, .engagement-options h3, .journey-chapter h3,
+ .decision-trail h3, .work-project h2, .feature-case__story h3,
+ .offer-card h3, .proof-card__body h3, .contact-form-panel h2, .enquiry-card h2) {
+  font-size: var(--type-subheading); letter-spacing: -.02em; line-height: 1.25;
+}
+:is(.service__title, .home-service-index h3, .capability__title,
+ .post-card__title, .process__step h3, .eg-method__steps h3) {
+  font-family: var(--font-sans); font-size: var(--type-card); letter-spacing: -.01em; line-height: 1.35;
+}
+:is(.lead, .home-hero__lede, .service-intro .lead, .work-heading__row .lead,
+ .journal-heading__row p, .evidence-intro .lead, .article-deck,
+ .depth-heading > p:last-child) { font-size: 1.125rem; line-height: 1.75; letter-spacing: normal; }
+:is(.section-intro, .capability__intro, .capability__body, .service__desc,
+ .engagement-options p, .experience-panel > p:not(.eyebrow),
+ .experience-deliverable p, .decision-trail p, .journey-chapter p,
+ .proof-card__body p, .work-project > p, .offer-card__body > p,
+ .journal-feature__story > p, .journal-note__grid p:not(.eyebrow),
+ .footer-invitation__action p, .footer--studio .footer__tag) {
+  font-size: var(--type-body); line-height: 1.75; letter-spacing: normal;
+}
+:is(.eyebrow, .section-label, .kicker, .eyebrow-small,
+ .experience-panel > .eyebrow, .journal-note .eyebrow) {
+  font-family: var(--font-sans); font-size: var(--type-label); line-height: 1.5; letter-spacing: .08em;
+}
+:is(.post-card__meta, .article-byline .post-card__meta, .journal-feature__label,
+ .editorial-masthead, .journal-feature__bottom > span, .article-sidebar > p) {
+  font-size: var(--type-caption); line-height: 1.6; letter-spacing: .04em;
+}
+.filter-chip, .article-search input, #articleCount, #galleryCount, .article-back,
+.text-link, .journal-feature__bottom > a { font-size: var(--type-small); }
+.capability__number, .experience-choice > span:first-child, .process__index,
+.engagement-options article > span { font-family: var(--font-sans); font-size: var(--type-caption); }
+
+/* Instrument Serif stays unchanged, with readable blue on each surface. */
+.hero-band, .section--ink, .depth-section--ink, .footer, .editorial-cover,
+.reader-prompt blockquote, .not-found { --serif-color: #719bff; }
+.hero-band em, .hero-band h1 em, .about-story em, .depth-heading h2 em, .depth-sticky h2 em,
+.depth-section--ink h2 em, .reader-prompt blockquote p,
+.journal-heading h1 em, .evidence-intro h1 em, .article-related h2 em,
+.footer--studio .footer-invitation h2 em, .prose blockquote, .cs-quote,
+.editorial-cover__number, .not-found__code, .quote__mark {
+  font-family: var(--font-serif); font-weight: 400; color: var(--serif-color);
+  letter-spacing: normal; word-spacing: normal;
+}
+.prose blockquote p { color: inherit; }
+
+/* Journal headings use the same scale as the rest of the site. */
+.journal-feature__story h2 { font-size: var(--type-subheading); line-height: 1.25; letter-spacing: -.02em; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__title {
+  font-size: var(--type-card); line-height: 1.35; letter-spacing: -.01em;
+}
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__excerpt {
+  font-size: var(--type-body); line-height: 1.75;
+}
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__meta {
+  font-size: var(--type-caption); letter-spacing: .025em; line-height: 1.6;
+}
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__foot {
+  font-size: var(--type-small);
+}
+body[data-page="post"] .prose { font-size: 1.0625rem; line-height: 1.85; }
+body[data-page="post"] .prose h2 { font-size: var(--type-subheading); letter-spacing: -.02em; }
+
+.footer--studio .footer__col h2 {
+  font-size: 1.125rem; font-weight: 600; line-height: 1.4;
+  letter-spacing: normal; text-transform: none; color: var(--white);
+}
+.footer--studio .footer__col a { font-size: var(--type-small); line-height: 1.6; }
+.footer--studio .footer__bottom { font-size: var(--type-caption); letter-spacing: normal; }
+
+@media (max-width: 640px) {
+  :is(.lead, .home-hero__lede, .service-intro .lead, .work-heading__row .lead,
+   .journal-heading__row p, .evidence-intro .lead, .article-deck,
+   .depth-heading > p:last-child) { font-size: var(--type-body); }
+  .evidence-toolbar .filter-chip { font-size: var(--type-caption); }
+}

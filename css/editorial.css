@@ -5,12 +5,12 @@
 .journal-heading h1, .evidence-intro h1 { font-size: clamp(3.3rem,6vw,6.2rem); line-height: .99; letter-spacing: -.065em; }
 .journal-heading h1 em, .evidence-intro h1 em { color: var(--blue-dark); font-family: var(--font-serif); font-weight: 400; letter-spacing: -.03em; }
 .journal-heading__row p { max-width: 34ch; color: var(--text-soft); margin-bottom: .25rem; font-size: 1rem; line-height: 1.8; }
-.journal-lead { display: grid; grid-template-columns: 1.15fr 1fr; background: var(--ink-soft); color: var(--white); min-height: 410px; }
-.journal-feature__image { position: relative; display: grid; min-width: 0; background: #e2e4e4; overflow: hidden; }
-.journal-feature__image > img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+.journal-lead { display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; background: var(--ink-soft); color: var(--white); }
+.journal-feature__image { position: relative; display: block; min-width: 0; width: 100%; aspect-ratio: 16/9; background: #e2e4e4; overflow: hidden; }
+.journal-feature__image > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
 .journal-feature__image:hover > img { transform: scale(1.025); }
 .journal-feature__image > span { position: absolute; left: 1.25rem; right: 1.25rem; bottom: 1.25rem; padding: .6rem .8rem; display: flex; justify-content: space-between; color: #fff; background: #121419e8; font-size: .62rem; letter-spacing: .1em; }
-.journal-feature__image .editorial-cover { min-height: 350px; }
+.journal-feature__image .editorial-cover { min-height: 0; height: 100%; }
 .journal-feature__story { padding: clamp(1.5rem,3.2vw,3.2rem); display: flex; flex-direction: column; }
 .journal-feature__label { display: flex; justify-content: space-between; gap: 1rem; color: #b5caff; font-size: .65rem; letter-spacing: .09em; text-transform: uppercase; }
 .journal-feature__story h2 { font-size: clamp(1.8rem,2.85vw,2.8rem); line-height: 1.17; margin-block: 1.5rem 1rem; letter-spacing: -.04em; }
@@ -29,16 +29,16 @@
 .journal-controls { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1.5rem 2rem; }
 .journal-controls .filter-bar { margin: 0; padding: 0; flex-wrap: wrap; gap: .5rem; }
 #articleCount { white-space: nowrap; color: var(--text-soft); font-size: .72rem; }
-body[data-page="blog"] .posts-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 2.5rem 1.5rem; background: none; border: 0; }
-body[data-page="blog"] .post-card { display: flex; flex-direction: column; border: 0; background: transparent; color: var(--text); }
-body[data-page="blog"] .post-card__media { height: auto; aspect-ratio: 16/10; overflow: hidden; background: #e5e5df; }
-body[data-page="blog"] .post-card__media img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: contain; }
-body[data-page="blog"] .post-card .media-context-label { display: none; }
-body[data-page="blog"] .post-card__body { padding: 1.3rem 0 0; display: flex; flex: 1; flex-direction: column; }
-body[data-page="blog"] .post-card__meta { flex-wrap: wrap; font-size: .6rem; gap: .4rem; color: var(--text-soft); }
-body[data-page="blog"] .post-card__title { font-size: 1.45rem; line-height: 1.3; margin-top: .8rem; }
-body[data-page="blog"] .post-card__excerpt { display: block; color: var(--text-soft); font-size: .82rem; margin-top: .8rem; }
-body[data-page="blog"] .post-card__foot { margin-top: auto; padding-block: 1.2rem .7rem; border-bottom: 1px solid var(--line); font-size: .72rem; }
+:is(body[data-page="blog"], body[data-page="post"]) .posts-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 2.5rem 1.5rem; background: none; border: 0; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card { display: flex; flex-direction: column; border: 0; background: transparent; color: var(--text); }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__media { height: auto; min-height: 0; aspect-ratio: 16/9; overflow: hidden; background: #e5e5df; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__media img { width: 100%; height: 100%; aspect-ratio: 16/9; object-fit: cover; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card .media-context-label { display: none; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__body { min-height: 0; padding: 1.3rem 0 0; display: flex; flex: 1; flex-direction: column; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__meta { flex-wrap: wrap; font-size: .6rem; gap: .4rem; color: var(--text-soft); }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__title { font-size: 1.45rem; line-height: 1.3; margin-top: .8rem; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__excerpt { display: block; color: var(--text-soft); font-size: .82rem; margin-top: .8rem; }
+:is(body[data-page="blog"], body[data-page="post"]) .post-card__foot { margin-top: auto; padding-block: 1.2rem .7rem; border-bottom: 1px solid var(--line); font-size: .72rem; }
 .journal-empty { padding: 3rem; background: var(--surface); text-align: center; }
 .journal-empty p { color: var(--text-soft); margin-block: .5rem 1rem; }
 .journal-note { padding-block: 3rem; border-top: 1px solid var(--line); }
@@ -59,9 +59,9 @@ body[data-page="blog"] .post-card__foot { margin-top: auto; padding-block: 1.2re
 .article-byline > img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 .article-byline strong { display: block; font-size: .75rem; }
 .article-byline .post-card__meta { font-size: .65rem; color: var(--text-soft); flex-wrap: wrap; }
-body[data-page="post"] #postHeroWrap { width: 100%; margin-bottom: 3.5rem; }
-body[data-page="post"] .post-hero-img { height: auto; width: 100%; border: 1px solid var(--line); border-radius: 0; background: #e4e5df; }
-body[data-page="post"] .post-hero-img img { width: 100%; max-height: 560px; aspect-ratio: auto; object-fit: contain; border-radius: 0; }
+body[data-page="post"] #postHeroWrap { width: 100%; max-width: 1120px; margin: 0 auto 3.5rem; }
+body[data-page="post"] .post-hero-img { min-height: 0; margin-top: 0; height: auto; width: 100%; aspect-ratio: 16/9; border: 1px solid var(--line); border-radius: 0; background: #e4e5df; }
+body[data-page="post"] .post-hero-img img { display: block; width: 100%; height: 100%; max-height: none; aspect-ratio: 16/9; object-fit: cover; border-radius: 0; }
 body[data-page="post"] .post-hero-img .media-context-label { display: none; }
 .article-layout { display: grid; grid-template-columns: 225px minmax(0,760px); justify-content: space-between; gap: clamp(2rem,5vw,5rem); align-items: start; padding-bottom: 4rem; }
 .article-sidebar { position: sticky; top: 110px; font-size: .76rem; }
@@ -80,9 +80,15 @@ body[data-page="post"] .prose h2 { font-size: clamp(1.65rem,2.8vw,2.5rem); line-
 .article-takeaway > span { font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--blue-dark); }
 .article-takeaway > p { margin-top: .6rem; }
 body[data-page="post"] .author-box { margin-top: 3rem; }
-.article-related { padding-block: 3.5rem; border-top: 1px solid var(--line); }
-.article-related .section-head { margin-bottom: 2rem; }
-.article-related .section-head h2 { font-size: 2.5rem; }
+.article-related { padding-block: clamp(2.5rem,5vw,4.5rem); border-top: 1px solid var(--line); background: #e8e8e2; }
+.article-related__heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 2.5rem; }
+.article-related__heading h2 { margin-top: 1rem; font-size: var(--type-section); line-height: 1.15; }
+.article-related__heading h2 em { font-family: var(--font-serif); }
+.article-related__heading .text-link { flex-shrink: 0; }
+body[data-page="post"] .article-related .post-card { background: var(--surface); border: 1px solid var(--line); }
+body[data-page="post"] .article-related .post-card__body { padding: 1.25rem; }
+.article-related .post-card__title { margin-top: .75rem; }
+body[data-page="post"] .article-related .post-card__foot { border-bottom: 0; }
 
 /* Evidence is shown uncropped, with a compact category index. */
 .evidence-intro { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 4rem; padding-block: 8.7rem 3.5rem; }
@@ -131,13 +137,13 @@ body[data-page="gallery"] .gallery-toggle { grid-column: 2; justify-self: start;
  .journal-heading__row { grid-template-columns: 1fr; gap: 1.4rem; padding-block: 2rem; }
  .journal-heading__row p { max-width: 48ch; }
  .journal-lead { grid-template-columns: 1fr; }
- .journal-feature__image { aspect-ratio: 16/10; }
+ .journal-feature__image { aspect-ratio: 16/9; }
  .journal-feature__story h2 { font-size: 1.9rem; }
  .journal-library { padding-block: 3rem; }
  .journal-library__heading { align-items: start; flex-direction: column; gap: 1rem; }
  .article-search { width: 100%; min-width: 0; }
  .journal-controls { align-items: start; flex-direction: column; }
- body[data-page="blog"] .posts-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ :is(body[data-page="blog"], body[data-page="post"]) .posts-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
  .journal-note__grid { grid-template-columns: 1fr; gap: 1rem; }
  .evidence-intro { padding-top: 7rem; grid-template-columns: 1fr; gap: 2.5rem; }
  .evidence-preview { max-width: 460px; transform: none; }
@@ -159,7 +165,7 @@ body[data-page="gallery"] .gallery-toggle { grid-column: 2; justify-self: start;
 }
 @media (max-width: 480px) {
  .editorial-masthead { font-size: .55rem; letter-spacing: .07em; }
- body[data-page="blog"] .posts-grid { grid-template-columns: 1fr; }
+ :is(body[data-page="blog"], body[data-page="post"]) .posts-grid { grid-template-columns: 1fr; }
  .journal-feature__story { padding: 1.5rem; }
  .journal-feature__story h2 { font-size: 1.8rem; }
  body[data-page="gallery"] .gallery-grid { grid-template-columns: 1fr; }
@@ -167,3 +173,6 @@ body[data-page="gallery"] .gallery-toggle { grid-column: 2; justify-self: start;
  .article-takeaway { padding: 1.2rem; }
 }
 @media (prefers-reduced-motion: reduce) { .journal-feature__image > img { transition: none; } }
+
+@media (max-width: 1000px) { .journal-lead { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .article-related__heading { align-items: start; flex-direction: column; gap: 1.25rem; } }

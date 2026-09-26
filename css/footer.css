@@ -15,6 +15,9 @@
 .footer--studio .footer__col h2 { color: #b9bdc6; margin-bottom: .8rem; }
 .footer--studio .footer__col a { color: #f1f0eb; font-size: .85rem; padding-block: .25rem; order: initial; }
 .footer--studio .footer__col a:hover { color: #afc5ff; text-decoration: underline; text-underline-offset: 5px; }
+.footer--studio .footer__col a.footer-contact { display: inline-flex; align-items: center; gap: .65rem; min-height: 40px; }
+.footer-contact__icon { width: 20px; height: 20px; flex: 0 0 20px; color: #9ebaff; }
+.footer-contact > span:last-child { margin-left: .15rem; font-size: .8em; }
 .footer--studio .footer__bottom { color: #b9bdc6; font-size: .73rem; border-color: #353942; }
 .footer--studio .footer__bottom::after { content: none; }
 .footer--studio .footer__bottom > span:nth-child(2) { display: block; }

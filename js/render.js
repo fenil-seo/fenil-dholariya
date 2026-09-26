@@ -192,7 +192,7 @@ window.Render = (() => {
   function postCard(post, delay = 0) {
     const image = postMediaUrl(post);
     const media = image
-      ? `<div class="post-card__media post-card__media--img editorial-media ${mediaClass(post.slug)}"><img src="${esc(image)}" alt="Editorial image for ${esc(post.title)}" width="1200" height="800" loading="lazy" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`
+      ? `<div class="post-card__media post-card__media--img editorial-media ${mediaClass(post.slug)}"><img src="${esc(image)}" alt="Editorial image for ${esc(post.title)}" width="1200" height="675" loading="lazy" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`
       : editorialCover(post, "post-card__media");
     return `<a class="post-card reveal is-in" data-delay="${delay}" href="/post/${esc(post.slug)}" data-category="${esc(post.category)}">
       ${media}

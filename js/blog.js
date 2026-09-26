@@ -38,7 +38,7 @@
     if (post) {
       const href = `/post/${encodeURIComponent(post.slug)}`;
       const image = R.postMediaUrl(post);
-      feature.innerHTML = `<a class="journal-feature__image" href="${href}" tabindex="-1" aria-hidden="true">${image ? `<img src="${R.esc(image)}" alt="" width="1200" height="800" fetchpriority="high">` : R.editorialCover(post)}<span>THE LATEST PERSPECTIVE <span aria-hidden="true">↗</span></span></a>
+      feature.innerHTML = `<a class="journal-feature__image" href="${href}" tabindex="-1" aria-hidden="true">${image ? `<img src="${R.esc(image)}" alt="" width="1200" height="675" fetchpriority="high">` : R.editorialCover(post)}<span>THE LATEST PERSPECTIVE <span aria-hidden="true">↗</span></span></a>
         <div class="journal-feature__story"><div class="journal-feature__label"><span>Featured read</span><span>${R.esc(post.category)}</span></div><h2><a href="${href}">${R.esc(post.title)}</a></h2><p>${R.esc(post.excerpt)}</p><div class="journal-feature__bottom"><span>${R.esc(R.fmtDate(post.date))} · ${R.esc(post.reading_time || 5)} min read</span><a href="${href}" aria-label="Read ${R.esc(post.title)}">Read the story <span aria-hidden="true">↗</span></a></div></div>`;
     }
     renderResults();

@@ -32,7 +32,7 @@
     };
     function tryHeroUrl(url) {
       if (!url) { vizFallback(); return; }
-      heroWrap.innerHTML = `<div class="post-hero-img post-hero-img--editorial editorial-media ${R.mediaClass(post.slug)}"><img src="${R.esc(url)}" alt="Editorial image for ${R.esc(post.title)}" loading="eager" fetchpriority="high" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`;
+      heroWrap.innerHTML = `<div class="post-hero-img post-hero-img--editorial editorial-media ${R.mediaClass(post.slug)}"><img src="${R.esc(url)}" alt="Editorial image for ${R.esc(post.title)}" width="1600" height="900" loading="eager" fetchpriority="high" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`;
       heroWrap.querySelector("img").addEventListener("error", () => {
         console.warn("[post] hero image failed, using the editorial cover:", url);
         vizFallback();
@@ -87,7 +87,11 @@
     const all = window.SITE_DATA?.posts || [];
     const related = all.filter((p) => p.slug !== currentSlug).slice(0, 3);
     const el = document.getElementById("relatedPosts");
-    if (el && related.length) el.innerHTML = related.map((p, i) => window.Render.postCard(p, i)).join("");
+    if (el) {
+      el.innerHTML = related.map((p, i) => window.Render.postCard(p, i)).join("");
+      // Rebind cards and lazy images replaced by the live catalogue refresh.
+      window.refreshAnimations?.();
+    }
   }
 
   function setMeta(id, attr, value) {
