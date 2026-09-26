@@ -2,10 +2,7 @@
 (() => {
   'use strict';
   if (document.body.dataset.page === 'home') return;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let disabledByVisitor = false;
-  try { disabledByVisitor = sessionStorage.getItem('fd-inner-motion') === 'off'; } catch {}
-  const motionOff = () => reduced.matches || disabledByVisitor;
+  const motionOff = () => window.SiteMotion?.isReduced() ?? matchMedia('(prefers-reduced-motion: reduce)').matches;
   const animate = (element, frames, options) => {
     if (!motionOff() && element?.animate) element.animate(frames, options);
   };
@@ -54,26 +51,6 @@
       }
     });
   });
-
-  const motionButton = document.querySelector('[data-motion-toggle]');
-  const syncMotion = () => {
-    document.body.classList.toggle('depth-motion-off',motionOff());
-    if (motionOff()) document.getAnimations().forEach(animation => { try { animation.finish(); } catch { animation.cancel(); } });
-    if (motionButton) {
-      motionButton.hidden = false;
-      motionButton.setAttribute('aria-pressed',String(motionOff()));
-      motionButton.textContent = reduced.matches ? 'Motion reduced by your device' : disabledByVisitor ? 'Motion off' : 'Motion on';
-      motionButton.setAttribute('aria-label',reduced.matches ? 'Motion reduced by your device' : disabledByVisitor ? 'Motion off. Enable page motion' : 'Motion on. Reduce page motion');
-      motionButton.disabled = reduced.matches;
-    }
-  };
-  motionButton?.addEventListener('click', () => {
-    disabledByVisitor = !disabledByVisitor;
-    try { sessionStorage.setItem('fd-inner-motion',disabledByVisitor ? 'off' : 'on'); } catch {}
-    syncMotion();
-  });
-  reduced.addEventListener('change',syncMotion);
-  syncMotion();
 
   if ('IntersectionObserver' in window) {
     const revealObserver = new IntersectionObserver(entries => {

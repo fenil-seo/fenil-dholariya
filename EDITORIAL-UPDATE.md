@@ -46,6 +46,21 @@ admin editor if an editorial rollback is required.
 The implementation retains this site's Manrope / Instrument Serif typography,
 warm paper background and blue accents. No reference-site assets were copied.
 
+## Navigation, spacing and motion follow-up
+
+All public pages now share the dark navigation treatment. `css/spatial.css`
+sets a 48-80px responsive section spacing scale, aligns hero spacing and the
+gallery's sticky filter bar, and keeps the homepage caption clear of its result
+card. Instrument Serif and the blue type accents remain unchanged.
+
+`js/spatial.js` owns the shared motion preference and loads before the optional
+inner-page interactions. Its footer control remembers the visitor's preference
+for the session. The homepage orbital accent uses CSS 3D transforms; image
+surfaces respond to a mouse with a small perspective tilt. There is no WebGL
+dependency. The orbit pauses outside the viewport and when the tab is hidden.
+Reduced-motion and data-saving preferences disable these effects, and touch
+devices do not receive pointer tilt.
+
 ## Verification
 
 - `npm test`: existing portfolio checks plus image path regression coverage,
