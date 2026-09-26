@@ -56,9 +56,15 @@ window.Render = (() => {
   };
 
   function normalizeAssetUrl(value) {
-    return String(value || "")
+    let url = String(value || "").trim().replace(/\\/g, "/")
       .replace(/AI(?:%20| )Searches(\d*)\.webp/gi, (_, number) => `ai-searches-${number || "1"}.webp`)
       .replace(/Lead(?:%20| )generation(?:%20| )bsuiness(?:(?:%20| )(\d+))?\.webp/gi, (_, number) => `lead-generation-business-${number || "1"}.webp`);
+    // CMS uploads are site assets, never relative to /post/:slug or /work/:slug.
+    url = url.replace(/^(?:\.\.\/|\.\/)+/, "");
+    if (/^assets\//i.test(url)) url = `/${url}`;
+    if (!/^(?:\/(?!\/)|https?:\/\/)/i.test(url)) return "";
+    try { return new URL(url, "https://fenil-dholariya.vercel.app").href.replace(/^https:\/\/fenil-dholariya\.vercel\.app(?=\/)/, ""); }
+    catch { return ""; }
   }
 
   function isGalleryAsset(value) {
@@ -80,12 +86,10 @@ window.Render = (() => {
   }
 
   function postMediaUrl(post) {
-    const approved = POST_MEDIA[post?.slug];
-    if (approved) return approved;
     const candidates = [post?.blog_image_url, post?.image_url]
       .map(normalizeAssetUrl)
       .filter((url) => url && !isGalleryAsset(url));
-    return candidates[0] || "";
+    return candidates[0] || POST_MEDIA[post?.slug] || "";
   }
 
   function stripGalleryImages(html) {
@@ -288,7 +292,8 @@ window.Render = (() => {
 
     const refreshName = { home: "refreshHome", work: "refreshWork", blog: "refreshBlog" }[document.body.dataset.page];
     if (refreshName && window.Schema?.[refreshName]) window.Schema[refreshName](data);
-    window.dispatchEvent(new CustomEvent("content:hydrated"));
+    window.SITE_DATA = { ...window.SITE_DATA, ...data };
+    window.dispatchEvent(new CustomEvent("content:hydrated", { detail: data }));
   }).catch(() => {
     /* Static content remains available when the API is offline. */
   });

@@ -21,6 +21,7 @@
     const R = window.Render;
     document.getElementById("postCategory").textContent = post.category || "Article";
     document.getElementById("postTitle").textContent = post.title;
+    document.getElementById("postExcerpt").textContent = post.excerpt || "";
     document.getElementById("postMeta").innerHTML =
       `<span>${R.esc(R.fmtDate(post.date))}</span><span>·</span><span>${R.esc(post.reading_time || 5)} min read</span>`;
 
@@ -45,6 +46,11 @@
     }
 
     document.getElementById("postBody").innerHTML = post.body ? R.stripGalleryImages(post.body) : `<p>${R.esc(post.excerpt || "")}</p>`;
+    const headings = [...document.querySelectorAll("#postBody h2")];
+    headings.forEach((heading, index) => { heading.id = `article-section-${index + 1}`; });
+    document.getElementById("articleToc").innerHTML = headings.map(heading =>
+      `<a href="#${heading.id}">${R.esc(heading.textContent)}</a>`).join("");
+    document.querySelector(".article-sidebar").hidden = !headings.length;
 
     document.title = `${post.title} - Fenil Dholariya`;
     setMeta("metaDesc", "content", post.excerpt || "");
@@ -52,6 +58,10 @@
     setMeta("ogDesc", "content", post.excerpt || "");
     setMeta("twitterTitle", "content", post.title);
     setMeta("twitterDesc", "content", post.excerpt || "");
+    const socialImage = new URL(heroImage || "/assets/og.png", "https://fenil-dholariya.vercel.app").href;
+    setMeta("ogImage", "content", socialImage);
+    setMeta("twitterImage", "content", socialImage);
+    setMeta("ogUrl", "content", `https://fenil-dholariya.vercel.app/post/${post.slug}`);
     const canonical = document.getElementById("metaCanonical");
     if (canonical) canonical.href = `https://fenil-dholariya.vercel.app/post/${post.slug}`;
 
@@ -96,6 +106,17 @@
 
   const slug = getSlug();
   if (!slug) { showNotFound(); return; }
+
+  document.getElementById("copyArticleLink")?.addEventListener("click", async () => {
+    const status = document.getElementById("shareStatus");
+    try {
+      await navigator.clipboard.writeText(document.getElementById("metaCanonical").href);
+      status.textContent = "Link copied.";
+    } catch {
+      status.textContent = "Copy the address from your browser to share this article.";
+    }
+  });
+  window.addEventListener("content:hydrated", () => renderRelated(slug));
 
   const seedPost = findSeedPost(slug);
   if (seedPost) renderPost(seedPost);

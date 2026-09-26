@@ -1,0 +1,6 @@
+.qa-redesign/
+.git/
+.env*
+DESIGN-REVIEW.md
+EDITORIAL-UPDATE.md
+scripts/verify-*.mjs

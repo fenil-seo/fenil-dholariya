@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "vercel dev",
-    "test": "node scripts/verify-portfolio.mjs"
+    "test": "node scripts/verify-portfolio.mjs && node scripts/verify-editorial.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4"

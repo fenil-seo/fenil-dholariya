@@ -110,7 +110,7 @@
     const next = controls.querySelector('[data-gallery-next]');
     const counter = controls.querySelector('output');
     let index = 0;
-    const items = () => [...document.querySelectorAll('.gallery-item img')];
+    const items = () => [...document.querySelectorAll('#galleryRoot > section:not([hidden]) .gallery-item img')];
     const sync = () => {
       const images = items();
       const current = images[index];

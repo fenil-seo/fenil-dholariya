@@ -434,6 +434,7 @@
   }
 
   function bindBlogFilter() {
+    if (document.body.dataset.journal === "true") return;
     const bar = document.getElementById("filterBar");
     if (!bar || bar.dataset.filterBound) return;
     bar.dataset.filterBound = "1";

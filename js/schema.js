@@ -160,7 +160,7 @@ window.Schema = (() => {
       url,
       headline: post.title,
       description: post.excerpt,
-      image: `${SITE_URL}/assets/og.png`,
+      image: new URL(window.Render?.postMediaUrl(post) || "/assets/og.png", SITE_URL).href,
       datePublished: post.date,
       dateModified: post.date,
       inLanguage: "en",

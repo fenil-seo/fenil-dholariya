@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.qa-redesign/
 
 # Local env / secrets
 .env
