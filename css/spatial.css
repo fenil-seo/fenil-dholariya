@@ -24,6 +24,7 @@ body[data-page="gallery"] #galleryRoot { padding-top: var(--band-space); }
 body[data-page="gallery"] #galleryRoot > section {
   padding-bottom: var(--band-space) !important;
   margin-bottom: var(--band-space);
+  scroll-margin-top: var(--gallery-anchor-offset, 175px);
 }
 .evidence-reading { padding-block: 0 var(--section); }
 

@@ -27,6 +27,18 @@
     var activeFilter = "all";
     var labels = { "gallery-reports": "D2C reports", "gallery-local": "Lead generation", "gallery-ai": "AI search", "gallery-search": "Search & Analytics" };
     var filters = document.getElementById("galleryFilters");
+    var toolbar = document.querySelector(".evidence-toolbar");
+    // Account for wrapped filter rows and the document's existing scroll padding.
+    function syncAnchorOffset() {
+      if (!toolbar) return;
+      var navOffset = parseFloat(getComputedStyle(toolbar).top) || 0;
+      var documentOffset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      var offset = Math.max(0, navOffset + toolbar.getBoundingClientRect().height + 24 - documentOffset);
+      document.body.style.setProperty("--gallery-anchor-offset", offset + "px");
+    }
+    syncAnchorOffset();
+    if (toolbar && "ResizeObserver" in window) new ResizeObserver(syncAnchorOffset).observe(toolbar);
+    window.addEventListener("resize", syncAnchorOffset, { passive: true });
 
     function applyFilter() {
       var total = 0;
