@@ -534,7 +534,7 @@
         const expanded = grid.classList.toggle("is-expanded");
         button.setAttribute("aria-expanded", String(expanded));
         button.textContent = expanded ? "Show fewer screenshots" : `Show ${total - visible} more screenshots`;
-        if (!expanded) grid.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+        if (!expanded) grid.closest("section").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
       });
     });
   };

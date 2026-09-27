@@ -85,3 +85,25 @@ were removed following design feedback.
 Local UI testing uses saved public API responses with the revised article. It
 does not need production database credentials. `.env.local` is still not a usable
 local database connection; production credentials remain managed in Vercel.
+
+## Mobile QA follow-up
+
+`css/mobile.css` is loaded last on the ten public templates. It moves the
+homepage outcome card below the portrait when the hero stacks, increases touch
+targets, improves narrow service cards and form labels, and fixes the footer
+identity column below 380px. The landscape menu uses two columns on short
+screens. Instrument Serif, blue accents and desktop layouts are retained.
+
+The gallery uses a native category selector on phones. Selecting a category or
+collapsing a group brings its heading below the sticky navigation, including
+when filtering greatly reduces the document height. The selector, desktop
+buttons and URL hash stay synchronized.
+
+Chrome mobile emulation covered the nine main routes at 320, 390 and 768px,
+with interaction checks also at 430px, first-visit checks at 375px and a short
+844px landscape viewport. Checks covered navigation, service accordions,
+filters, image viewing, search, article controls and contact validation. Form
+submission responses were intercepted; no test enquiry was sent. Desktop
+header, hero and footer geometry matched production at 1440px.
+WebKit also passed the mobile interaction checks at 390px. These checks use
+browser emulation rather than physical Android and iOS devices.

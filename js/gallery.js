@@ -27,6 +27,7 @@
     var activeFilter = "all";
     var labels = { "gallery-reports": "D2C reports", "gallery-local": "Lead generation", "gallery-ai": "AI search", "gallery-search": "Search & Analytics" };
     var filters = document.getElementById("galleryFilters");
+    var categorySelect = document.getElementById("galleryCategory");
     var toolbar = document.querySelector(".evidence-toolbar");
     // Account for wrapped filter rows and the document's existing scroll padding.
     function syncAnchorOffset() {
@@ -52,6 +53,7 @@
         button.setAttribute("aria-pressed", String(active));
       });
       document.getElementById("galleryCount").textContent = total + " captures";
+      if (categorySelect) categorySelect.value = activeFilter;
       window.refreshAnimations?.();
     }
 
@@ -60,16 +62,24 @@
       var options = [{ id: "all", label: "All captures", count: sections.reduce(function (n,s) { return n + s.querySelectorAll(".gallery-item").length; },0) }]
         .concat(sections.map(function (section) { return { id:section.id, label:labels[section.id] || section.querySelector("h2").textContent, count:section.querySelectorAll(".gallery-item").length }; }));
       filters.innerHTML = options.map(function (option) { return '<button type="button" class="filter-chip" data-gallery-filter="'+esc(option.id)+'" aria-pressed="false">'+esc(option.label)+' <span>'+option.count+'</span></button>'; }).join("");
+      if (categorySelect) categorySelect.innerHTML = options.map(function (option) { return '<option value="'+esc(option.id)+'">'+esc(option.label)+'</option>'; }).join("");
       applyFilter();
+    }
+    function selectCategory(id) {
+      activeFilter = id;
+      // Keep the selected evidence visible when filtering shortens a long page.
+      history.replaceState(null,"",activeFilter === "all" ? location.pathname : "#"+activeFilter);
+      applyFilter();
+      syncAnchorOffset();
+      var section = activeFilter === "all" ? document.querySelector("#galleryRoot > section") : document.getElementById(activeFilter);
+      section?.scrollIntoView({ block: "start", behavior: "instant" });
     }
     filters.addEventListener("click",function (event) {
       var button = event.target.closest("[data-gallery-filter]");
       if (!button) return;
-      activeFilter = button.dataset.galleryFilter;
-      // Clear an old category hash so a refresh cannot silently restore it.
-      history.replaceState(null,"",activeFilter === "all" ? location.pathname : "#"+activeFilter);
-      applyFilter();
+      selectCategory(button.dataset.galleryFilter);
     });
+    categorySelect?.addEventListener("change", function () { selectCategory(categorySelect.value); });
     window.addEventListener("hashchange",function () {
       var id = location.hash.slice(1);
       if (document.getElementById(id)?.parentElement?.id === "galleryRoot") {
