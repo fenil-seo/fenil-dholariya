@@ -60,4 +60,13 @@ Search Console and Bing account ownership, indexing coverage and search performa
 
 ## Verification record
 
-Local automated checks passed, including the current live catalogue rendered at 1440px and 390px with JavaScript both enabled and disabled. Production results and the IndexNow receipt are recorded after deployment.
+Implementation commit: `7c172d0`, deployed through GitHub to `https://fenil-dholariya.vercel.app` on 27 September 2026 UTC.
+
+- `npm test` passed, covering the existing portfolio plus server rendering, metadata, safe body HTML, publication-state handling, missing pages and IndexNow rules.
+- `node scripts/audit-search-live.mjs` passed on the live domain: all 15 sitemap URLs returned 200 with matching canonical URLs, one heading, parseable structured data and no indexing prohibition. All eight article/case-study pages contained readable body text and their cover images returned 200.
+- Four missing/template routes returned real 404s. Admin returned `X-Robots-Tag: noindex, nofollow`.
+- Requests using Googlebot, bingbot, OAI-SearchBot and Claude-SearchBot user-agent strings received complete article content. This checks application behavior, not reachability from the providers' actual crawler IPs or proof that they indexed the pages.
+- Local and live Chrome checks passed for the journal, work index, article and case study at 1440px and 390px, with JavaScript enabled and disabled: readable headings/body, image proportions, no horizontal overflow, functional table of contents, article filters and sharing where JavaScript is available. The shorter desktop cover and 16:9 mobile cover were preserved.
+- `npm audit --omit=dev` reported zero known production-dependency vulnerabilities. This does not characterize development-tool dependencies.
+- A single IndexNow submission of the 15 canonical URLs returned HTTP **202**. The service received the URLs; ownership-key validation is pending. Indexing and ranking are not confirmed.
+- Brave returned a CAPTCHA, so its result positions were not verified. Search Console/Bing account verification, indexed-page counts, actual crawler logs and AI citation changes were not available or claimed.
