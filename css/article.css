@@ -1,6 +1,6 @@
 /* Image-led article opening with a centered, uninterrupted reading column. */
 body[data-page="post"] .reader-page { padding-top: 76px; }
-.reader-hero { position: relative; display: grid; align-items: end; width: 100%; max-width: 1600px; margin-inline: auto; aspect-ratio: 16 / 9; isolation: isolate; background: var(--ink); }
+.reader-hero { position: relative; display: grid; align-items: end; width: 100%; max-width: 1600px; height: calc(min(56.25vw, 900px) - 100px); margin-inline: auto; isolation: isolate; background: var(--ink); }
 body[data-page="post"] .reader-hero #postHeroWrap { position: absolute; inset: 0; width: 100%; max-width: none; height: 100%; margin: 0; z-index: -2; }
 body[data-page="post"] .reader-hero .post-hero-img,
 body[data-page="post"] .reader-hero .article-cover { height: 100%; width: 100%; min-height: 0; margin: 0; aspect-ratio: 16 / 9; border: 0; border-radius: 0; }
@@ -65,11 +65,11 @@ body[data-page="post"] .reader-content .author-box { max-width: none; margin-blo
 .article-next-step h2 em { font-family: var(--font-serif); font-weight: 400; color: #719bff; letter-spacing: normal; }
 .article-next-step > p:not(.eyebrow) { max-width: 54ch; color: #bec1c9; font-size: 1rem; line-height: 1.8; }
 .article-next-step__actions { display: flex; align-items: center; gap: 1rem 2rem; flex-wrap: wrap; margin-top: 2rem; }
-.article-not-found .reader-hero { aspect-ratio: auto; min-height: 300px; }
+.article-not-found .reader-hero { height: auto; min-height: 300px; }
 .article-not-found .reader-meta, .article-not-found .article-deck, .article-not-found .article-contents,
 .article-not-found .author-box, .article-not-found .article-next-step, .article-not-found .article-related { display: none; }
 @media (max-width: 900px) {
-  .reader-hero { display: block; aspect-ratio: auto; background: var(--paper); }
+  .reader-hero { display: block; height: auto; background: var(--paper); }
   body[data-page="post"] .reader-hero #postHeroWrap { position: relative; height: auto; aspect-ratio: 16 / 9; z-index: auto; }
   .reader-hero::after { display: none; }
   .reader-hero__content { color: var(--text); padding-block: 1.75rem 0; }
