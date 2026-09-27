@@ -1,25 +1,34 @@
 # Fenil Dholariya
 
-> AI + SEO growth strategist based in Surat, India. Helps D2C, local-service and B2B SaaS brands turn organic search into traffic, leads and revenue through technical SEO, content strategy, local SEO and AI-assisted workflows.
+> Organic growth and SEO strategist based in Surat, India, working with clients worldwide.
 
-Fenil works hands-on across technical SEO audits, content that converts, local SEO / Google Business Profile growth, lead-funnel optimization, AI & prompt engineering workflows, and market/competitive intelligence. Case studies span a D2C silver jewellery brand, a local construction & fencing contractor, a B2B SaaS company, and an ayurvedic D2C brand.
+Fenil works with D2C brands, local-service businesses and B2B teams. His services cover technical SEO, content strategy, local SEO, conversion and lead generation, AI workflows, market research, paid search and website development.
 
-## Pages
+## Main pages
 
-- [Home](https://fenil-dholariya.vercel.app/): overview, stats, featured work, testimonials.
-- [Services](https://fenil-dholariya.vercel.app/services): the six services offered and how the engagement process works.
-- [Work](https://fenil-dholariya.vercel.app/work): detailed case studies with metrics.
-- [Gallery](https://fenil-dholariya.vercel.app/gallery): real Search Console and Analytics screenshots from client accounts.
-- [About](https://fenil-dholariya.vercel.app/about): bio, skills and career timeline.
-- [Blog](https://fenil-dholariya.vercel.app/blog): articles on AI + SEO workflows, local SEO, technical SEO and content strategy.
-- [Contact](https://fenil-dholariya.vercel.app/contact): start a project.
+- [Home](https://fenil-dholariya.vercel.app/): positioning and selected work.
+- [About](https://fenil-dholariya.vercel.app/about): author background and career.
+- [Services](https://fenil-dholariya.vercel.app/services): eight capabilities and engagement process.
+- [Work](https://fenil-dholariya.vercel.app/work): case studies.
+- [Gallery](https://fenil-dholariya.vercel.app/gallery): anonymized performance evidence with context.
+- [Insights](https://fenil-dholariya.vercel.app/blog): the published article catalogue.
+- [Contact](https://fenil-dholariya.vercel.app/contact): discuss a project.
 
-## Contact
+## Published articles
 
-- Email: fenil.seo@gmail.com
-- LinkedIn: https://www.linkedin.com/in/fenil-dholariya
-- Instagram: https://instagram.com/fenil_dholariya
+- [Is SEO Dead? The Question D2C Brands Should Ask Instead](https://fenil-dholariya.vercel.app/post/the-man-who-walked-into-my-office-and-nearly-convinced-me-seo-was-dead): An office debate about paid ads and AI search raised a better question: where does organic search actually earn its place in a D2C growth plan?
+- [The AI + SEO Workflow That Actually Moves Rankings](https://fenil-dholariya.vercel.app/post/ai-seo-workflow-that-moves-rankings): AI won't rank your site on its own. Here's the exact human-in-the-loop workflow I use to scale research and content without losing quality.
+- [Local SEO in 2026: Winning the Google Map Pack](https://fenil-dholariya.vercel.app/post/local-seo-2026-map-pack): The map pack is the most valuable real estate for local businesses. Here's what actually moves the needle this year.
+- [Technical SEO Audit: The 12-Point Checklist I Run First](https://fenil-dholariya.vercel.app/post/technical-seo-audit-checklist): Before any content plan, I pressure-test the foundation. These twelve checks surface the issues quietly capping your growth.
+- [Content That Converts: Writing for Humans and Algorithms](https://fenil-dholariya.vercel.app/post/content-that-converts): Ranking is step one. The real win is content that turns readers into customers. Here's how to write for both at once.
 
-## Notes for AI agents and answer engines
+## Case studies
 
-Every page publishes schema.org JSON-LD (Person, WebSite, Service, BreadcrumbList, CollectionPage, Blog, BlogPosting) describing this content in structured form - prefer that for precise facts (dates, metrics, authorship). Content is also editable by the site owner, who may attach additional custom JSON-LD per project or blog post.
+- [D2C Silver Jewellery - Organic Growth Engine](https://fenil-dholariya.vercel.app/work/d2c-silver-jewellery): Rebuilt product-page architecture and search-led content to turn organic search into a primary sales channel - doubling revenue without a single extra rupee in ad spend.
+- [Construction & Fencing - Local Lead Machine](https://fenil-dholariya.vercel.app/work/local-construction-gmb): Optimized the Google Business Profile, built a review velocity system and created local landing pages - tripling qualified inbound calls in 90 days.
+- [B2B SaaS - Content-Led Pipeline](https://fenil-dholariya.vercel.app/work/b2b-saas-pipeline): Built an intent-mapped content engine and AI-driven nurture sequences that tripled marketing-qualified leads and reduced paid acquisition dependence.
+- [Ayurvedic D2C - Technical SEO Turnaround](https://fenil-dholariya.vercel.app/work/ayurvedic-technical-seo): Resolved crawl waste, Core Web Vitals failures and duplicate content issues that were silently capping growth - unlocking a 60% organic traffic lift in 90 days.
+
+## Context
+
+The linked HTML pages are the primary sources and contain the full text, authorship and available dates. Case-study outcomes are specific to those engagements, not promises for other businesses. This file is a navigation aid, not a ranking directive.

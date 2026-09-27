@@ -3,39 +3,142 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/post/:slug", "destination": "/post" },
-    { "source": "/work/:slug", "destination": "/project" },
-    { "source": "/sitemap.xml", "destination": "/api/content?format=sitemap" }
+    {
+      "source": "/post/:slug",
+      "destination": "/api/page?kind=post&slug=:slug"
+    },
+    {
+      "source": "/work/:slug",
+      "destination": "/api/page?kind=project&slug=:slug"
+    },
+    {
+      "source": "/blog",
+      "destination": "/api/page?kind=blog"
+    },
+    {
+      "source": "/post",
+      "destination": "/api/page?kind=post"
+    },
+    {
+      "source": "/project",
+      "destination": "/api/page?kind=project"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/content?format=sitemap"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api/content?format=llms"
+    },
+    {
+      "source": "/work",
+      "destination": "/api/page?kind=work"
+    }
   ],
   "headers": [
     {
+      "source": "/admin(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/css/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, must-revalidate"
+        }
       ]
     },
     {
       "source": "/js/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, must-revalidate"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://*.neon.tech; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self';" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://*.neon.tech; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self';"
+        }
       ]
+    }
+  ],
+  "functions": {
+    "api/page.js": {
+      "includeFiles": "{post,project,blog,work,404}.html"
+    }
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".generated/public",
+  "redirects": [
+    {
+      "source": "/blog.html",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/work.html",
+      "destination": "/work",
+      "permanent": true
+    },
+    {
+      "source": "/post.html",
+      "destination": "/post",
+      "permanent": true
+    },
+    {
+      "source": "/project.html",
+      "destination": "/project",
+      "permanent": true
     }
   ]
 }

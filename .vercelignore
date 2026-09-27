@@ -4,3 +4,6 @@
 DESIGN-REVIEW.md
 EDITORIAL-UPDATE.md
 scripts/verify-*.mjs
+scripts/audit-*.mjs
+SEARCH-VISIBILITY.md
+.generated/

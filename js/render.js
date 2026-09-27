@@ -257,6 +257,7 @@ window.Render = (() => {
 
 (() => {
   "use strict";
+  if (typeof document !== "undefined" && document.body?.dataset.serverRendered) return;
   if (!window.API?.getContent) return;
 
   window.API.getContent().then(({ ok, data }) => {

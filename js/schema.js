@@ -91,7 +91,7 @@ window.Schema = (() => {
   }
 
   function creativeWorkNode(project) {
-    const url = `${SITE_URL}/work#${project.slug}`;
+    const url = `${SITE_URL}/work/${project.slug}`;
     return prune({
       "@type": "CreativeWork",
       "@id": url,
@@ -126,9 +126,9 @@ window.Schema = (() => {
       headline: post.title,
       description: post.excerpt,
       url,
-      datePublished: post.date,
+      datePublished: isoDate(post.date),
       articleSection: post.category,
-      author: { "@id": `${SITE_URL}/#person` },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Fenil Dholariya", url: `${SITE_URL}/about` },
     });
   }
 
@@ -136,11 +136,11 @@ window.Schema = (() => {
     return {
       "@context": "https://schema.org",
       "@type": "Blog",
-      "@id": `${SITE_URL}/blog/#blog`,
+      "@id": `${SITE_URL}/blog#blog`,
       name: "Fenil Dholariya - Blog",
       url: `${SITE_URL}/blog`,
       description: "Practical writing on AI workflows, technical SEO, local SEO and content strategy.",
-      author: { "@id": `${SITE_URL}/#person` },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Fenil Dholariya", url: `${SITE_URL}/about` },
       blogPost: (posts || []).map(blogPostingSummaryNode),
     };
   }
@@ -161,15 +161,14 @@ window.Schema = (() => {
       headline: post.title,
       description: post.excerpt,
       image: new URL(window.Render?.postMediaUrl(post) || "/assets/og.png", SITE_URL).href,
-      datePublished: post.date,
-      dateModified: post.date,
+      datePublished: isoDate(post.date),
+      dateModified: isoDate(post.updated_at),
       inLanguage: "en",
       articleSection: post.category,
       keywords: post.category,
       wordCount: words || undefined,
-      author: { "@id": `${SITE_URL}/#person` },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Fenil Dholariya", url: `${SITE_URL}/about` },
       publisher: { "@id": `${SITE_URL}/#person` },
-      speakable: { "@type": "SpeakableSpecification", cssSelector: ["#postTitle", "#postBody"] },
     });
   }
 
@@ -191,7 +190,6 @@ window.Schema = (() => {
 
   function refreshHome(data) {
     const person = personNode(data.profile);
-    if (data.testimonials?.length) person.review = reviewNodes(data.testimonials);
     setScript("ldJsonPerson", person);
     setScript("ldJsonWebsite", websiteNode());
     setScript("ldJsonServices", serviceCatalogNode(data.services));
@@ -221,7 +219,14 @@ window.Schema = (() => {
     setScript("ldJsonBreadcrumb", breadcrumbNode([{ name: "Home", url: `${SITE_URL}/` }, { name: "Blog", url: `${SITE_URL}/blog` }]));
   }
 
+  function isoDate(value) {
+    if (!value) return undefined;
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : undefined;
+  }
+
   function boot() {
+    if (document.body?.dataset.serverRendered) return;
     const page = document.body?.dataset?.page;
     const refresh = { home: refreshHome, work: refreshWork, blog: refreshBlog }[page];
     if (refresh && window.SITE_DATA) refresh(window.SITE_DATA);

@@ -1,6 +1,7 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
+import { notifyPublication } from "../lib/indexnow.js";
 
 function slugify(str) {
   return String(str || "")
@@ -24,6 +25,20 @@ export default async function handler(req, res) {
   const sql = getSql();
 
   try {
+    // Notify only public content changes, including the old URL after a rename
+    // or unpublish. Never submit drafts, admin URLs or preview deployments.
+    if (['posts', 'projects'].includes(resource) && ['create', 'update', 'delete'].includes(action)) {
+      const previous = id && action !== 'create'
+        ? (await sql(`SELECT slug${resource === 'posts' ? ', published' : ''} FROM ${resource} WHERE id=$1`, [id]))[0]
+        : null;
+      const sendJson = res.json.bind(res);
+      res.json = async payload => {
+        if (res.statusCode === 200 && (payload.item || payload.ok)) {
+          await notifyPublication(resource, previous, payload.item || null);
+        }
+        return sendJson(payload);
+      };
+    }
     switch (resource) {
       case "profile":
         return await handleProfile(sql, action, data, res);
@@ -179,7 +194,7 @@ async function handleProjects(sql, action, id, data, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     params.push(id);
     const rows = await sql(
-      `UPDATE projects SET slug=$1, title=$2, category=$3, client=$4, description=$5, viz=$6, accent=$7, metrics=$8::jsonb, featured=$9, sort_order=$10, schema_markup=$11::jsonb, image_url=$12, body=$13, ${CS_COLS.map((c, i) => `${c}=$${14 + i}`).join(", ")}
+      `UPDATE projects SET updated_at=NOW(), slug=$1, title=$2, category=$3, client=$4, description=$5, viz=$6, accent=$7, metrics=$8::jsonb, featured=$9, sort_order=$10, schema_markup=$11::jsonb, image_url=$12, body=$13, ${CS_COLS.map((c, i) => `${c}=$${14 + i}`).join(", ")}
        WHERE id = $${14 + CS_COLS.length}
        RETURNING ${RETURNING}`,
       params
@@ -239,7 +254,7 @@ async function handlePosts(sql, action, id, data, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     params.push(id);
     const rows = await sql(
-      `UPDATE posts SET slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13
+      `UPDATE posts SET updated_at=NOW(), slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13
        WHERE id = $14
        RETURNING ${RETURNING}`,
       params

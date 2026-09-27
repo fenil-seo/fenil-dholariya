@@ -1,20 +1,25 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { SEED } from "../lib/seed-data.js";
 import { ensureNewColumns } from "../lib/migrate.js";
+import { loadPublicContent } from "../lib/public-content.js";
+import { buildSitemap, buildLlmMap } from "../lib/search.js";
 
-const SITE_URL = "https://fenil-dholariya.vercel.app";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
-  const data = await loadContent();
-
-  if (req.query?.format === "sitemap") {
-    res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
-    return res.status(200).send(buildSitemap(data));
+  if (['sitemap', 'llms'].includes(req.query?.format)) {
+    let data;
+    try { data = await loadPublicContent(); }
+    catch { res.setHeader('Retry-After', '60'); return res.status(503).send('Temporarily unavailable'); }
+    res.setHeader("Content-Type", req.query.format === 'sitemap' ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    return res.status(200).send(req.query.format === 'sitemap' ? buildSitemap(data) : buildLlmMap(data));
   }
 
+  let data;
+  try { data = await loadContent(); }
+  catch { res.setHeader('Retry-After', '60'); return res.status(503).json({ error: 'Content temporarily unavailable' }); }
   res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=120");
   return res.status(200).json(data);
 }
@@ -36,9 +41,6 @@ async function loadContent() {
       sql(`SELECT name FROM skills ORDER BY sort_order, id`),
       sql(`SELECT role, org, period FROM timeline ORDER BY sort_order, id`),
     ]);
-
-    const isEmpty = !profileRows.length && !stats.length && !rawServices.length && !projects.length && !posts.length;
-    if (isEmpty) return SEED;
 
     // Auto-add any seed services / skills / timeline entries missing from the DB
     // Service labels can change during editorial updates. Match the stable icon
@@ -72,15 +74,15 @@ async function loadContent() {
       stats: stats.length ? stats : SEED.stats,
       services,
       process: steps.length ? steps : SEED.process,
-      projects: projects.length ? projects : SEED.projects,
-      posts: posts.length ? posts : SEED.posts,
+      projects,
+      posts,
       testimonials: testimonials.length ? testimonials : SEED.testimonials,
       skills: skills.map((s) => s.name || s),
       timeline,
     };
   } catch (err) {
-    console.error("content api error", err);
-    return SEED;
+    console.error("content api error", err.name);
+    throw err;
   }
 }
 
@@ -96,37 +98,4 @@ async function syncMissing(sql, _table, dbRows, seedRows, key, insertFn, fetchSq
     return sql(q, p).catch(() => {});
   }));
   return sql(fetchSql);
-}
-
-function escapeXml(str) {
-  return String(str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function buildSitemap(data) {
-  const urls = [
-    { loc: `${SITE_URL}/`, priority: "1.0" },
-    { loc: `${SITE_URL}/services`, priority: "0.8" },
-    { loc: `${SITE_URL}/work`, priority: "0.8" },
-    { loc: `${SITE_URL}/gallery`, priority: "0.7" },
-    { loc: `${SITE_URL}/about`, priority: "0.7" },
-    { loc: `${SITE_URL}/blog`, priority: "0.8" },
-    { loc: `${SITE_URL}/contact`, priority: "0.6" },
-  ];
-  (data.projects || []).forEach((project) => {
-    if (project.slug) urls.push({ loc: `${SITE_URL}/work/${project.slug}`, priority: "0.7" });
-  });
-  (data.posts || []).forEach((p) => urls.push({ loc: `${SITE_URL}/post/${p.slug}`, lastmod: p.date, priority: "0.6" }));
-
-  const body = urls
-    .map(
-      (u) =>
-        `  <url>\n    <loc>${escapeXml(u.loc)}</loc>\n${u.lastmod ? `    <lastmod>${escapeXml(u.lastmod)}</lastmod>\n` : ""}    <priority>${u.priority}</priority>\n  </url>`
-    )
-    .join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
 }

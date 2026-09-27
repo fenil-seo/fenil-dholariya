@@ -29,3 +29,5 @@ skills-lock.json
 
 .vercel
 .env*
+
+.generated/

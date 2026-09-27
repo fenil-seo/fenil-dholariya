@@ -168,6 +168,8 @@
   const slug = getSlug();
   if (!slug) { showNotFound(); return; }
 
+  if (document.body.dataset.serverRendered === "project") return;
+
   const seedProject = findSeedProject(slug);
   if (seedProject) renderProject(seedProject);
 

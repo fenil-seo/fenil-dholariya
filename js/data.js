@@ -378,3 +378,9 @@ window.SITE_DATA = {
     { role: "B.Tech · Information Technology", org: "CHARUSAT University", period: "2020 - 2024" },
   ],
 };
+
+// Use the server's published catalogue before page scripts initialize.
+if (typeof document !== "undefined") {
+  const snapshot = document.getElementById("publicContent");
+  if (snapshot) window.SITE_DATA = { ...window.SITE_DATA, ...JSON.parse(snapshot.textContent) };
+}

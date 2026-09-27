@@ -124,6 +124,19 @@
   });
   window.addEventListener("content:hydrated", () => renderRelated(slug));
 
+  // The server has already rendered the current published article and metadata.
+  if (document.body.dataset.serverRendered === "post") {
+    const hero = document.querySelector('#postHeroWrap img');
+    const fallback = () => {
+      document.getElementById('postHeroWrap').innerHTML = window.Render.editorialCover(findSeedPost(slug) || { slug }, 'article-cover');
+    };
+    if (hero) {
+      hero.addEventListener('error', fallback, { once: true });
+      if (hero.complete && !hero.naturalWidth) fallback();
+    }
+    return;
+  }
+
   const seedPost = findSeedPost(slug);
   if (seedPost) renderPost(seedPost);
 
