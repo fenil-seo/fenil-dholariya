@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://fenil-dholariya.vercel.app/sitemap.xml
+Sitemap: https://fenil-dholariya.vercel.app/sitemap-pages.xml

@@ -24,6 +24,10 @@
       "destination": "/api/page?kind=project"
     },
     {
+      "source": "/sitemap-pages.xml",
+      "destination": "/api/content?format=sitemap"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/content?format=sitemap"
     },

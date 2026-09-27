@@ -20,7 +20,7 @@ These are technical discovery problems. They do not establish the cause of a par
 - Unpublished or deleted articles return 404. Database outages return 503 with Retry-After instead of fabricated content or a permanent missing-page signal.
 - The database is authoritative when configured. Empty published collections stay empty.
 - A one-time migration preserves the four case studies that the existing live site was serving from its bundled catalogue when the database's projects table was empty. It records a migration marker even if the table already has content, so later deletions cannot re-create those cases. No existing project rows are overwritten.
-- The sitemap contains canonical public URLs. Unknown modification dates are omitted. Real CMS updates set `updated_at`, which is emitted as ISO 8601 in the sitemap and article schema.
+- The sitemap contains canonical public URLs and deliberately omits optional `lastmod` fields. Real CMS updates still set `updated_at`, which is emitted as ISO 8601 in article schema. CMS date representations cannot cause sitemap parsing errors.
 - Public pages allow indexing and large image previews. Admin pages are noindex. robots.txt allows public crawling while excluding admin and API routes; crawlers do not need the API to read the pages.
 - No-JavaScript styles remove the intro overlay and reveal text. The approved mobile layout, blue Instrument Serif accents and shorter desktop article image remain in place.
 - JSON embedded in HTML is escaped. CMS body HTML is sanitized. The maintained sanitizer is bundled for Vercel compatibility.
@@ -40,7 +40,7 @@ The website's pre-existing training permissions were not changed. Allowing model
 
 ## Owner actions and measurement
 
-1. In a verified Google Search Console property for `https://fenil-dholariya.vercel.app/`, submit `/sitemap.xml`. Inspect the home page and main articles, check Google's selected canonical and request indexing after this deployment. Do not repeatedly submit unchanged URLs.
+1. In a verified Google Search Console property for `https://fenil-dholariya.vercel.app/`, submit `/sitemap-pages.xml`. Inspect the home page and main articles, check Google's selected canonical and request indexing after this deployment. Do not repeatedly submit unchanged URLs.
 2. In Bing Webmaster Tools, verify or import the same property, submit the sitemap, inspect the main URLs and review IndexNow reports. Account verification cannot be completed by adding a made-up verification token.
 3. Keep the same name, role, website URL and service description on real professional profiles. Seek relevant independent coverage through genuine work and original research. Do not buy fabricated mentions or create unsupported claims.
 4. Publish useful material tied to actual services: specific technical problems, documented decisions, methods, limitations and attributable evidence. The current broad service page is a foundation; service-specific pages should be created when there is enough distinct content and proof to support them.
@@ -51,7 +51,7 @@ Search Console and Bing account ownership, indexing coverage and search performa
 
 ## Maintenance
 
-- `npm test`: existing portfolio checks plus server HTML, metadata, sanitization, database publication rules, dates, missing responses and IndexNow payload checks. Tests do not write to the production database.
+- `npm test`: existing portfolio checks plus server HTML, metadata, sanitization, database publication rules, a sitemap with no date fields, missing responses and IndexNow payload checks. Tests do not write to the production database.
 - `npm run build`: creates the server sanitizer bundle used by Vercel. Requires Node 24.
 - `npm run search:submit`: after a deployment, verify the public IndexNow key and submit sitemap URLs once. For a small subsequent change, pass the changed canonical paths, for example `npm run search:submit -- /services`.
 - IndexNow HTTP 200 means received; 202 means received with key validation pending. Neither proves indexing or ranking. [Protocol documentation](https://www.indexnow.org/documentation)
@@ -70,3 +70,13 @@ Implementation commit: `7c172d0`, deployed through GitHub to `https://fenil-dhol
 - `npm audit --omit=dev` reported zero known production-dependency vulnerabilities. This does not characterize development-tool dependencies.
 - A single IndexNow submission of the 15 canonical URLs returned HTTP **202**. The service received the URLs; ownership-key validation is pending. Indexing and ranking are not confirmed.
 - Brave returned a CAPTCHA, so its result positions were not verified. Search Console/Bing account verification, indexed-page counts, actual crawler logs and AI citation changes were not available or claimed.
+
+## Repeated sitemap-date report: 28 September 2026 IST
+
+The owner confirmed the failing report refers to `/sitemap.xml`. Fresh production GET requests using normal and Googlebot user-agent strings and the underlying content API all returned identical XML: 15 URLs, 19 lines and no `lastmod` fields. Vercel reported cache MISS. The reported error still referenced lines 49, 54 and 59. The Search Console Last read value was not provided, so the report's fetch time and root cause remain unconfirmed.
+
+Recovery: `/sitemap-pages.xml` provides a separate submission URL. robots.txt points to it. Both that route and `/sitemap.xml` use the same published-content generator, now unconditionally omitting optional date fields. Feed responses explicitly disable browser and Vercel CDN storage and support HEAD as well as GET. The old URL continues to return XML directly rather than redirecting a previously submitted sitemap.
+
+Submit `https://fenil-dholariya.vercel.app/sitemap-pages.xml` as a new sitemap in Search Console. The older report can be removed from the report using its menu; Google states this does not remove the pages from its index or make it forget their URLs. Confirm the new entry's Last read value and status after Google fetches it. Publishing the file does not mean this Search Console submission has been performed.
+
+Sources: [Google's Sitemaps report](https://support.google.com/webmasters/answer/7451001), [optional sitemap elements](https://www.sitemaps.org/protocol.html).

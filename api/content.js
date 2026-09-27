@@ -6,15 +6,22 @@ import { buildSitemap, buildLlmMap } from "../lib/search.js";
 
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  const isFeed = ['sitemap', 'llms'].includes(req.query?.format);
+  if (req.method !== "GET" && !(isFeed && req.method === "HEAD")) {
+    res.setHeader('Allow', isFeed ? 'GET, HEAD' : 'GET');
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-  if (['sitemap', 'llms'].includes(req.query?.format)) {
+  if (isFeed) {
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('CDN-Cache-Control', 'no-store');
+    res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
     let data;
     try { data = await loadPublicContent(); }
-    catch { res.setHeader('Retry-After', '60'); return res.status(503).send('Temporarily unavailable'); }
+    catch { res.setHeader('Retry-After', '60'); return res.status(503).send(req.method === 'HEAD' ? '' : 'Temporarily unavailable'); }
     res.setHeader("Content-Type", req.query.format === 'sitemap' ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
-    res.setHeader("Cache-Control", "no-cache");
-    return res.status(200).send(req.query.format === 'sitemap' ? buildSitemap(data) : buildLlmMap(data));
+    const body = req.query.format === 'sitemap' ? buildSitemap(data) : buildLlmMap(data);
+    return res.status(200).send(req.method === 'HEAD' ? '' : body);
   }
 
   let data;

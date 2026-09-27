@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { load } from 'cheerio';
-import { SITE_URL } from '../lib/search.js';
+import { SITE_URL, SITEMAP_PATH } from '../lib/search.js';
 const base = process.argv[2] || SITE_URL;
-const sitemapResponse = await fetch(base + '/sitemap.xml');
+const sitemapResponse = await fetch(base + SITEMAP_PATH);
 assert.equal(sitemapResponse.status, 200);
 const xml = load(await sitemapResponse.text(), { xmlMode: true });
 const urls = xml('loc').map((_, el) => xml(el).text()).get();
 assert.equal(new Set(urls).size, urls.length);
-xml('lastmod').each((_, el) => assert.match(xml(el).text(), /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/));
+assert.equal(xml('lastmod').length, 0, 'Discovery sitemap must not contain date fields');
 const report = [];
 for (const url of urls) {
   const path = new URL(url).pathname;

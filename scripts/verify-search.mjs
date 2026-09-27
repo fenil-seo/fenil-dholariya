@@ -9,6 +9,7 @@ import { SITE_URL, buildSitemap, isoDate } from '../lib/search.js';
 import { changedPaths, submitIndexNow } from '../lib/indexnow.js';
 import { INDEXNOW_KEY } from '../lib/indexnow-key.js';
 import pageHandler from '../api/page.js';
+import contentHandler from '../api/content.js';
 
 const data = { posts: SEED.posts, projects: SEED.projects };
 const sandbox = { window: {}, URL };
@@ -63,9 +64,13 @@ const queries = [];
 assert.deepEqual(await loadPublicContent({ configured: true, migrate: async () => {}, sql: async query => { queries.push(query); return []; } }), { posts: [], projects: [] });
 assert.ok(queries.find(q => q.includes('FROM posts WHERE published = true')));
 await assert.rejects(loadPublicContent({ configured: true, migrate: async () => {}, sql: async () => { throw new Error('Database unavailable'); } }), /Database unavailable/);
-const xml = buildSitemap({ posts: [{ ...data.posts[0], date: 'Thu Jul 09 2026 00:00:00 GMT+0000 (Coordinated Universal Time)', updated_at: '2026-09-27T05:00:00Z' }], projects: [] });
-assert.ok(xml.includes('<lastmod>2026-09-27T05:00:00.000Z</lastmod>'));
-assert.ok(!xml.includes('GMT'));
+for (const value of [new Date('2026-09-27T05:00:00Z'), 'Thu Jul 09 2026 00:00:00 GMT+0000 (Coordinated Universal Time)', '2026-09-27T05:00:00Z', 'invalid date', null]) {
+  const xml = buildSitemap({ posts: [{ ...data.posts[0], date: value, updated_at: value }], projects: [] });
+  const parsed = load(xml, { xmlMode: true });
+  assert.equal(parsed('url').length, 8);
+  assert.equal(parsed('lastmod').length, 0, 'CMS date representations must never leak into the sitemap');
+  assert.ok(!xml.includes('GMT'));
+}
 assert.equal(isoDate('bad date'), undefined);
 assert.ok(!buildSitemap(data).includes('<lastmod>'), 'Do not invent modification dates');
 
@@ -93,5 +98,14 @@ try {
     if (method === 'HEAD') assert.equal(res.body, '');
     if (status === 404) assert.equal(res.headers['X-Robots-Tag'], 'noindex');
   }
+  for (const method of ['GET', 'HEAD']) {
+    const res = { headers: {}, setHeader(k, v) { this.headers[k] = v; }, status(v) { this.code = v; return this; }, send(v) { this.body = v; return this; } };
+    await contentHandler({ method, query: { format: 'sitemap' } }, res);
+    assert.equal(res.code, 200);
+    assert.equal(res.headers['Cache-Control'], 'no-store');
+    assert.equal(res.headers['Vercel-CDN-Cache-Control'], 'no-store');
+    assert.equal(res.headers['Content-Type'], 'application/xml; charset=utf-8');
+    assert.equal(res.body, method === 'HEAD' ? '' : buildSitemap(data));
+  }
 } finally { if (prior !== undefined) process.env.DATABASE_URL = prior; }
-console.log('PASS: complete server HTML, canonicals, published catalogues, images, schema, TOC, sanitization, real 404/HEAD responses, database failures, accurate sitemap dates and IndexNow publication rules. No live content writes.');
+console.log('PASS: complete server HTML, canonicals, published catalogues, images, schema, TOC, sanitization, real 404/HEAD responses, database failures, sitemap date exclusion, feed cache controls and IndexNow publication rules. No live content writes.');
