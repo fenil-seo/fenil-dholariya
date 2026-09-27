@@ -1,6 +1,6 @@
 /* Image-led article opening with a centered, uninterrupted reading column. */
 body[data-page="post"] .reader-page { padding-top: 76px; }
-.reader-hero { position: relative; display: grid; align-items: end; width: 100%; max-width: 1600px; height: calc(min(56.25vw, 900px) - 100px); margin-inline: auto; isolation: isolate; background: var(--ink); }
+.reader-hero { position: relative; display: grid; align-items: end; width: 100%; max-width: 1600px; height: calc(min(56.25vw, 900px) - 150px); margin-inline: auto; isolation: isolate; background: var(--ink); }
 body[data-page="post"] .reader-hero #postHeroWrap { position: absolute; inset: 0; width: 100%; max-width: none; height: 100%; margin: 0; z-index: -2; }
 body[data-page="post"] .reader-hero .post-hero-img,
 body[data-page="post"] .reader-hero .article-cover { height: 100%; width: 100%; min-height: 0; margin: 0; aspect-ratio: 16 / 9; border: 0; border-radius: 0; }
