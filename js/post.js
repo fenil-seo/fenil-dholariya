@@ -19,6 +19,7 @@
 
   function renderPost(post) {
     const R = window.Render;
+    document.body.classList.remove("article-not-found");
     document.getElementById("postCategory").textContent = post.category || "Article";
     document.getElementById("postTitle").textContent = post.title;
     document.getElementById("postExcerpt").textContent = post.excerpt || "";
@@ -50,7 +51,7 @@
     headings.forEach((heading, index) => { heading.id = `article-section-${index + 1}`; });
     document.getElementById("articleToc").innerHTML = headings.map(heading =>
       `<a href="#${heading.id}">${R.esc(heading.textContent)}</a>`).join("");
-    document.querySelector(".article-sidebar").hidden = !headings.length;
+    document.getElementById("articleContents").hidden = !headings.length;
 
     document.title = `${post.title} - Fenil Dholariya`;
     setMeta("metaDesc", "content", post.excerpt || "");
@@ -100,6 +101,7 @@
   }
 
   function showNotFound() {
+    document.body.classList.add("article-not-found");
     document.getElementById("postCategory").textContent = "Not found";
     document.getElementById("postTitle").textContent = "This article doesn't exist (yet).";
     document.getElementById("postBody").innerHTML =

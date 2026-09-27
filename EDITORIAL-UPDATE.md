@@ -46,6 +46,17 @@ admin editor if an editorial rollback is required.
 The implementation retains this site's Manrope / Instrument Serif typography,
 warm paper background and blue accents. No reference-site assets were copied.
 
+## Article detail layout
+
+The article template follows the image-led opening and centered reading layout
+of the supplied [Medallion Fence article](https://medallionfence.com/hot-dip-galvanising-vs-armour-shield-coating-what-actually-protects-steel-fencing-through-canadian-winters-2/).
+`css/article.css` is loaded only on `post.html`. Desktop titles sit over the
+16:9 featured image; tablet and phone titles move beneath it to keep the image
+uncropped and the text readable. The article column is capped at 860px, with a
+collapsible contents list, author details, copy-link action and a contact panel.
+The existing related articles follow the reader. This template change does not
+modify stored article text or publication dates.
+
 ## Navigation, spacing and motion follow-up
 
 All public pages now share the dark navigation treatment. `css/layout.css`
