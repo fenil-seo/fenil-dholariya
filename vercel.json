@@ -3,6 +3,12 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/", "destination": "/api/site?kind=home" },
+    { "source": "/about", "destination": "/api/site?kind=about" },
+    { "source": "/services", "destination": "/api/site?kind=services" },
+    { "source": "/gallery", "destination": "/api/site?kind=gallery" },
+    { "source": "/contact", "destination": "/api/site?kind=contact" },
+    { "source": "/robots.txt", "destination": "/api/robots" },
     {
       "source": "/post/:slug",
       "destination": "/api/page?kind=post&slug=:slug"
@@ -111,12 +117,15 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://*.neon.tech; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' https:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://*.neon.tech; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self';"
         }
       ]
     }
   ],
   "functions": {
+    "api/site.js": { "includeFiles": "{index,about,services,gallery,contact}.html" },
+    "api/admin.js": { "includeFiles": "{index.html,robots.txt}" },
+    "api/robots.js": { "includeFiles": "robots.txt" },
     "api/page.js": {
       "includeFiles": "{post,project,blog,work,404}.html"
     }
@@ -124,6 +133,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".generated/public",
   "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/about.html", "destination": "/about", "permanent": true },
+    { "source": "/services.html", "destination": "/services", "permanent": true },
+    { "source": "/gallery.html", "destination": "/gallery", "permanent": true },
+    { "source": "/contact.html", "destination": "/contact", "permanent": true },
     {
       "source": "/blog.html",
       "destination": "/blog",

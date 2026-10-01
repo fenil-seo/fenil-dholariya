@@ -285,7 +285,7 @@
           <p class="img-prev__err admin-form__hint" style="color:#f56565;display:none">✗ This link can't load as an image yet. If you just uploaded it to GitHub, the site redeploys in ~1 minute - wait and re-paste. Otherwise check the path/URL.</p>
         </div>
         ${f.hint ? `<p class="admin-form__hint">${esc(f.hint)}</p>` : ""}
-        <p class="admin-form__hint">Tip: upload the image to GitHub (assets/gallery folder), open it, copy the browser URL and paste it here - it converts to the right path automatically.</p>
+        <p class="admin-form__hint">${f.siteMedia ? 'Use a deployed /assets/ path or an HTTPS image URL. Files must already be hosted.' : 'Tip: upload the image to GitHub (assets/gallery folder), open it, copy the browser URL and paste it here - it converts to the right path automatically.'}</p>
       </div>`;
     }
     if (f.type === "icon") {
@@ -641,6 +641,68 @@
       });
     },
   };
+
+  /* ---------- Home and shared footer content ---------- */
+  function siteEditorResource(page) {
+    return {
+      async render(panel) {
+        const { ok, data } = await window.API.admin(page, 'get');
+        if (noteDbStatus(ok, data)) {
+          panel.innerHTML = `<p class="admin-empty">Connect the database to edit ${page === 'home' ? 'the home page' : 'the footer'}.</p>`;
+          return;
+        }
+        if (!ok) {
+          panel.innerHTML = `<p class="admin-empty">${esc(data?.error || 'Failed to load.')}</p>`;
+          return;
+        }
+        const fields = data.fields || [];
+        const item = data.item || {};
+        const groups = [...new Set(fields.map(f => f.group))];
+        const renderField = f => {
+          const type = f.mode === 'json' ? 'json'
+            : f.options ? 'select'
+            : f.multiline || f.mode === 'markup' ? 'textarea'
+            : f.attr === 'src' || f.attr === 'poster' || f.key === 'seo.ogImage' ? 'image'
+            : 'text';
+          const hint = f.mode === 'markup' ? 'Use plain text with optional <br>, <span>, <em> or <strong> tags to keep the heading layout.'
+            : f.key === 'seo.robotsTxt' ? 'This file controls crawler access across the entire site. A disallowed page cannot expose its meta robots tag to crawlers, so use the page robots field for noindex.'
+            : f.mode === 'json' ? 'Paste one valid JSON-LD object or an array of objects. Existing built-in schema remains in place.'
+            : f.key === 'seo.keywords' ? 'Optional. Major search engines generally ignore meta keywords.'
+            : f.attr === 'src' || f.attr === 'poster' ? 'Use a deployed /assets/ path or an HTTPS URL.' : '';
+          return fieldHtml({ ...f, type, hint, wide: type === 'textarea' || type === 'json', siteMedia: true }, item);
+        };
+        panel.innerHTML = `
+          <div class="admin__panel-head"><div><h2>${page === 'home' ? 'Home page' : 'Footer'}</h2><p>${page === 'home' ? 'Edit each section, its media, links and search appearance.' : 'Edit the footer shared by every public page.'}</p></div><a class="btn btn--ghost btn--sm" href="/" target="_blank" rel="noopener">Preview site</a></div>
+          <p class="admin-form__hint admin-editor-intro">Media fields accept published /assets/ paths or hosted HTTPS URLs. Save, then reload the public page to review changes.</p>
+          <div class="site-editor-form">${groups.map((group, index) => `
+            <details class="admin-card site-editor-group" ${index === 0 || group === 'SEO' ? 'open' : ''}>
+              <summary><strong>${esc(group)}</strong><span>${fields.filter(f => f.group === group).length} fields</span></summary>
+              <div class="admin-form__grid">${fields.filter(f => f.group === group).map(renderField).join('')}</div>
+            </details>`).join('')}
+            <div class="admin-form__actions"><button class="btn btn--primary btn--sm" type="button" data-action="save-site">Save ${page === 'home' ? 'home page' : 'footer'}</button></div>
+            <p class="form-status" role="status" data-site-status></p>
+          </div>`;
+        panel.querySelectorAll('.site-editor-form [data-field]').forEach(input => {
+          const label = input.closest('.field')?.querySelector('label');
+          if (!label) return;
+          input.id = `site-${page}-${input.dataset.field.replace(/[^a-z0-9-]/gi, '-')}`;
+          label.htmlFor = input.id;
+        });
+        panel.querySelector('[data-action="save-site"]').addEventListener('click', async () => {
+          const status = panel.querySelector('[data-site-status]');
+          let values;
+          try { values = readForm(panel, fields.map(f => ({ ...f, type: f.mode === 'json' ? 'json' : 'text' }))); }
+          catch (error) { status.className = 'form-status is-err'; status.textContent = error.message; return; }
+          const button = panel.querySelector('[data-action="save-site"]');
+          button.disabled = true;
+          const result = await window.API.admin(page, 'update', { data: values });
+          button.disabled = false;
+          status.className = result.ok ? 'form-status is-ok' : 'form-status is-err';
+          status.textContent = result.ok ? 'Saved. Reload the public page to see the changes.' : result.data?.error || 'Save failed.';
+        });
+      },
+    };
+  }
 
   /* ---------- Leads (read, triage, delete - created by the public contact form) ---------- */
   const leadsResource = {
@@ -1122,6 +1184,8 @@
   const ACCENT_OPTIONS = ["violet", "cyan"];
 
   const RESOURCES = {
+    home: siteEditorResource('home'),
+    footer: siteEditorResource('footer'),
     profile: profileResource,
     leads: leadsResource,
     gallery: galleryResource,

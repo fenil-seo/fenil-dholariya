@@ -3,6 +3,7 @@ import { SEED } from "../lib/seed-data.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { loadPublicContent } from "../lib/public-content.js";
 import { buildSitemap, buildLlmMap } from "../lib/search.js";
+import { loadSiteSettings } from '../lib/site-settings.js';
 
 
 export default async function handler(req, res) {
@@ -20,7 +21,18 @@ export default async function handler(req, res) {
     try { data = await loadPublicContent(); }
     catch { res.setHeader('Retry-After', '60'); return res.status(503).send(req.method === 'HEAD' ? '' : 'Temporarily unavailable'); }
     res.setHeader("Content-Type", req.query.format === 'sitemap' ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
-    const body = req.query.format === 'sitemap' ? buildSitemap(data) : buildLlmMap(data);
+    let excludedPaths = [];
+    if (req.query.format === 'sitemap' && isDbConfigured()) {
+      try {
+        const settings = await loadSiteSettings(getSql());
+        if (/^noindex\b/i.test(settings.home?.['seo.robots'] || '')) excludedPaths = ['/'];
+      } catch (error) {
+        console.error('Sitemap settings unavailable', error.name);
+        res.setHeader('Retry-After', '60');
+        return res.status(503).send(req.method === 'HEAD' ? '' : 'Temporarily unavailable');
+      }
+    }
+    const body = req.query.format === 'sitemap' ? buildSitemap(data, excludedPaths) : buildLlmMap(data);
     return res.status(200).send(req.method === 'HEAD' ? '' : body);
   }
 

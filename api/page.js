@@ -1,5 +1,7 @@
 import { loadPublicContent } from '../lib/public-content.js';
 import { renderPublicPage, renderError } from '../lib/public-page.js';
+import { getSql, isDbConfigured } from '../lib/db.js';
+import { loadSiteSettings } from '../lib/site-settings.js';
 
 export default async function handler(req, res) {
   if (!['GET', 'HEAD'].includes(req.method)) {
@@ -10,8 +12,9 @@ export default async function handler(req, res) {
   const slug = typeof req.query?.slug === 'string' ? req.query.slug : '';
   let page;
   try {
+    const settings = isDbConfigured() ? await loadSiteSettings(getSql()) : {};
     page = ['post', 'project', 'blog', 'work'].includes(kind) && (!slug || /^[a-z0-9-]{1,200}$/.test(slug))
-      ? await renderPublicPage(kind, slug, await loadPublicContent()) : await renderError(404);
+      ? await renderPublicPage(kind, slug, await loadPublicContent(), settings) : await renderError(404);
   } catch (error) {
     console.error('Public page unavailable', error.name);
     page = await renderError(503);

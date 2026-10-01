@@ -2,6 +2,7 @@ import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { notifyPublication } from "../lib/indexnow.js";
+import { SITE_FIELDS, SEO_FIELDS, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 
 function slugify(str) {
   return String(str || "")
@@ -40,6 +41,9 @@ export default async function handler(req, res) {
       };
     }
     switch (resource) {
+      case "home":
+      case "footer":
+        return await handleSiteEditor(sql, resource, action, data, res);
       case "profile":
         return await handleProfile(sql, action, data, res);
       case "stats":
@@ -74,6 +78,23 @@ export default async function handler(req, res) {
     }
     return res.status(500).json({ error: "Something went wrong. " + (err.message || "") });
   }
+}
+
+export async function handleSiteEditor(sql, page, action, data, res) {
+  const fields = [...SITE_FIELDS[page], ...(page === 'home' ? SEO_FIELDS : [])];
+  if (action === 'get') {
+    const settings = await loadSiteSettings(sql);
+    return res.status(200).json({ fields, item: { ...await editorDefaults(page), ...(settings[page] || {}) } });
+  }
+  if (action !== 'update') return res.status(400).json({ error: 'Unknown action' });
+  let content;
+  try { content = validateSiteSettings(page, data); }
+  catch (error) { return res.status(400).json({ error: error.message }); }
+  await loadSiteSettings(sql);
+  const rows = await sql(`INSERT INTO site_settings (key, content, updated_at) VALUES ($1, $2::jsonb, now())
+    ON CONFLICT (key) DO UPDATE SET content=EXCLUDED.content, updated_at=now() RETURNING content`,
+    [page, JSON.stringify(content)]);
+  return res.status(200).json({ item: rows[0].content });
 }
 
 /* ---------- Generic CRUD for flat list tables (whitelisted columns only) ---------- */

@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css?v=20260709e" />
-  <link rel="stylesheet" href="/css/admin.css?v=20260709e" />
+  <link rel="stylesheet" href="/css/admin.css?v=20261001cms" />
 </head>
 <body data-page="admin">
   <!-- Google Tag Manager (noscript) -->
@@ -57,7 +57,9 @@
     </div>
 
     <nav class="admin__tabs" id="adminTabs">
-      <button class="admin__tab is-active" data-tab="profile">Profile</button>
+      <button class="admin__tab is-active" data-tab="home">Home page</button>
+      <button class="admin__tab" data-tab="footer">Footer</button>
+      <button class="admin__tab" data-tab="profile">Profile</button>
       <button class="admin__tab" data-tab="stats">Stats</button>
       <button class="admin__tab" data-tab="services">Services</button>
       <button class="admin__tab" data-tab="process">Process</button>
@@ -71,7 +73,9 @@
     </nav>
 
     <main class="admin__panels">
-      <section class="admin__panel is-active" id="panel-profile"></section>
+      <section class="admin__panel is-active" id="panel-home"></section>
+      <section class="admin__panel" id="panel-footer"></section>
+      <section class="admin__panel" id="panel-profile"></section>
       <section class="admin__panel" id="panel-stats"></section>
       <section class="admin__panel" id="panel-services"></section>
       <section class="admin__panel" id="panel-process"></section>
@@ -86,6 +90,6 @@
   </div>
 
   <script src="/js/api.js?v=20260710"></script>
-  <script src="/js/admin.js?v=20260709e"></script>
+  <script src="/js/admin.js?v=20261001cms"></script>
 </body>
 </html>

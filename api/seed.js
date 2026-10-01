@@ -3,6 +3,7 @@ import { isAuthenticated } from "../lib/auth.js";
 import { SEED } from "../lib/seed-data.js";
 
 const DDL = [
+  `CREATE TABLE IF NOT EXISTS site_settings (key TEXT PRIMARY KEY, content JSONB NOT NULL DEFAULT '{}'::jsonb, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
   `CREATE TABLE IF NOT EXISTS profile (
     id INT PRIMARY KEY DEFAULT 1,
     name TEXT, role TEXT, tagline TEXT, intro TEXT,

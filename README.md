@@ -39,10 +39,10 @@ No database needed to get started:
 
 ```bash
 npm install
-npm run dev
+npx vercel dev
 ```
 
-This starts `vercel dev`. Open `http://localhost:3000` - the site renders from the seed content in `js/data.js` / `lib/seed-data.js`. The admin panel is at `http://localhost:3000/admin`, password `Fenil@007` (see below to change it).
+Open the local URL printed by Vercel. The site renders from seed content until the database is connected. The admin panel is at `/admin` and uses `ADMIN_PASSWORD` from the environment.
 
 > `vercel dev` requires the Vercel CLI, which `npm install` pulls in as needed the first time you run it. If you'd rather not install the CLI, any static file server works for browsing the public pages - you just won't get the `/api/*` routes (the site falls back to seed content automatically).
 
@@ -59,10 +59,10 @@ This starts `vercel dev`. Open `http://localhost:3000` - the site renders from t
    ```bash
    node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
    ```
-3. Restart `npm run dev`, log into `/admin`, and click **Initialize database** in the yellow banner. This creates all tables and loads the same seed content into Postgres so you start from a populated, editable site instead of an empty one.
+3. Restart `npx vercel dev`, log into `/admin`, and click **Initialize database** in the yellow banner. This creates all tables and loads the same seed content into Postgres so you start from a populated, editable site instead of an empty one.
 4. From here, every edit in `/admin` writes to Postgres and is what the public site serves.
 
-If `DATABASE_URL` is ever unset or unreachable, the public site silently falls back to the seed content - it never shows an error to visitors.
+If `DATABASE_URL` is unset, the site uses seed content. If a configured database is unavailable, database-driven content routes return a temporary error so deleted or unpublished content cannot reappear from the seed catalogue.
 
 ## Admin panel
 
@@ -73,6 +73,8 @@ Go to `/admin` and log in with `ADMIN_PASSWORD` (default `Fenil@007`, override i
 - Projects (case studies) and Blog posts - both support custom slugs, JSON metrics, and draft/publish state
 - Testimonials, Skills, Timeline
 - Leads - everyone who submits the contact form, with status triage
+
+The **Home page** editor covers every main section, its copy, links, images and the method video. The **Footer** editor controls the footer shared by all public pages. Media fields accept a deployed `/assets/` path or a hosted HTTPS URL; binary uploads are not stored by this project. Home SEO includes title, description, keywords, canonical URL, page robots, Open Graph fields, custom JSON-LD and sitewide `robots.txt`. The page robots setting controls indexing; `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved home content and metadata are rendered into the HTML response.
 
 ## Structured data (SEO / AEO / AIO / GEO)
 

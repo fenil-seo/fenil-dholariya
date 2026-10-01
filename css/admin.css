@@ -80,6 +80,12 @@ body[data-page="admin"] { overflow-x: hidden; }
 .admin__panels { padding: 1.5rem var(--gutter) 5rem; max-width: 980px; }
 .admin__panel { display: none; }
 .admin__panel.is-active { display: block; }
+.site-editor-group { padding: 0; }
+.site-editor-group > summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1.2rem 1.4rem; cursor:pointer; list-style:none; }
+.site-editor-group > summary::-webkit-details-marker { display:none; }
+.site-editor-group > summary span { color:var(--text-muted); font-size:.8rem; }
+.site-editor-group > .admin-form__grid { padding:0 1.4rem 1.4rem; }
+.admin-editor-intro { margin-bottom:1.2rem; }
 
 .admin__panel-head {
   display: flex;
