@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { load } from 'cheerio';
-import { SITE_FIELDS, editorDefaults, applySiteSettings, validateSiteSettings } from '../lib/site-settings.js';
+import { SITE_FIELDS, SEO_FIELDS, editorDefaults, applySiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 import { handleSiteEditor } from '../api/admin.js';
 import { buildSitemap, SITE_URL } from '../lib/search.js';
 import { renderPublicPage } from '../lib/public-page.js';
+import { normalizeSiteDraft, parseSitePayload, siteDraftIsDirty } from '../js/site-editor-ui.js';
 
 const defaults = {};
 for (const page of ['home','footer']) {
@@ -16,6 +17,18 @@ for (const page of ['home','footer']) {
     assert.equal(template(field.selector).length, 1, `${page}: ${field.key}`);
   }
 }
+const editorFields = [...SITE_FIELDS.home, ...SEO_FIELDS];
+const editorDraft = normalizeSiteDraft(defaults.home, editorFields);
+assert.equal(editorDraft['hero.title'], defaults.home['hero.title']);
+assert.equal(typeof editorDraft['seo.schema'], 'string');
+assert.equal(siteDraftIsDirty(editorDraft, { ...editorDraft }), false);
+assert.equal(siteDraftIsDirty({ ...editorDraft, 'seo.title':'New title' }, editorDraft), true);
+assert.deepEqual(parseSitePayload(editorDraft)['seo.schema'], defaults.home['seo.schema']);
+assert.throws(() => parseSitePayload({ 'seo.schema':'{broken' }), /invalid JSON/);
+assert.throws(() => parseSitePayload({ 'seo.schema':'[1]' }), /JSON object or an array/);
+const mediaIndex = JSON.parse(await readFile('.generated/public/assets/media-index.json', 'utf8'));
+assert.ok(mediaIndex.some(item => item.type === 'image' && item.path.startsWith('/assets/')));
+assert.ok(mediaIndex.some(item => item.type === 'video' && item.path.startsWith('/assets/')));
 for (const template of ['index','about','services','gallery','contact','blog','work','post','project']) {
   const page = load(await readFile(`${template}.html`, 'utf8'));
   for (const field of SITE_FIELDS.footer) {

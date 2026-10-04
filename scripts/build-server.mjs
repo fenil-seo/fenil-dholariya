@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, rm, readdir, writeFile } from 'node:fs/promises';
 import { resolve, join, sep } from 'node:path';
 
 // Vercel's function instrumentation cannot synchronously require the ESM parser
@@ -21,4 +21,16 @@ await mkdir(output, { recursive: true });
 for (const path of ['assets', 'css', 'js', '404.html', 'admin.html', 'indexnow-key.txt']) {
   await cp(join(root, path), join(output, path), { recursive: true });
 }
+const mediaIndex = [];
+async function indexMedia(folder, prefix = '') {
+  for (const entry of await readdir(folder, { withFileTypes: true })) {
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) { await indexMedia(join(folder, entry.name), relative); continue; }
+    const video = /\.(?:mp4|webm)$/i.test(entry.name);
+    if (!video && !/\.(?:png|jpe?g|webp|avif|gif|svg)$/i.test(entry.name)) continue;
+    mediaIndex.push({ path: `/assets/${relative.split('/').map(encodeURIComponent).join('/')}`, name: entry.name, type: video ? 'video' : 'image' });
+  }
+}
+await indexMedia(join(root, 'assets'));
+await writeFile(join(output, 'assets', 'media-index.json'), JSON.stringify(mediaIndex));
 console.log('Built static public output; dynamic page templates remain server-only.');

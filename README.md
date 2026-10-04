@@ -76,6 +76,8 @@ Go to `/admin` and log in with `ADMIN_PASSWORD` (default `Fenil@007`, override i
 
 The **Home page** editor covers every main section, its copy, links, images and the method video. The **Footer** editor controls the footer shared by all public pages. Media fields accept a deployed `/assets/` path or a hosted HTTPS URL; binary uploads are not stored by this project. Home SEO includes title, description, keywords, canonical URL, page robots, Open Graph fields, custom JSON-LD and sitewide `robots.txt`. The page robots setting controls indexing; `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved home content and metadata are rendered into the HTML response.
 
+Use the section list to edit one part of the page at a time. **Preview** shows unsaved content at desktop or mobile size. **Save changes** or **Ctrl+S** saves the current draft; **Discard changes** returns to the last saved version. The Home **SEO** tab includes live search and social previews, JSON validation and schema starter templates. **Choose image/video** opens a searchable library generated from `assets/` during the build. Add new files to the repository and deploy, or use a hosted HTTPS URL.
+
 ## Structured data (SEO / AEO / AIO / GEO)
 
 Every page ships schema.org JSON-LD out of the box, both as static markup in the HTML (for crawlers that don't execute JavaScript, e.g. most AI bots) and refreshed live by `js/schema.js` once content hydrates from the database:

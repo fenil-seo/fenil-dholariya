@@ -1,3 +1,5 @@
+import { mountSiteEditor } from './site-editor-ui.js';
+
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
    content resource. Talks only to /api/admin (cookie-authenticated);
@@ -138,6 +140,20 @@
   const tabs = Array.from(document.querySelectorAll(".admin__tab"));
   const panels = Array.from(document.querySelectorAll(".admin__panel"));
   const loaded = new Set();
+  const sidebar = document.getElementById('adminSidebar');
+  const backdrop = document.getElementById('adminSidebarBackdrop');
+  const navSearch = document.getElementById('adminNavSearch');
+  const currentPage = document.getElementById('adminCurrentPage');
+  const menuToggle = document.getElementById('adminMenuToggle');
+
+  function setSidebarOpen(open) {
+    sidebar.classList.toggle('is-open', open);
+    backdrop.classList.toggle('is-visible', open);
+    menuToggle.setAttribute('aria-expanded', String(open));
+    menuToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+  }
+  menuToggle.setAttribute('aria-controls', 'adminSidebar');
+  setSidebarOpen(false);
 
   function showLogin() {
     loginView.style.display = "";
@@ -147,6 +163,7 @@
   function showDashboard() {
     loginView.style.display = "none";
     dashboardView.style.display = "";
+    currentPage.textContent = document.querySelector('.admin__tab.is-active span')?.textContent || 'Home page';
     loadTab(activeTabName());
   }
 
@@ -197,6 +214,11 @@
   logoutBtn.addEventListener("click", async () => {
     await window.API.logout();
     loaded.clear();
+    panels.forEach(panel => {
+      panel.__siteEditorAbort?.abort();
+      delete panel.__siteEditorState;
+      panel.innerHTML = '';
+    });
     showLogin();
   });
 
@@ -221,7 +243,25 @@
       panels.forEach((p) => p.classList.remove("is-active"));
       tab.classList.add("is-active");
       document.getElementById(`panel-${tab.dataset.tab}`).classList.add("is-active");
+      currentPage.textContent = tab.querySelector('span')?.textContent || tab.textContent.trim();
+      setSidebarOpen(false);
       loadTab(tab.dataset.tab);
+      window.scrollTo(0, 0);
+    });
+  });
+  menuToggle.addEventListener('click', () => setSidebarOpen(!sidebar.classList.contains('is-open')));
+  backdrop.addEventListener('click', () => setSidebarOpen(false));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && sidebar.classList.contains('is-open')) {
+      setSidebarOpen(false);
+      menuToggle.focus();
+    }
+  });
+  navSearch.addEventListener('input', () => {
+    const query = navSearch.value.trim().toLowerCase();
+    tabs.forEach(tab => { tab.hidden = Boolean(query) && !tab.textContent.toLowerCase().includes(query); });
+    document.querySelectorAll('[data-nav-group]').forEach(group => {
+      group.hidden = !group.querySelector('.admin__tab:not([hidden])');
     });
   });
 
@@ -645,62 +685,7 @@
   /* ---------- Home and shared footer content ---------- */
   function siteEditorResource(page) {
     return {
-      async render(panel) {
-        const { ok, data } = await window.API.admin(page, 'get');
-        if (noteDbStatus(ok, data)) {
-          panel.innerHTML = `<p class="admin-empty">Connect the database to edit ${page === 'home' ? 'the home page' : 'the footer'}.</p>`;
-          return;
-        }
-        if (!ok) {
-          panel.innerHTML = `<p class="admin-empty">${esc(data?.error || 'Failed to load.')}</p>`;
-          return;
-        }
-        const fields = data.fields || [];
-        const item = data.item || {};
-        const groups = [...new Set(fields.map(f => f.group))];
-        const renderField = f => {
-          const type = f.mode === 'json' ? 'json'
-            : f.options ? 'select'
-            : f.multiline || f.mode === 'markup' ? 'textarea'
-            : f.attr === 'src' || f.attr === 'poster' || f.key === 'seo.ogImage' ? 'image'
-            : 'text';
-          const hint = f.mode === 'markup' ? 'Use plain text with optional <br>, <span>, <em> or <strong> tags to keep the heading layout.'
-            : f.key === 'seo.robotsTxt' ? 'This file controls crawler access across the entire site. A disallowed page cannot expose its meta robots tag to crawlers, so use the page robots field for noindex.'
-            : f.mode === 'json' ? 'Paste one valid JSON-LD object or an array of objects. Existing built-in schema remains in place.'
-            : f.key === 'seo.keywords' ? 'Optional. Major search engines generally ignore meta keywords.'
-            : f.attr === 'src' || f.attr === 'poster' ? 'Use a deployed /assets/ path or an HTTPS URL.' : '';
-          return fieldHtml({ ...f, type, hint, wide: type === 'textarea' || type === 'json', siteMedia: true }, item);
-        };
-        panel.innerHTML = `
-          <div class="admin__panel-head"><div><h2>${page === 'home' ? 'Home page' : 'Footer'}</h2><p>${page === 'home' ? 'Edit each section, its media, links and search appearance.' : 'Edit the footer shared by every public page.'}</p></div><a class="btn btn--ghost btn--sm" href="/" target="_blank" rel="noopener">Preview site</a></div>
-          <p class="admin-form__hint admin-editor-intro">Media fields accept published /assets/ paths or hosted HTTPS URLs. Save, then reload the public page to review changes.</p>
-          <div class="site-editor-form">${groups.map((group, index) => `
-            <details class="admin-card site-editor-group" ${index === 0 || group === 'SEO' ? 'open' : ''}>
-              <summary><strong>${esc(group)}</strong><span>${fields.filter(f => f.group === group).length} fields</span></summary>
-              <div class="admin-form__grid">${fields.filter(f => f.group === group).map(renderField).join('')}</div>
-            </details>`).join('')}
-            <div class="admin-form__actions"><button class="btn btn--primary btn--sm" type="button" data-action="save-site">Save ${page === 'home' ? 'home page' : 'footer'}</button></div>
-            <p class="form-status" role="status" data-site-status></p>
-          </div>`;
-        panel.querySelectorAll('.site-editor-form [data-field]').forEach(input => {
-          const label = input.closest('.field')?.querySelector('label');
-          if (!label) return;
-          input.id = `site-${page}-${input.dataset.field.replace(/[^a-z0-9-]/gi, '-')}`;
-          label.htmlFor = input.id;
-        });
-        panel.querySelector('[data-action="save-site"]').addEventListener('click', async () => {
-          const status = panel.querySelector('[data-site-status]');
-          let values;
-          try { values = readForm(panel, fields.map(f => ({ ...f, type: f.mode === 'json' ? 'json' : 'text' }))); }
-          catch (error) { status.className = 'form-status is-err'; status.textContent = error.message; return; }
-          const button = panel.querySelector('[data-action="save-site"]');
-          button.disabled = true;
-          const result = await window.API.admin(page, 'update', { data: values });
-          button.disabled = false;
-          status.className = result.ok ? 'form-status is-ok' : 'form-status is-err';
-          status.textContent = result.ok ? 'Saved. Reload the public page to see the changes.' : result.data?.error || 'Save failed.';
-        });
-      },
+      render(panel) { return mountSiteEditor({ page, panel, api: window.API, noteDbStatus, esc }); },
     };
   }
 
