@@ -1,0 +1,22 @@
+/* Graphite workspace with the same violet accent as the public portfolio. */
+body[data-page="admin"] {
+  --aw-bg: #141619;
+  --aw-sidebar: #1c1f24;
+  --aw-panel: #24282f;
+  --aw-panel-2: #2c313a;
+  --aw-line: #40454f;
+  --aw-orange: #b4c4e4;
+  --aw-orange-wash: #a8bbe01f;
+  --aw-blue: #b3c0da;
+}
+.admin-login { background: radial-gradient(ellipse at 20% 15%, #606f8e38, transparent 55%), radial-gradient(ellipse at 85% 80%, #91a0be17, transparent 50%), var(--aw-bg); }
+.admin-login__card { border: 1px solid #b3bed34d; border-radius: 28px; background: linear-gradient(135deg,#383e49b3,#22262fd9); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 24px 80px #05080f4d, inset 0 1px 0 #e1e7f23d; }
+.admin__sidebar, .admin__topbar { background: linear-gradient(135deg,#252a33,#1b1e24); }
+.admin__topbar { box-shadow: inset 0 1px 0 #e4eaf517; }
+.admin__brand-mark { background: #b4c4e4; }
+.admin__tab.is-active { color: #d5def0; background: #99afdb29; box-shadow: inset 0 1px 0 #dee5f31f; }
+.admin-login .btn--primary { background: linear-gradient(135deg,#758bb6,#53678e); color: white; border-color: #91a3c6; box-shadow: inset 0 1px 0 #ffffff40; }
+.admin-login .input { border-radius: 12px; background: #12161f73; border-color: #636d80; }
+.admin-login .brand__mark { border-radius: 10px; }
+.admin-login .text-muted { color: #bac1cf; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

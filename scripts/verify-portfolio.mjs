@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
+import {load} from 'cheerio';
 import {SEED} from '../lib/seed-data.js';
 const pages=['index','services','work','about','blog','gallery','contact','project','post','404'];
 const experiencePages=new Set(['services','work','about','blog','gallery','contact','project','post']);
@@ -12,8 +13,13 @@ for(const page of pages){
  const ids=[...noScripts.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
  assert.equal(ids.length,new Set(ids).size,`Duplicate IDs in ${page}`);
  assert.ok(!source.includes('\u2014'),`Em dash in ${page}`);
- assert.ok(source.includes('>Services</a>'),`Services nav missing in ${page}`);
- assert.ok(source.includes('>Gallery</a>'),`Gallery nav missing in ${page}`);
+ const $=load(noScripts);
+ for(const [path,label] of [['/services','Services'],['/gallery','Gallery']]) {
+  const link=$(`.nav .nav__link[href="${path}"]`);
+  assert.equal(link.length,1,`${label} nav missing in ${page}`);
+  assert.ok(link.text().includes(label),`${label} nav label missing in ${page}`);
+ }
+ assert.match($('link[rel="stylesheet"]').last().attr('href'),/^\/css\/liquid\.css\?/,`Shared theme must load after page styles in ${page}`);
  const hasExperience=experiencePages.has(page);
  assert.equal(source.includes('/css/engagement.css?'),hasExperience,`Inner-page stylesheet scope in ${page}`);
  assert.equal(source.includes('/js/engagement.js?'),hasExperience,`Inner-page interaction scope in ${page}`);

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" fill="none">
+  <defs>
+    <linearGradient id="base" x1="80" y1="100" x2="1480" y2="950" gradientUnits="userSpaceOnUse"><stop stop-color="#f4f7fc"/><stop offset=".55" stop-color="#e4ebf7"/><stop offset="1" stop-color="#eef1f7"/></linearGradient>
+    <linearGradient id="ribbon" x1="600" y1="0" x2="1500" y2="930" gradientUnits="userSpaceOnUse"><stop stop-color="#a6bfe9"/><stop offset=".35" stop-color="#e8effb"/><stop offset=".6" stop-color="#b8cde9"/><stop offset="1" stop-color="#f4f8fd"/></linearGradient>
+    <linearGradient id="edge" x1="900" y1="0" x2="1200" y2="940" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".2"/><stop offset=".75" stop-color="#819acb" stop-opacity=".35"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(1450 210) rotate(115) scale(670 620)" gradientUnits="userSpaceOnUse"><stop stop-color="#93b3e2" stop-opacity=".42"/><stop offset="1" stop-color="#c9d8ef" stop-opacity="0"/></radialGradient>
+  </defs>
+  <path fill="url(#base)" d="M0 0h1600v1000H0z"/>
+  <path fill="url(#glow)" d="M0 0h1600v1000H0z"/>
+  <path d="M940-160C800 180 1640 80 1470 540S620 890 680 1160h470c-130-260 620-300 650-720s-690-310-350-600Z" fill="url(#ribbon)"/>
+  <path d="M940-160C800 180 1640 80 1470 540S620 890 680 1160" stroke="url(#edge)" stroke-width="3"/>
+  <path d="M1110-130c-270 310 570 240 425 700S810 900 940 1120" stroke="#fff" stroke-opacity=".34" stroke-width="1.5"/>
+  <path d="M1230-180C970 180 1850 240 1610 690" stroke="#8ca8d3" stroke-opacity=".15" stroke-width="2"/>
+</svg>

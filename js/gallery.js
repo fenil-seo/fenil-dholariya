@@ -32,7 +32,8 @@
     // Account for wrapped filter rows and the document's existing scroll padding.
     function syncAnchorOffset() {
       if (!toolbar) return;
-      var navOffset = parseFloat(getComputedStyle(toolbar).top) || 0;
+      // Read the destination value rather than a halfway point in the top transition.
+      var navOffset = parseFloat(getComputedStyle(toolbar).getPropertyValue("--gallery-toolbar-top")) || 0;
       var documentOffset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
       var offset = Math.max(0, navOffset + toolbar.getBoundingClientRect().height + 24 - documentOffset);
       document.body.style.setProperty("--gallery-anchor-offset", offset + "px");
@@ -40,6 +41,7 @@
     syncAnchorOffset();
     if (toolbar && "ResizeObserver" in window) new ResizeObserver(syncAnchorOffset).observe(toolbar);
     window.addEventListener("resize", syncAnchorOffset, { passive: true });
+    window.addEventListener("navigation:change", syncAnchorOffset);
 
     function applyFilter() {
       var total = 0;
@@ -66,13 +68,17 @@
       applyFilter();
     }
     function selectCategory(id) {
+      window.SiteNavigation?.reveal();
       activeFilter = id;
       // Keep the selected evidence visible when filtering shortens a long page.
       history.replaceState(null,"",activeFilter === "all" ? location.pathname : "#"+activeFilter);
       applyFilter();
       syncAnchorOffset();
       var section = activeFilter === "all" ? document.querySelector("#galleryRoot > section") : document.getElementById(activeFilter);
-      section?.scrollIntoView({ block: "start", behavior: "instant" });
+      if (section) {
+        if (window.SiteScroll) window.SiteScroll.scrollToElement(section, { immediate: true });
+        else section.scrollIntoView({ block: "start", behavior: "instant" });
+      }
     }
     filters.addEventListener("click",function (event) {
       var button = event.target.closest("[data-gallery-filter]");
@@ -84,7 +90,9 @@
       var id = location.hash.slice(1);
       if (document.getElementById(id)?.parentElement?.id === "galleryRoot") {
         activeFilter = id; applyFilter();
-        document.getElementById(id).scrollIntoView({block:"start"});
+        var target = document.getElementById(id);
+        if (window.SiteScroll) window.SiteScroll.scrollToElement(target);
+        else target.scrollIntoView({block:"start"});
       }
     });
     if (LOCAL_GALLERY.some(function (s) {return "#"+s.anchor === location.hash;})) activeFilter = location.hash.slice(1);

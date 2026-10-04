@@ -2,12 +2,12 @@
 (() => {
   "use strict";
 
-  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionReduced = () => window.SiteMotion?.isReduced() ?? window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const SAVE_DATA = Boolean(navigator.connection && navigator.connection.saveData);
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-  if (!REDUCED) document.documentElement.classList.add("motion-ready");
+  if (!motionReduced()) document.documentElement.classList.add("motion-ready");
 
   function runIntro() {
     const intro = document.getElementById("loader");
@@ -37,7 +37,7 @@
       intro.classList.add("is-done");
       window.removeEventListener("pointerdown", skip);
       window.removeEventListener("keydown", skip);
-      removeTimer = window.setTimeout(() => intro.remove(), REDUCED ? 20 : 260);
+      removeTimer = window.setTimeout(() => intro.remove(), motionReduced() ? 20 : 260);
     };
 
     const finish = (skipMotion = false) => {
@@ -48,7 +48,7 @@
 
       const mark = $(".brand-intro__mark", intro);
       const target = $(".nav .brand__mark img");
-      if (!skipMotion && !REDUCED && mark && target) {
+      if (!skipMotion && !motionReduced() && mark && target) {
         const from = mark.getBoundingClientRect();
         const to = target.getBoundingClientRect();
         const x = to.left + (to.width / 2) - (from.left + (from.width / 2));
@@ -71,7 +71,7 @@
 
     window.addEventListener("pointerdown", skip, { once: true });
     window.addEventListener("keydown", skip);
-    exitTimer = window.setTimeout(() => finish(false), REDUCED ? 80 : 960);
+    exitTimer = window.setTimeout(() => finish(false), motionReduced() ? 80 : 960);
     window.setTimeout(() => finish(true), 1550);
   }
 
@@ -92,12 +92,51 @@
     if (!nav) return;
     const menu = $(".nav__menu", nav);
 
-    const updateScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > 12);
-    window.addEventListener("scroll", updateScroll, { passive: true });
+    let previousY = window.scrollY;
+    let direction = 0;
+    let travel = 0;
+    let heldUntil = 0;
+    let scrollFrame = 0;
+    const setHidden = (hidden) => {
+      if (nav.classList.contains("is-scroll-hidden") === hidden) return;
+      nav.classList.toggle("is-scroll-hidden", hidden);
+      document.body.classList.toggle("nav-is-hidden", hidden);
+      window.dispatchEvent(new CustomEvent("navigation:change", { detail: { hidden } }));
+    };
+    const reveal = (duration = 1400) => {
+      heldUntil = performance.now() + duration;
+      travel = 0;
+      setHidden(false);
+    };
+    window.SiteNavigation = { reveal };
+    const updateScroll = () => {
+      scrollFrame = 0;
+      const y = Math.max(0, window.scrollY);
+      const delta = y - previousY;
+      previousY = y;
+      nav.classList.toggle("is-scrolled", y > 24);
+      if (y < 160 || performance.now() < heldUntil || document.body.classList.contains("nav-open") || nav.contains(document.activeElement)) {
+        setHidden(false);
+        travel = 0;
+        return;
+      }
+      if (Math.abs(delta) < 1) return;
+      const nextDirection = Math.sign(delta);
+      travel = nextDirection === direction ? travel + Math.abs(delta) : Math.abs(delta);
+      direction = nextDirection;
+      if (direction > 0 && travel > 32) setHidden(true);
+      if (direction < 0 && travel > 12) setHidden(false);
+    };
+    window.addEventListener("scroll", () => {
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+    }, { passive: true });
+    nav.addEventListener("focusin", () => reveal());
+    nav.addEventListener("pointerenter", () => reveal());
     updateScroll();
 
     const normalizedPath = window.location.pathname.replace(/\/$/, "") || "/";
-    $$(".nav__link", nav).forEach((link) => {
+    $$(".nav__link", nav).forEach((link, index) => {
+      link.style.setProperty("--nav-order", String(index));
       const path = new URL(link.href, window.location.origin).pathname.replace(/\/$/, "") || "/";
       const current = path === normalizedPath || (path === "/work" && normalizedPath.startsWith("/work/")) || (path === "/blog" && normalizedPath.startsWith("/post/"));
       link.classList.toggle("is-active", current);
@@ -105,11 +144,54 @@
       else link.removeAttribute("aria-current");
     });
 
+    const links = $(".nav__links", nav);
+    if (links) {
+      const indicator = document.createElement("li");
+      indicator.className = "nav-indicator";
+      indicator.setAttribute("aria-hidden", "true");
+      indicator.setAttribute("role", "presentation");
+      links.prepend(indicator);
+      let previewLink = null;
+      let previousTarget = null;
+      let spring = null;
+      const positionIndicator = () => {
+        const target = previewLink || $(".nav__link.is-active", links);
+        if (!target) { indicator.style.opacity = "0"; return; }
+        const bounds = links.getBoundingClientRect();
+        const rect = target.getBoundingClientRect();
+        indicator.style.left = `${rect.left - bounds.left}px`;
+        indicator.style.width = `${rect.width}px`;
+        indicator.style.opacity = "1";
+        if (target !== previousTarget && previousTarget && !motionReduced() && indicator.animate) {
+          spring?.cancel();
+          spring = indicator.animate([
+            { transform:"scale(1)" },
+            { transform:"scale(1.08,.94)", offset:.35 },
+            { transform:"scale(.99,1.02)", offset:.72 },
+            { transform:"scale(1)" },
+          ], { duration:480, easing:"cubic-bezier(.22,1,.36,1)" });
+        }
+        previousTarget = target;
+      };
+      links.addEventListener("pointerover", event => {
+        const link = event.target.closest(".nav__link");
+        if (link) { previewLink = link; positionIndicator(); }
+      });
+      links.addEventListener("pointerleave", () => { previewLink = null; positionIndicator(); });
+      links.addEventListener("focusin", event => { previewLink = event.target.closest(".nav__link"); positionIndicator(); });
+      links.addEventListener("focusout", () => { previewLink = null; positionIndicator(); });
+      if ("ResizeObserver" in window) new ResizeObserver(positionIndicator).observe(links);
+      window.addEventListener("resize", positionIndicator, { passive: true });
+      document.fonts?.ready.then(positionIndicator);
+      window.addEventListener("motion:change", () => { if (motionReduced()) spring?.cancel(); });
+      positionIndicator();
+    }
+
     if (!toggle || !menu) return;
     if (!menu.id) menu.id = "primaryMenu";
     toggle.setAttribute("aria-controls", menu.id);
     toggle.setAttribute("aria-expanded", "false");
-    if (!toggle.getAttribute("aria-label")) toggle.setAttribute("aria-label", "Open menu");
+    toggle.setAttribute("aria-label", "Open menu");
 
     const main = $("main");
     const footer = $(".footer");
@@ -125,6 +207,7 @@
     };
 
     const open = () => {
+      reveal();
       menu.classList.add("is-open");
       document.body.classList.add("nav-open");
       toggle.setAttribute("aria-expanded", "true");
@@ -141,6 +224,9 @@
 
     menu.addEventListener("click", (event) => {
       if (event.target.closest("a")) close(false);
+    });
+    document.addEventListener("click", event => {
+      if (menu.classList.contains("is-open") && !nav.contains(event.target)) close(true);
     });
 
     window.addEventListener("keydown", (event) => {
@@ -186,14 +272,14 @@
         window.requestAnimationFrame(update);
       }
     }, { passive: true });
-    top?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }));
+    top?.addEventListener("click", () => window.SiteScroll ? window.SiteScroll.scrollTo(0) : window.scrollTo({ top: 0, behavior: motionReduced() ? "instant" : "smooth" }));
     update();
   }
 
   function bindReveals(root = document) {
     const items = $$(".reveal:not([data-reveal-bound]), .reveal-line:not([data-reveal-bound])", root);
     if (!items.length) return;
-    if (REDUCED || !("IntersectionObserver" in window)) {
+    if (motionReduced() || !("IntersectionObserver" in window)) {
       items.forEach((item) => {
         item.dataset.revealBound = "1";
         item.classList.add("is-in");
@@ -206,9 +292,10 @@
         entry.target.classList.add("is-in");
         observer.unobserve(entry.target);
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -36px 0px" });
+    }, { threshold: 0.06, rootMargin: "0px 0px -20px 0px" });
     items.forEach((item) => {
       item.dataset.revealBound = "1";
+      item.classList.remove("is-in");
       observer.observe(item);
     });
   }
@@ -231,7 +318,7 @@
       const target = Number(item.dataset.count || 0);
       const suffix = item.dataset.suffix || "";
       const finalValue = `${target}${suffix ? `<span class="unit">${suffix}</span>` : ""}`;
-      if (REDUCED || !("IntersectionObserver" in window)) {
+      if (motionReduced() || !("IntersectionObserver" in window)) {
         item.innerHTML = finalValue;
         return;
       }
@@ -241,6 +328,7 @@
         const start = performance.now();
         const duration = 850;
         const tick = (now) => {
+          if (motionReduced()) { item.innerHTML = finalValue; return; }
           const progress = Math.min(1, (now - start) / duration);
           const eased = 1 - Math.pow(1 - progress, 3);
           item.innerHTML = `${Math.round(target * eased)}${suffix ? `<span class="unit">${suffix}</span>` : ""}`;
@@ -399,6 +487,8 @@
     if (!bar) return;
     const buttons = Array.from(bar.querySelectorAll("[data-work-filter]"));
     const apply = (category) => {
+      const grid = document.getElementById("caseList");
+      grid?.classList.toggle("is-filtered", category !== "all");
       const cards = Array.from(document.querySelectorAll("#caseList .work-project"));
       cards.forEach(card => { card.hidden = category !== "all" && card.dataset.workCategory !== category; });
       buttons.forEach(button => {
@@ -409,6 +499,7 @@
       const count = cards.filter(card => !card.hidden).length;
       const status = document.getElementById("workCount");
       if (status) status.textContent = count ? `${count} case ${count === 1 ? "study" : "studies"}` : "No case studies in this category.";
+      if (grid) window.dispatchEvent(new CustomEvent("collection:change", { detail: { root:grid } }));
     };
     bar.addEventListener("click", event => {
       const button = event.target.closest("[data-work-filter]");
@@ -426,7 +517,7 @@
       const target = document.getElementById(aliases[hash] || hash);
       if (target?.classList.contains("capability")) {
         target.open = true;
-        requestAnimationFrame(() => target.scrollIntoView({block: "start"}));
+        requestAnimationFrame(() => window.SiteScroll ? window.SiteScroll.scrollToElement(target) : target.scrollIntoView({block: "start"}));
       }
     };
     reveal();
@@ -534,7 +625,11 @@
         const expanded = grid.classList.toggle("is-expanded");
         button.setAttribute("aria-expanded", String(expanded));
         button.textContent = expanded ? "Show fewer screenshots" : `Show ${total - visible} more screenshots`;
-        if (!expanded) grid.closest("section").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+        if (!expanded) {
+          const section = grid.closest("section");
+          if (window.SiteScroll) window.SiteScroll.scrollToElement(section);
+          else section.scrollIntoView({ behavior: motionReduced() ? "instant" : "smooth", block: "start" });
+        }
       });
     });
   };
@@ -563,5 +658,13 @@
   if (year) year.textContent = String(new Date().getFullYear());
 
   window.addEventListener("content:hydrated", () => bindAll(document));
+  window.addEventListener("motion:change", () => {
+    if (!motionReduced()) {
+      document.documentElement.classList.add("motion-ready");
+      return;
+    }
+    document.documentElement.classList.remove("motion-ready");
+    $$(".reveal, .reveal-line").forEach(item => item.classList.add("is-in"));
+  });
   window.refreshAnimations = () => bindAll(document);
 })();

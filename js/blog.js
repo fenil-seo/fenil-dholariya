@@ -25,6 +25,7 @@
       button.classList.toggle("is-active", active);
     });
     window.refreshAnimations?.();
+    window.dispatchEvent(new CustomEvent("collection:change", { detail:{ root:grid } }));
   }
 
   function hydrate(data) {
