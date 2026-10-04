@@ -92,6 +92,11 @@ window.Render = (() => {
     return candidates[0] || POST_MEDIA[post?.slug] || "";
   }
 
+  function postSocialImageUrl(post) {
+    const image = normalizeAssetUrl(post?.og_image_url);
+    return (image && !isGalleryAsset(image) ? image : '') || postMediaUrl(post) || '/assets/og.png';
+  }
+
   function stripGalleryImages(html) {
     const template = document.createElement("template");
     template.innerHTML = String(html || "");
@@ -248,6 +253,7 @@ window.Render = (() => {
     renderTimeline,
     projectMediaUrl,
     postMediaUrl,
+    postSocialImageUrl,
     stripGalleryImages,
     mediaClass,
     normalizeAssetUrl,

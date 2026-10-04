@@ -1267,6 +1267,11 @@ import { mountSiteEditor } from './site-editor-ui.js';
         { key: "reading_time", label: "Reading time (min)", type: "number", default: 5 },
         { key: "date", label: "Publish date", type: "date" },
         { key: "published", label: "Published", type: "checkbox", default: true },
+        { key: "meta_title", label: "SEO title", wide: true, hint: "Optional search title. Leave blank to use the article title and your name." },
+        { key: "meta_description", label: "Meta description", type: "textarea", wide: true, hint: "Optional search description. Leave blank to use the excerpt." },
+        { key: "og_title", label: "OG title", wide: true, hint: "Title for social sharing. Leave blank to use the SEO title." },
+        { key: "og_description", label: "OG description", type: "textarea", wide: true, hint: "Description for social sharing. Leave blank to use the meta description." },
+        { key: "og_image_url", label: "OG image (social sharing)", type: "image", wide: true, hint: "Use a public image, ideally 1200 × 630 pixels. Leave blank to use the article cover. Also used for X / Twitter." },
         {
           key: "schema_markup",
           label: "Custom schema markup (JSON-LD)",

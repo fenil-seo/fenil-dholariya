@@ -19,6 +19,10 @@ for (const [kind, items] of [['post', data.posts], ['project', data.projects]]) 
     const result = await renderPublicPage(kind, item.slug, data);
     assert.equal(result.status, 200);
     const $ = load(result.html);
+    assert.ok(result.html.startsWith('<!DOCTYPE html>'), 'Rendered templates must preserve their doctype');
+    assert.equal($('head title').length, 1, 'Page metadata belongs in the document head');
+    assert.equal($('head meta[property="og:title"]').length, 1);
+    assert.equal($('body title, body meta, body link[rel="canonical"]').length, 0);
     const prefix = kind === 'post' ? 'post' : 'work';
     const url = `${SITE_URL}/${prefix}/${item.slug}`;
     assert.equal($('h1').text(), item.title);
@@ -73,6 +77,8 @@ for (const value of [new Date('2026-09-27T05:00:00Z'), 'Thu Jul 09 2026 00:00:00
 }
 assert.equal(isoDate('bad date'), undefined);
 assert.ok(!buildSitemap(data).includes('<lastmod>'), 'Do not invent modification dates');
+const draftData = { posts: [{ ...data.posts[0], slug: 'private-draft', published: false }], projects: [] };
+assert.ok(!buildSitemap(draftData).includes('/post/private-draft'), 'Drafts must not appear in discovery feeds');
 
 assert.deepEqual(changedPaths('posts', { slug: 'old', published: true }, { slug: 'new', published: true }), ['/blog', '/post/old', '/post/new']);
 assert.deepEqual(changedPaths('posts', { slug: 'old', published: true }, { slug: 'old', published: false }), ['/blog', '/post/old']);

@@ -2,6 +2,7 @@ import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { notifyPublication } from "../lib/indexnow.js";
+import { POST_METADATA_FIELDS, validatePostMetadata } from '../lib/post-metadata.js';
 import { SITE_FIELDS, SEO_FIELDS, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 
 function slugify(str) {
@@ -233,9 +234,9 @@ async function handleProjects(sql, action, id, data, res) {
 }
 
 /* ---------- Posts (slug + body HTML) ---------- */
-async function handlePosts(sql, action, id, data, res) {
-  await ensureNewColumns(sql);
-  const RETURNING = `id, slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url`;
+export async function handlePosts(sql, action, id, data, res, migrate = ensureNewColumns) {
+  await migrate(sql);
+  const RETURNING = `id, slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url, ${POST_METADATA_FIELDS.map(key => `COALESCE(${key},'') AS ${key}`).join(', ')}`;
 
   if (action === "list") {
     const rows = await sql(`SELECT ${RETURNING} FROM posts ORDER BY date DESC, id DESC`);
@@ -243,6 +244,9 @@ async function handlePosts(sql, action, id, data, res) {
   }
 
   if (action === "create" || action === "update") {
+    let metadata;
+    try { metadata = validatePostMetadata(data); }
+    catch (error) { return res.status(400).json({ error: error.message }); }
     const slug = slugify(data?.slug) || slugify(data?.title);
     if (!slug) return res.status(400).json({ error: "Title or slug is required." });
     const schemaJson = JSON.stringify(data?.schema_markup ?? null);
@@ -260,12 +264,13 @@ async function handlePosts(sql, action, id, data, res) {
       schemaJson,
       data?.image_url || "",
       data?.blog_image_url || "",
+      ...POST_METADATA_FIELDS.map(key => metadata[key] ?? (action === 'create' ? '' : null)),
     ];
 
     if (action === "create") {
       const rows = await sql(
-        `INSERT INTO posts (slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, image_url, blog_image_url)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13)
+        `INSERT INTO posts (slug, title, category, excerpt, body, viz, accent, reading_time, date, published, schema_markup, image_url, blog_image_url, ${POST_METADATA_FIELDS.join(', ')})
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13,${POST_METADATA_FIELDS.map((_, i) => `$${14 + i}`).join(',')})
          RETURNING ${RETURNING}`,
         params
       );
@@ -275,8 +280,9 @@ async function handlePosts(sql, action, id, data, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     params.push(id);
     const rows = await sql(
-      `UPDATE posts SET updated_at=NOW(), slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13
-       WHERE id = $14
+      `UPDATE posts SET updated_at=NOW(), slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13,
+       ${POST_METADATA_FIELDS.map((key, i) => `${key}=COALESCE($${14 + i},${key})`).join(', ')}
+       WHERE id = $${14 + POST_METADATA_FIELDS.length}
        RETURNING ${RETURNING}`,
       params
     );

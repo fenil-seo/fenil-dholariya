@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const kind = typeof req.query?.kind === 'string' ? req.query.kind : '';
   if (!templates[kind]) return res.status(404).send('Not found');
   try {
-    const $ = load(await readFile(join(process.cwd(), templates[kind]), 'utf8'));
+    const $ = load((await readFile(join(process.cwd(), templates[kind]), 'utf8')).replace(/^\uFEFF/, ''));
     if (isDbConfigured()) {
       const settings = await loadSiteSettings(getSql());
       if (kind === 'home') applySiteSettings($, 'home', settings.home);

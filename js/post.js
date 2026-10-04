@@ -53,13 +53,16 @@
       `<a href="#${heading.id}">${R.esc(heading.textContent)}</a>`).join("");
     document.getElementById("articleContents").hidden = !headings.length;
 
-    document.title = `${post.title} - Fenil Dholariya`;
-    setMeta("metaDesc", "content", post.excerpt || "");
-    setMeta("ogTitle2", "content", post.title);
-    setMeta("ogDesc", "content", post.excerpt || "");
-    setMeta("twitterTitle", "content", post.title);
-    setMeta("twitterDesc", "content", post.excerpt || "");
-    const socialImage = new URL(heroImage || "/assets/og.png", "https://fenil-dholariya.vercel.app").href;
+    document.title = post.meta_title?.trim() || `${post.title} - Fenil Dholariya`;
+    const description = post.meta_description?.trim() || post.excerpt || "";
+    const socialTitle = post.og_title?.trim() || document.title;
+    const socialDescription = post.og_description?.trim() || description;
+    setMeta("metaDesc", "content", description);
+    setMeta("ogTitle2", "content", socialTitle);
+    setMeta("ogDesc", "content", socialDescription);
+    setMeta("twitterTitle", "content", socialTitle);
+    setMeta("twitterDesc", "content", socialDescription);
+    const socialImage = new URL(R.postSocialImageUrl(post), "https://fenil-dholariya.vercel.app").href;
     setMeta("ogImage", "content", socialImage);
     setMeta("twitterImage", "content", socialImage);
     setMeta("ogUrl", "content", `https://fenil-dholariya.vercel.app/post/${post.slug}`);

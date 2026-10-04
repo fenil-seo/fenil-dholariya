@@ -45,7 +45,7 @@
   <link rel="stylesheet" href="/css/editorial.css?v=20260926t">
   <link rel="stylesheet" href="/css/typography.css?v=20260926t">
   <link rel="stylesheet" href="/css/layout.css?v=20260926n">
-  <link rel="stylesheet" href="/css/article.css?v=20260927b">
+  <link rel="stylesheet" href="/css/article.css?v=20261004reader">
   <link rel="stylesheet" href="/css/mobile.css?v=20260927m">
   <noscript><style>#loader,.cursor-dot,.cursor-ring{display:none!important}.reveal,.reveal-line,[data-enter]{opacity:1!important;visibility:visible!important;transform:none!important}.article-search,.journal-controls{display:none!important}</style></noscript>
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -179,11 +179,10 @@
       <div class="reader-content">
         <div class="reader-meta">
           <div class="article-byline">
-            <a href="/about" aria-label="About Fenil Dholariya"><img src="/assets/fenil.jpg" alt="" width="42" height="42"></a>
-            <div><a class="article-author" href="/about">Fenil Dholariya</a><div class="post-card__meta" id="postMeta"></div></div>
+            <a class="article-author-card" href="/about"><img src="/assets/fenil.jpg" alt="" width="42" height="42"><span class="article-byline__text"><span class="article-author">Fenil Dholariya</span><span class="post-card__meta" id="postMeta"></span></span></a>
           </div>
           <div class="article-share">
-            <button type="button" id="copyArticleLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M15 8V4H4v11h4"/></svg>Copy article link</button>
+            <button type="button" id="copyArticleLink" aria-label="Copy article link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M15 8V4H4v11h4"/></svg><span class="article-share__label">Copy link</span></button>
             <output id="shareStatus" aria-live="polite"></output>
           </div>
         </div>
@@ -228,8 +227,8 @@
   <script defer src="/js/data.js?v=20260927search"></script>
   <script defer src="/js/api.js?v=20260710"></script>
   <script defer src="/js/schema.js?v=20260927search"></script>
-  <script defer src="/js/render.js?v=20260927search"></script>
+  <script defer src="/js/render.js?v=20261004metadata"></script>
   <script defer src="/js/engagement.js?v=20260926s"></script>
-  <script defer src="/js/post.js?v=20260927search"></script>
+  <script defer src="/js/post.js?v=20261004metadata"></script>
 </body>
 </html>
