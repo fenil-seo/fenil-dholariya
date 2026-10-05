@@ -3,7 +3,7 @@ import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { notifyPublication } from "../lib/indexnow.js";
 import { POST_METADATA_FIELDS, validatePostMetadata } from '../lib/post-metadata.js';
-import { SITE_FIELDS, SEO_FIELDS, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
+import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 
 function slugify(str) {
   return String(str || "")
@@ -45,6 +45,8 @@ export default async function handler(req, res) {
       case "home":
       case "footer":
         return await handleSiteEditor(sql, resource, action, data, res);
+      case "services-page":
+        return await handleSiteEditor(sql, 'services', action, data, res);
       case "profile":
         return await handleProfile(sql, action, data, res);
       case "stats":
@@ -82,7 +84,7 @@ export default async function handler(req, res) {
 }
 
 export async function handleSiteEditor(sql, page, action, data, res) {
-  const fields = [...SITE_FIELDS[page], ...(page === 'home' ? SEO_FIELDS : [])];
+  const fields = getEditorFields(page);
   if (action === 'get') {
     const settings = await loadSiteSettings(sql);
     return res.status(200).json({ fields, item: { ...await editorDefaults(page), ...(settings[page] || {}) } });

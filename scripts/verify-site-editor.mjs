@@ -1,17 +1,18 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { load } from 'cheerio';
-import { SITE_FIELDS, SEO_FIELDS, editorDefaults, applySiteSettings, validateSiteSettings } from '../lib/site-settings.js';
+import { SITE_FIELDS, SEO_FIELDS, getEditorFields, siteNoIndexPaths, editorDefaults, applySiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 import { handleSiteEditor } from '../api/admin.js';
 import { buildSitemap, SITE_URL } from '../lib/search.js';
 import { renderPublicPage } from '../lib/public-page.js';
+import { renderSitePage } from '../api/site.js';
 import { normalizeSiteDraft, parseSitePayload, siteDraftIsDirty } from '../js/site-editor-ui.js';
 
 const defaults = {};
-for (const page of ['home','footer']) {
+for (const page of ['home','services','footer']) {
   defaults[page] = await editorDefaults(page);
-  assert.equal(Object.keys(defaults[page]).length, SITE_FIELDS[page].length + (page === 'home' ? 10 : 0));
-  const template = load(await readFile('index.html', 'utf8'));
+  assert.equal(Object.keys(defaults[page]).length, getEditorFields(page).length);
+  const template = load(await readFile(page === 'services' ? 'services.html' : 'index.html', 'utf8'));
   for (const field of SITE_FIELDS[page]) {
     assert.ok(defaults[page][field.key] !== undefined, field.key);
     assert.equal(template(field.selector).length, 1, `${page}: ${field.key}`);
@@ -91,4 +92,70 @@ assert.equal(loaded.body.fields.length, SITE_FIELDS.home.length + 10);
 const dynamicFooter = load((await renderPublicPage('blog', '', { posts:[], projects:[] }, { footer:{ 'brand.tagline':'Edited across routes.' } })).html);
 assert.equal(dynamicFooter('.footer__tag').text(), 'Edited across routes.');
 assert.ok(!buildSitemap({ posts:[], projects:[] }, ['/']).includes(`<loc>${SITE_URL}/</loc>`));
-console.log(`Verified ${SITE_FIELDS.home.length} home fields, ${SITE_FIELDS.footer.length} footer fields, SEO rendering, input validation, and admin persistence.`);
+const services = validateSiteSettings('services', {
+  ...defaults.services,
+  'hero.title':'Service <em>expertise.</em>',
+  'hero.image':'/assets/fenil.jpg',
+  'service.technical-seo.title':'Technical search consultancy',
+  'service.technical-seo.body':'A tailored technical assessment.',
+  'service.technical-seo.scope.1':'Audit crawl access',
+  'service.technical-seo.link':'Plan the assessment',
+  'service.technical-seo.url':'/contact?interest=assessment',
+  'goal.search.title':'An edited search recommendation.',
+  'goal.search.serviceUrl':'/services#content-strategy',
+  'goal.conversion.title':'An edited conversion recommendation.',
+  'goal.conversion.serviceUrl':'/services#web-development',
+  'finder.capacity.title':'A clearer workflow.',
+  'delivery.step.2.point.1':'One clear owner.',
+  'engagements.option.2.deliverable':'A defined delivery plan.',
+  'faq.2.answer':'Pricing depends on the agreed scope.',
+  'seo.title':'Edited services title',
+  'seo.canonical':'https://example.com/services',
+  'seo.robots':'noindex, follow',
+  'seo.ogTitle':'Edited services social title',
+  'seo.schema':{ '@context':'https://schema.org', '@type':'Service', name:'Technical assessment' },
+});
+assert.throws(() => validateSiteSettings('services', { 'hero.image':'javascript:alert(1)' }), /safe URL/);
+assert.throws(() => validateSiteSettings('services', { 'goal.search.serviceUrl':'javascript:alert(1)' }), /safe URL/);
+assert.throws(() => validateSiteSettings('services', { 'seo.canonical':'/services' }), /https/);
+assert.throws(() => validateSiteSettings('services', { 'seo.robotsTxt':'User-agent: *' }), /Unknown content field/);
+const savedServices = response();
+await handleSiteEditor(sql, 'services', 'update', services, savedServices);
+assert.equal(savedServices.code, 200);
+const loadedServices = response();
+await handleSiteEditor(sql, 'services', 'get', null, loadedServices);
+assert.equal(loadedServices.body.item['goal.conversion.title'], services['goal.conversion.title']);
+assert.equal(loadedServices.body.item['faq.2.answer'], services['faq.2.answer']);
+assert.equal(loadedServices.body.fields.length, SITE_FIELDS.services.length + 9);
+assert.equal(stored.get('home')['hero.title'], home['hero.title'], 'Services settings must not replace Home settings');
+const renderedServices = await renderSitePage('services', { services:stored.get('services'), footer:{ 'brand.tagline':'Shared footer on Services.' } });
+const servicePage = load(renderedServices.html);
+assert.equal(renderedServices.robots, 'noindex, follow');
+assert.equal(servicePage('#services-title').html(), 'Service <em>expertise.</em>');
+assert.equal(servicePage('.service-intro__visual img').attr('src'), '/assets/fenil.jpg');
+assert.equal(servicePage('#technical-seo .capability__title').text(), services['service.technical-seo.title']);
+assert.equal(servicePage('#technical-seo .text-link').attr('href'), services['service.technical-seo.url']);
+assert.equal(servicePage('#technical-seo .text-link svg').length, 1);
+assert.equal(servicePage('[data-goal-title]').text(), services['goal.search.title']);
+assert.equal(servicePage('[data-goal-service]').attr('href'), services['goal.search.serviceUrl']);
+assert.equal(servicePage('[data-goal="conversion"]').attr('data-goal-config-title'), services['goal.conversion.title']);
+assert.equal(servicePage('#finder-capacity h3').text(), services['finder.capacity.title']);
+assert.equal(servicePage('.journey-chapter:nth-child(2) li:first-child').text(), services['delivery.step.2.point.1']);
+assert.equal(servicePage('.engagement-options article:nth-child(2) .engagement-options__deliverable').text(), services['engagements.option.2.deliverable']);
+assert.equal(servicePage('.service-questions details:nth-child(2) p').text(), services['faq.2.answer']);
+assert.equal(servicePage('.capability-section .section-note a').length, 1, 'Supporting note link must remain intact');
+assert.equal(servicePage('title').text(), services['seo.title']);
+assert.equal(servicePage('link[rel="canonical"]').attr('href'), services['seo.canonical']);
+assert.equal(servicePage('meta[name="robots"]').attr('content'), services['seo.robots']);
+assert.equal(servicePage('meta[name="twitter:title"]').attr('content'), services['seo.ogTitle']);
+assert.deepEqual(JSON.parse(servicePage('#ldJsonEditor').text()), services['seo.schema']);
+assert.equal(JSON.parse(servicePage('#ldJsonServices').text()).hasOfferCatalog.itemListElement[0].itemOffered.name, services['service.technical-seo.title']);
+assert.equal(servicePage('.footer__tag').text(), 'Shared footer on Services.');
+assert.deepEqual(siteNoIndexPaths({ services }), ['/services']);
+assert.deepEqual(siteNoIndexPaths({ home, services }), ['/', '/services']);
+assert.ok(!buildSitemap({ posts:[], projects:[] }, siteNoIndexPaths({ services })).includes('<loc>' + SITE_URL + '/services</loc>'));
+assert.ok(buildSitemap({ posts:[], projects:[] }, siteNoIndexPaths({ services })).includes('<loc>' + SITE_URL + '/</loc>'));
+const unedited = load((await renderSitePage('services')).html);
+const original = load(await readFile('services.html','utf8'));
+assert.equal(unedited('main').html(), original('main').html(), 'Default Services content and design must be preserved');
+console.log(`Verified ${SITE_FIELDS.home.length} home fields, ${SITE_FIELDS.services.length} services fields, ${SITE_FIELDS.footer.length} footer fields, SEO rendering, input validation, and admin persistence.`);

@@ -3,7 +3,7 @@ import { SEED } from "../lib/seed-data.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { loadPublicContent } from "../lib/public-content.js";
 import { buildSitemap, buildLlmMap } from "../lib/search.js";
-import { loadSiteSettings } from '../lib/site-settings.js';
+import { loadSiteSettings, siteNoIndexPaths } from '../lib/site-settings.js';
 
 
 export default async function handler(req, res) {
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     if (req.query.format === 'sitemap' && isDbConfigured()) {
       try {
         const settings = await loadSiteSettings(getSql());
-        if (/^noindex\b/i.test(settings.home?.['seo.robots'] || '')) excludedPaths = ['/'];
+        excludedPaths = siteNoIndexPaths(settings);
       } catch (error) {
         console.error('Sitemap settings unavailable', error.name);
         res.setHeader('Retry-After', '60');

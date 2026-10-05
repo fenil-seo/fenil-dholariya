@@ -1,4 +1,4 @@
-import { mountSiteEditor } from './site-editor-ui.js';
+import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
 
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
@@ -163,7 +163,14 @@ import { mountSiteEditor } from './site-editor-ui.js';
   function showDashboard() {
     loginView.style.display = "none";
     dashboardView.style.display = "";
+    const requested = location.hash.slice(1).split('/')[0];
+    const requestedTab = tabs.find(tab => tab.dataset.tab === requested);
+    if (requestedTab) {
+      tabs.forEach(tab => tab.classList.toggle('is-active', tab === requestedTab));
+      panels.forEach(panel => panel.classList.toggle('is-active', panel.id === `panel-${requested}`));
+    }
     currentPage.textContent = document.querySelector('.admin__tab.is-active span')?.textContent || 'Home page';
+    document.querySelector('.admin__view-site').href = activeTabName() === 'services' ? '/services' : '/';
     loadTab(activeTabName());
   }
 
@@ -244,6 +251,9 @@ import { mountSiteEditor } from './site-editor-ui.js';
       tab.classList.add("is-active");
       document.getElementById(`panel-${tab.dataset.tab}`).classList.add("is-active");
       currentPage.textContent = tab.querySelector('span')?.textContent || tab.textContent.trim();
+      document.querySelector('.admin__view-site').href = tab.dataset.tab === 'services' ? '/services' : '/';
+      const state = document.getElementById(`panel-${tab.dataset.tab}`).__siteEditorState;
+      history.replaceState(null, '', `#${tab.dataset.tab}/${state?.view || 'content'}`);
       setSidebarOpen(false);
       loadTab(tab.dataset.tab);
       window.scrollTo(0, 0);
@@ -1189,18 +1199,7 @@ import { mountSiteEditor } from './site-editor-ui.js';
       summary: (i) => ({ title: `${i.value}${i.suffix || ""} - ${i.label}`, sub: i.trend }),
     }),
 
-    services: listResource({
-      resource: "services",
-      title: "Services",
-      hint: "What you offer - shown on the home page.",
-      fields: [
-        { key: "icon", label: "Icon - click to choose", type: "icon" },
-        { key: "title", label: "Title" },
-        { key: "description", label: "Description", type: "textarea", wide: true },
-        { key: "sort_order", label: "Order", type: "number", default: 0 },
-      ],
-      summary: (i) => ({ title: i.title, sub: i.description }),
-    }),
+    services: siteEditorResource('services'),
 
     process: listResource({
       resource: "process",

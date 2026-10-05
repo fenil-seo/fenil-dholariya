@@ -69,14 +69,16 @@ If `DATABASE_URL` is unset, the site uses seed content. If a configured database
 Go to `/admin` and log in with `ADMIN_PASSWORD` (default `Fenil@007`, override it via the environment variable - never edit it in the code). From the dashboard you can edit:
 
 - Profile (name, bio, contact links)
-- Stats, Services, Process steps
+- Stats and Process steps
 - Projects (case studies) and Blog posts - both support custom slugs, JSON metrics, and draft/publish state
 - Testimonials, Skills, Timeline
 - Leads - everyone who submits the contact form, with status triage
 
-The **Home page** editor covers every main section, its copy, links, images and the method video. The **Footer** editor controls the footer shared by all public pages. Media fields accept a deployed `/assets/` path or a hosted HTTPS URL; binary uploads are not stored by this project. Home SEO includes title, description, keywords, canonical URL, page robots, Open Graph fields, custom JSON-LD and sitewide `robots.txt`. The page robots setting controls indexing; `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved home content and metadata are rendered into the HTML response.
+The **Home page** editor covers every main section, its copy, links, images and the method video. The **Services page** editor covers 22 sections: the hero and photo, navigation, goal recommendations, all eight service cards, situation finder, delivery journey, engagement models and FAQs. The **Footer** editor controls the footer shared by all public pages. Media fields accept a deployed `/assets/` path or a hosted HTTPS URL; binary uploads are not stored by this project.
 
-Use the section list to edit one part of the page at a time. **Preview** shows unsaved content at desktop or mobile size. **Save changes** or **Ctrl+S** saves the current draft; **Discard changes** returns to the last saved version. The Home **SEO** tab includes live search and social previews, JSON validation and schema starter templates. **Choose image/video** opens a searchable library generated from `assets/` during the build. Add new files to the repository and deploy, or use a hosted HTTPS URL.
+Home and Services SEO include title, description, keywords, canonical URL, page robots, Open Graph fields and custom JSON-LD. Sitewide `robots.txt` is managed in Home SEO. Page robots settings also control the response header and sitemap inclusion; `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved content and metadata are rendered into the HTML response, and saved goal recommendations remain active when visitors switch goals.
+
+Use the section list to edit one part of the page at a time. **Preview** shows unsaved content at desktop or mobile size. **Save changes** or **Ctrl+S** saves the current draft; **Discard changes** returns to the last saved version. The **SEO** tabs include live search and social previews, JSON validation and schema starter templates. **Choose image/video** opens a searchable library generated from `assets/` during the build. Add new files to the repository and deploy, or use a hosted HTTPS URL. Direct editor links are `/admin#services/content` and `/admin#services/seo`.
 
 ## Structured data (SEO / AEO / AIO / GEO)
 

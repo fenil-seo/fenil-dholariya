@@ -41,20 +41,30 @@
     const steps = [...group.querySelectorAll('[data-goal-step]')];
     const status = group.querySelector('[data-goal-status]');
     let selection = 'search';
-    function select(button) {
+    function select(button, { force = false, notify = true } = {}) {
       const key = button.dataset.goal;
-      const goal = goals[key];
-      if (!goal || selection === key) return;
+      const fallback = goals[key];
+      if (!fallback || selection === key && !force) return;
+      const value = (attr, defaultValue) => button.getAttribute(`data-goal-config-${attr}`) ?? defaultValue;
+      const goal = {
+        title:value('title',fallback.title), description:value('description',fallback.description),
+        serviceUrl:value('service-url','/services#' + fallback.service), serviceLabel:value('service-label',fallback.label),
+        briefUrl:value('brief-url','/contact?interest=' + fallback.service), briefLabel:value('brief-label','Start a brief'),
+        steps:fallback.steps.map((step,index) => value(`step-${index+1}`,step)),
+      };
       selection = key;
       choices.forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
       result.getAnimations().forEach(animation => animation.cancel());
       title.textContent = goal.title;
       description.textContent = goal.description;
-      service.href = '/services#' + goal.service;
-      service.querySelector('span').textContent = goal.label;
-      brief.href = '/contact?interest=' + goal.service;
+      service.href = goal.serviceUrl;
+      service.querySelector('span').textContent = goal.serviceLabel;
+      brief.href = goal.briefUrl;
+      const briefText = [...brief.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
+      if (briefText) briefText.textContent = goal.briefLabel + ' ';
       steps.forEach((step,index) => step.textContent = goal.steps[index]);
       result.dataset.goalSelection = key;
+      if (!notify) return;
       status.textContent = 'Suggested starting point: ' + goal.title;
       animate(result, [{opacity:.55,transform:'translateY(10px) scale(.985)'},{opacity:1,transform:'none'}], {duration:420,easing:'cubic-bezier(.16,1,.3,1)'});
       group.querySelectorAll('.goal-map__node').forEach((node,index) => animate(node,
@@ -64,6 +74,11 @@
     }
     choices.forEach(choice => choice.addEventListener('click', () => select(choice)));
     group.querySelector('.goal-starter__choices').hidden = false;
+    select(choices.find(choice => choice.dataset.goal === selection) || choices[0], { force:true, notify:false });
+    window.addEventListener('site:preview-updated', () => {
+      const choice = choices.find(choice => choice.dataset.goal === selection);
+      if (choice) select(choice, { force:true, notify:false });
+    });
   });
 
   const trackers = [];

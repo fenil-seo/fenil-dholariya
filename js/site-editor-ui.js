@@ -1,4 +1,9 @@
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]);
+const editorPages = {
+  home:{ title:'Home page', path:'/', resource:'home', description:'Edit each section and the search appearance of your home page.' },
+  services:{ title:'Services page', path:'/services', resource:'services-page', description:'Edit your service details, recommendations, engagement models and search appearance.' },
+  footer:{ title:'Footer', path:'/', resource:'footer', description:'Edit the footer shared by your public pages.' },
+};
 
 const sectionDescriptions = {
   Hero: 'The first screen: positioning, calls to action, portrait and featured outcome.',
@@ -13,10 +18,24 @@ const sectionDescriptions = {
   'Invitation and identity': 'The footer invitation, logo, identity and location.',
   'Services and navigation': 'Service links and the main footer navigation.',
   'Contact and bottom bar': 'Contact links, copyright and signature.',
+  'Services hero': 'The opening headline, supporting copy, photography and links.',
+  'Page navigation': 'The links that guide visitors through the Services page.',
+  'Goal explorer': 'The goal selector, its introduction and supporting labels.',
+  'Goal: Search visibility': 'The recommendation, steps and links shown for the search goal.',
+  'Goal: Better enquiries': 'The recommendation, steps and links shown for the conversion goal.',
+  'Goal: AI workflows': 'The recommendation, steps and links shown for the AI workflow goal.',
+  'Service introduction': 'The introduction above the eight detailed service cards.',
+  'Situation finder': 'The business situations visitors can explore before making an enquiry.',
+  'Situation: Visibility': 'The recommendation shown when customers cannot find the business.',
+  'Situation: Conversion': 'The recommendation shown when visits are not becoming enquiries.',
+  'Situation: Team capacity': 'The recommendation shown when the team needs a repeatable process.',
+  'Delivery journey': 'The delivery framework, its three stages and supporting points.',
+  'Engagement models': 'The three ways to work together and their deliverables.',
+  'Frequently asked questions': 'The questions and answers about scope, pricing, time zones and results.',
 };
 const advice = {
   'hero.kicker': { target:80, hint:'A short line above the headline.' },
-  'hero.title': { target:120, hint:'Keep the highlighted phrase inside <span> tags. <br> makes a line break.' },
+  'hero.title': { target:120, hint:'Use <span> or <em> for the highlighted phrase, and <br> for a line break.' },
   'hero.lede': { target:320, hint:'One clear paragraph explaining whom you help and how.' },
   'seo.title': { target:60, hint:'Aim for a specific title around 50 to 60 characters. Search engines may rewrite it.' },
   'seo.description': { target:160, hint:'Write a useful invitation around 150 to 160 characters. Search engines may choose another snippet.' },
@@ -32,6 +51,7 @@ const schemaTemplates = {
   Organization: canonical => ({ '@context':'https://schema.org', '@type':'Organization', name:'Fenil Dholariya', url:canonical || '' }),
   WebSite: canonical => ({ '@context':'https://schema.org', '@type':'WebSite', name:'Fenil Dholariya', url:canonical || '' }),
   Person: canonical => ({ '@context':'https://schema.org', '@type':'Person', name:'Fenil Dholariya', url:canonical || '' }),
+  Service: canonical => ({ '@context':'https://schema.org', '@type':'Service', name:'', url:canonical || '', provider:{ '@type':'Person', name:'Fenil Dholariya' } }),
   BreadcrumbList: () => ({ '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement:[] }),
   FAQPage: () => ({ '@context':'https://schema.org', '@type':'FAQPage', mainEntity:[] }),
   'Empty block': () => ({ '@context':'https://schema.org', '@type':'' }),
@@ -79,8 +99,8 @@ function videoField(field) { return /video(?:Webm|Mp4)$/.test(field.key); }
 function multilineField(field, value) {
   return field.mode === 'markup' || field.multiline || field.mode === 'json' || /(?:body|description|intro|lede|note|tagline|caption)$/i.test(field.key) || String(value).length > 115;
 }
-function fieldMarkup(field, value) {
-  const id = `site-field-${field.key.replace(/[^a-z0-9-]/gi, '-')}`;
+function fieldMarkup(field, value, scope) {
+  const id = `site-field-${scope}-${field.key.replace(/[^a-z0-9-]/gi, '-')}`;
   const info = advice[field.key] || {};
   const hint = info.hint || (field.mode === 'markup' ? 'Use plain text with optional <br>, <span>, <em> or <strong> tags.' : '');
   const counter = info.target ? `<span class="site-field__counter" data-counter="${escapeHtml(field.key)}">${String(value).length} / ${info.target}</span>` : '';
@@ -118,12 +138,14 @@ function socialCard(draft) {
 }
 
 export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
+  const info = editorPages[page];
+  if (!info) throw new Error('Unknown page editor.');
   panel.__siteEditorAbort?.abort();
   const controller = new AbortController();
   panel.__siteEditorAbort = controller;
-  const { ok, data } = await api.admin(page, 'get');
+  const { ok, data } = await api.admin(info.resource, 'get');
   if (noteDbStatus(ok, data)) {
-    panel.innerHTML = `<div class="site-editor-empty"><h2>Connect the database to edit this page</h2><p>Home and footer changes are stored in Neon. Use Initialize database above once the connection is configured.</p></div>`;
+    panel.innerHTML = `<div class="site-editor-empty"><h2>Connect the database to edit this page</h2><p>Page changes are stored in Neon. Use Initialize database above once the connection is configured.</p></div>`;
     return;
   }
   if (!ok) {
@@ -135,11 +157,12 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   const fields = data.fields || [];
   const contentFields = fields.filter(field => field.group !== 'SEO');
   const seoFields = fields.filter(field => field.group === 'SEO');
+  const hasSeo = seoFields.length > 0;
   const groups = [...new Set(contentFields.map(field => field.group))];
   const initial = normalizeSiteDraft(data.item || {}, fields);
   const state = {
     draft: { ...initial }, saved: { ...initial },
-    group: groups[0], view: page === 'home' && location.hash === '#seo' ? 'seo' : 'content',
+    group: groups[0], view: hasSeo && (location.hash === `#${page}/seo` || page === 'home' && location.hash === '#seo') ? 'seo' : 'content',
     mode:'edit', device:'desktop', saving:false, message:'', media:null, mediaKey:'', mediaQuery:'',
     openSeo:new Set(['search','social']),
   };
@@ -155,10 +178,11 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   }
   function contentBody() {
     if (state.mode === 'preview') {
-      return `<div class="site-live-preview"><div class="site-live-preview__bar"><span>Draft preview</span><div class="site-segmented"><button type="button" class="${state.device === 'desktop' ? 'is-active' : ''}" data-site-device="desktop">Desktop</button><button type="button" class="${state.device === 'mobile' ? 'is-active' : ''}" data-site-device="mobile">Mobile</button></div></div><p>Preview includes your unsaved content. Links are disabled here.</p><div class="site-live-preview__viewport"><iframe title="${page === 'home' ? 'Home page' : 'Footer'} draft preview" src="/" loading="lazy"></iframe></div></div>`;
+      return `<div class="site-live-preview"><div class="site-live-preview__bar"><span>Draft preview</span><div class="site-segmented"><button type="button" class="${state.device === 'desktop' ? 'is-active' : ''}" data-site-device="desktop">Desktop</button><button type="button" class="${state.device === 'mobile' ? 'is-active' : ''}" data-site-device="mobile">Mobile</button></div></div><p>Preview includes your unsaved content. Links are disabled here.</p><div class="site-live-preview__viewport"><iframe title="${info.title} draft preview" src="${info.path}" loading="lazy"></iframe></div></div>`;
     }
     const items = formFields();
-    return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(state.group)}</h2><p>${escapeHtml(sectionDescriptions[state.group] || 'Edit the content used in this part of the site.')}</p></div><div class="site-fields-grid">${items.map(field => fieldMarkup(field, state.draft[field.key])).join('')}</div></div>`;
+    const description = sectionDescriptions[state.group] || (page === 'services' ? 'Edit this service name, introduction, detailed scope and enquiry link.' : 'Edit the content used in this part of the site.');
+    return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(state.group)}</h2><p>${escapeHtml(description)}</p></div><div class="site-fields-grid">${items.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}</div></div>`;
   }
   function seoBody() {
     const searchFields = seoFields.filter(field => ['seo.title','seo.description','seo.keywords','seo.canonical','seo.robots'].includes(field.key));
@@ -167,10 +191,10 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     const robotsField = seoFields.find(field => field.key === 'seo.robotsTxt');
     return `<div class="site-editor-seo"><div class="site-editor-seo__intro"><p class="site-eyebrow">Search appearance</p><h2>Preview what people see before they click.</h2><p>Search and social platforms may shorten or rewrite previews, but these fields give them a clear source.</p></div>
       <div class="site-snippet-grid"><div><span class="site-preview-label">Desktop · 600px</span>${searchCard(state.draft)}</div><div><span class="site-preview-label">Mobile · 336px</span>${searchCard(state.draft, true)}</div></div>
-      <details class="site-seo-block" data-seo-section="search" ${state.openSeo.has('search') ? 'open' : ''}><summary><strong>Search engine</strong><span>Title, snippet and crawler instructions</span></summary><div class="site-fields-grid">${searchFields.map(field => fieldMarkup(field, state.draft[field.key])).join('')}</div></details>
-      <details class="site-seo-block" data-seo-section="social" ${state.openSeo.has('social') ? 'open' : ''}><summary><strong>Social sharing</strong><span>The card shown by social apps and messaging tools</span></summary><div class="site-fields-grid">${socialFields.map(field => fieldMarkup(field, state.draft[field.key])).join('')}<div class="site-field site-field--wide"><span class="site-field__label-row"><strong>Sharing preview</strong></span>${socialCard(state.draft)}<p class="site-field__hint" data-social-note>${state.draft['seo.ogImage'] ? 'Preview uses the selected image.' : 'No sharing image is selected. The site will use its built-in image.'}</p></div></div></details>
-      <details class="site-seo-block" data-seo-section="schema" ${state.openSeo.has('schema') ? 'open' : ''}><summary><strong>Schema markup</strong><span>Optional JSON-LD for this page</span></summary><div class="site-schema-start"><p>Start with a template, then fill in only facts you can verify. The built-in page schema remains in place.</p><div>${Object.keys(schemaTemplates).map(name => `<button class="site-button site-button--quiet" type="button" data-schema-template="${escapeHtml(name)}">+ ${escapeHtml(name)}</button>`).join('')}</div></div><div class="site-fields-grid">${schemaField ? fieldMarkup(schemaField, state.draft[schemaField.key]) : ''}</div><div class="site-schema-actions"><button class="site-button site-button--quiet" type="button" data-site-action="format-schema">Format JSON</button><span data-schema-status></span></div></details>
-      <details class="site-seo-block" data-seo-section="robots" ${state.openSeo.has('robots') ? 'open' : ''}><summary><strong>robots.txt</strong><span>Sitewide crawler access</span></summary><div class="site-fields-grid">${robotsField ? fieldMarkup(robotsField, state.draft[robotsField.key]) : ''}</div></details></div>`;
+      <details class="site-seo-block" data-seo-section="search" ${state.openSeo.has('search') ? 'open' : ''}><summary><strong>Search engine</strong><span>Title, snippet and crawler instructions</span></summary><div class="site-fields-grid">${searchFields.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}</div></details>
+      <details class="site-seo-block" data-seo-section="social" ${state.openSeo.has('social') ? 'open' : ''}><summary><strong>Social sharing</strong><span>The card shown by social apps and messaging tools</span></summary><div class="site-fields-grid">${socialFields.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}<div class="site-field site-field--wide"><span class="site-field__label-row"><strong>Sharing preview</strong></span>${socialCard(state.draft)}<p class="site-field__hint" data-social-note>${state.draft['seo.ogImage'] ? 'Preview uses the selected image.' : 'No sharing image is selected. The site will use its built-in image.'}</p></div></div></details>
+      <details class="site-seo-block" data-seo-section="schema" ${state.openSeo.has('schema') ? 'open' : ''}><summary><strong>Schema markup</strong><span>Optional JSON-LD for this page</span></summary><div class="site-schema-start"><p>Start with a template, then fill in only facts you can verify. The built-in page schema remains in place.</p><div>${Object.keys(schemaTemplates).map(name => `<button class="site-button site-button--quiet" type="button" data-schema-template="${escapeHtml(name)}">+ ${escapeHtml(name)}</button>`).join('')}</div></div><div class="site-fields-grid">${schemaField ? fieldMarkup(schemaField, state.draft[schemaField.key], page) : ''}</div><div class="site-schema-actions"><button class="site-button site-button--quiet" type="button" data-site-action="format-schema">Format JSON</button><span data-schema-status></span></div></details>
+      <details class="site-seo-block" data-seo-section="robots" ${state.openSeo.has('robots') ? 'open' : ''}><summary><strong>robots.txt</strong><span>Sitewide crawler access</span></summary>${robotsField ? `<div class="site-fields-grid">${fieldMarkup(robotsField, state.draft[robotsField.key], page)}</div>` : '<div class="site-schema-start"><p>The sitewide robots.txt file is shared by every page and is managed in Home SEO. Use the Robots field above to control indexing for this page.</p><a class="site-button" href="/admin#home/seo" target="_blank" rel="noopener">Open Home SEO</a></div>'}</details></div>`;
   }
   function mediaDialog() {
     return `<dialog class="site-media-dialog"><div class="site-media-dialog__head"><div><strong>Choose published media</strong><p>Files already deployed in this site's assets folder.</p></div><button type="button" class="site-media-dialog__close" data-site-action="close-media" aria-label="Close media picker">×</button></div><label class="site-media-dialog__search">Search assets<input class="site-input" type="search" data-media-search placeholder="Search by filename or folder"></label><div class="site-media-dialog__list" data-media-list><p>Loading media...</p></div><div class="site-media-dialog__foot">For a new file, publish it to the site's assets folder or use a hosted HTTPS URL.</div></dialog>`;
@@ -180,9 +204,9 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       if (section.open) state.openSeo.add(section.dataset.seoSection);
       else state.openSeo.delete(section.dataset.seoSection);
     });
-    const title = page === 'home' ? 'Home page' : 'Footer';
-    panel.innerHTML = `<div class="site-editor-page"><div class="site-editor-heading"><p class="site-eyebrow">${page === 'home' ? 'Website' : 'Shared resource'}</p><h1>${title}</h1><p>${page === 'home' ? 'Edit each section and the search appearance of your home page.' : 'Edit the footer shared by your public pages.'}</p></div>
-      <div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${page === 'home' ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>
+    const title = info.title;
+    panel.innerHTML = `<div class="site-editor-page"><div class="site-editor-heading"><p class="site-eyebrow">${page === 'footer' ? 'Shared resource' : 'Website'}</p><h1>${title}</h1><p>${info.description}</p></div>
+      <div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${hasSeo ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>
       <div class="site-editor-layout${state.view === 'seo' ? ' site-editor-layout--seo' : ''}">${state.view === 'content' ? `<aside class="site-editor-sections"><div class="site-editor-sections__head"><strong>Sections</strong><span>${groups.length}</span></div><nav aria-label="Page sections">${groups.map((group, index) => `<button type="button" class="site-editor-section${group === state.group ? ' is-active' : ''}" data-site-group="${escapeHtml(group)}"><span class="site-editor-section__number">${String(index + 1).padStart(2,'0')}</span><span><strong>${escapeHtml(group)}</strong><small>Section ${index + 1}</small></span></button>`).join('')}</nav></aside>` : '<div class="site-editor-spacer" aria-hidden="true"></div>'}
         <div class="site-editor-card">${toolbar()}${state.view === 'seo' ? seoBody() : contentBody()}</div></div>${mediaDialog()}</div>`;
     refreshPreview();
@@ -255,11 +279,23 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       } else el.textContent = value;
     }
     changedVideos.forEach(video => video.load());
+    frame.contentWindow.dispatchEvent(new frame.contentWindow.CustomEvent('site:preview-updated'));
     if (!doc.documentElement.dataset.draftPreviewBound) {
       doc.addEventListener('click', event => { if (event.target.closest('a, button, form')) event.preventDefault(); }, true);
       doc.documentElement.dataset.draftPreviewBound = 'true';
     }
     if (page === 'footer') doc.querySelector('footer')?.scrollIntoView();
+    if (page === 'services') {
+      const field = formFields()[0];
+      const goal = field?.key.match(/^goal\.(search|conversion|workflow)\./)?.[1];
+      if (goal) doc.querySelector(`[data-goal="${goal}"]`)?.click();
+      const target = field && doc.querySelector(field.selector);
+      const situation = target?.closest('.experience-panel');
+      if (situation) doc.querySelector(`[data-panel="${situation.id}"]`)?.click();
+      const card = target?.closest('.capability');
+      if (card) card.open = true;
+      (card || target?.closest('section') || target)?.scrollIntoView({ block:'start', behavior:'instant' });
+    }
   }
   function refreshPreview() {
     const frame = panel.querySelector('.site-live-preview iframe');
@@ -274,7 +310,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       frame.addEventListener('load', () => applyDraftToFrame(frame));
       frame.dataset.previewListening = 'true';
     }
-    if (frame.contentDocument?.readyState === 'complete' && frame.contentWindow?.location.pathname === '/') applyDraftToFrame(frame);
+    if (frame.contentDocument?.readyState === 'complete' && frame.contentWindow?.location.pathname === info.path) applyDraftToFrame(frame);
   }
   async function save() {
     if (!dirty() || state.saving) return;
@@ -284,7 +320,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     catch (error) { state.message = error.message; state.view = 'seo'; draw(); const field = panel.querySelector('[data-site-key="seo.schema"]'); if (field) { field.closest('details').open = true; field.focus(); } return; }
     state.saving = true; state.message = ''; updateControls();
     let result;
-    try { result = await api.admin(page, 'update', { data:payload }); }
+    try { result = await api.admin(info.resource, 'update', { data:payload }); }
     catch (error) { result = { ok:false, data:{ error:error.message || 'Save failed. Try again.' } }; }
     state.saving = false;
     if (result.ok) { state.saved = submitted; state.message = dirty() ? '' : 'Saved just now'; }
@@ -338,7 +374,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   }, { signal:controller.signal });
   panel.addEventListener('click', async event => {
     const view = event.target.closest('[data-site-view]');
-    if (view) { state.view = view.dataset.siteView; state.message = ''; if (page === 'home') history.replaceState(null, '', state.view === 'seo' ? '#seo' : '#content'); draw(); return; }
+    if (view) { state.view = view.dataset.siteView; state.message = ''; history.replaceState(null, '', `#${page}/${state.view}`); draw(); return; }
     const group = event.target.closest('[data-site-group]');
     if (group) { state.group = group.dataset.siteGroup; state.mode = 'edit'; draw(); return; }
     const mode = event.target.closest('[data-site-mode]');
