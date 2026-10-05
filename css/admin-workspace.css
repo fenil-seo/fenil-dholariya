@@ -89,6 +89,7 @@ body[data-page="admin"] :focus-visible { outline: 2px solid var(--aw-orange); ou
 .site-editor-views,
 .site-segmented { display: inline-flex; align-items: center; padding: 3px; gap: 2px; border: 1px solid var(--aw-line); border-radius: 7px; background: #171c22; }
 .site-editor-views { margin-bottom: 16px; }
+.site-editor-views + .site-button { margin-left: 10px; vertical-align: baseline; }
 .site-editor-views button,
 .site-segmented button { border: 0; border-radius: 5px; color: #aab9c8; background: transparent; padding: 7px 12px; font-size: 11px; font-weight: 600; }
 .site-editor-views button.is-active,

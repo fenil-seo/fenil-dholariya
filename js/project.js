@@ -35,9 +35,9 @@
     if (projectImage) {
       const currentImage = heroWrap.querySelector("img");
       if (!currentImage || currentImage.getAttribute("src") !== projectImage) {
-        heroWrap.innerHTML = `<div class="post-hero-img post-hero-img--editorial editorial-media ${R.mediaClass(project.slug)} reveal" data-delay="2"><img src="${R.esc(projectImage)}" alt="Editorial context image representing ${R.esc(project.category || project.title)}" loading="eager" fetchpriority="high" decoding="async"><span class="media-context-label">Editorial context photo · Not client photography</span></div>`;
+        heroWrap.innerHTML = `<div class="post-hero-img post-hero-img--editorial editorial-media ${R.mediaClass(project.slug)} reveal" data-delay="2"><img src="${R.esc(projectImage)}" alt="${R.esc(R.projectImageAlt(project))}" loading="eager" fetchpriority="high" decoding="async"><span class="media-context-label">${R.esc(R.projectImageCaption(project))}</span></div>`;
       } else {
-        currentImage.alt = `Editorial context image representing ${project.category || project.title}`;
+        currentImage.alt = R.projectImageAlt(project);
       }
     } else {
       heroWrap.innerHTML = `<div class="article-cover viz reveal" data-delay="2" data-viz="${R.esc(project.viz || "network")}" data-accent="${R.esc(project.accent || "violet")}"></div>`;

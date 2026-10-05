@@ -9,10 +9,10 @@ import { renderSitePage } from '../api/site.js';
 import { normalizeSiteDraft, parseSitePayload, siteDraftIsDirty } from '../js/site-editor-ui.js';
 
 const defaults = {};
-for (const page of ['home','services','footer']) {
+for (const page of ['home','services','work','footer']) {
   defaults[page] = await editorDefaults(page);
   assert.equal(Object.keys(defaults[page]).length, getEditorFields(page).length);
-  const template = load(await readFile(page === 'services' ? 'services.html' : 'index.html', 'utf8'));
+  const template = load(await readFile(['services','work'].includes(page) ? `${page}.html` : 'index.html', 'utf8'));
   for (const field of SITE_FIELDS[page]) {
     assert.ok(defaults[page][field.key] !== undefined, field.key);
     assert.equal(template(field.selector).length, 1, `${page}: ${field.key}`);
@@ -158,4 +158,82 @@ assert.ok(buildSitemap({ posts:[], projects:[] }, siteNoIndexPaths({ services })
 const unedited = load((await renderSitePage('services')).html);
 const original = load(await readFile('services.html','utf8'));
 assert.equal(unedited('main').html(), original('main').html(), 'Default Services content and design must be preserved');
-console.log(`Verified ${SITE_FIELDS.home.length} home fields, ${SITE_FIELDS.services.length} services fields, ${SITE_FIELDS.footer.length} footer fields, SEO rendering, input validation, and admin persistence.`);
+const work = validateSiteSettings('work', {
+  ...defaults.work,
+  'hero.title':'Work in <em>context.</em>',
+  'hero.image':'/assets/fenil.jpg',
+  'hero.backImage1':'https://example.com/local.webp',
+  'hero.primary':'Explore the collection',
+  'collection.linkLabel':'Read the engagement',
+  'collection.singular':'engagement',
+  'collection.plural':'engagements',
+  'collection.empty':'More work is coming.',
+  'reasoning.local.title':'A clearer local strategy.',
+  'reasoning.local.point.2.body':'An edited response.',
+  'reasoning.local.url':'/work/an-edited-project',
+  'evidence.title':'Read the <em>evidence.</em>',
+  'evidence.link.2.title':'Inspect the report',
+  'evidence.link.2.url':'/gallery#gallery-reports',
+  'seo.title':'Edited work title',
+  'seo.description':'Edited work description',
+  'seo.keywords':'case studies, SEO',
+  'seo.canonical':'https://example.com/work',
+  'seo.robots':'noindex, follow',
+  'seo.ogTitle':'Edited work share title',
+  'seo.ogDescription':'Edited work share description',
+  'seo.ogImage':'/assets/og.png',
+  'seo.schema':{ '@context':'https://schema.org', '@type':'CollectionPage', name:'Edited collection' },
+});
+assert.throws(() => validateSiteSettings('work', { 'hero.backImage1':'javascript:alert(1)' }), /safe URL/);
+assert.throws(() => validateSiteSettings('work', { 'evidence.link.2.url':'javascript:alert(1)' }), /safe URL/);
+assert.throws(() => validateSiteSettings('work', { 'seo.robotsTxt':'User-agent: *' }), /Unknown content field/);
+const savedWork = response();
+await handleSiteEditor(sql, 'work', 'update', work, savedWork);
+assert.equal(savedWork.code,200);
+const loadedWork = response();
+await handleSiteEditor(sql, 'work', 'get', null, loadedWork);
+assert.equal(loadedWork.body.fields.length,SITE_FIELDS.work.length + 9);
+assert.equal(loadedWork.body.item['reasoning.local.title'],work['reasoning.local.title']);
+assert.deepEqual(stored.get('services'),services);
+const workData = { posts:[], projects:[{ slug:'an-edited-project',title:'An edited project',desc:'A project description',category:'Local services',metrics:[{value:'+20%',label:'Enquiries'}] }] };
+const workResponse = await renderPublicPage('work','',workData,{ work:stored.get('work'),footer:{'brand.tagline':'Shared footer on Work.'} });
+const workPage = load(workResponse.html);
+assert.equal(workResponse.robots,'noindex, follow');
+assert.equal(workPage('#work-title').html(),work['hero.title']);
+assert.equal(workPage('.work-stage__front img').attr('src'),work['hero.image']);
+assert.equal(workPage('.work-stage__back--one img').attr('src'),work['hero.backImage1']);
+assert.ok(workPage('.work-heading__copy .btn').text().startsWith(work['hero.primary']));
+assert.equal(workPage('.work-heading__copy .btn > span').length,1,'Preserve button arrow');
+assert.equal(workPage('#workCount').text(),'1 engagement');
+assert.ok(workPage('#caseList .text-link').text().startsWith(work['collection.linkLabel']));
+assert.equal(workPage('#lens-local h3').text(),work['reasoning.local.title']);
+assert.equal(workPage('#lens-local .case-lens__line:nth-child(2) dd').text(),work['reasoning.local.point.2.body']);
+assert.equal(workPage('#lens-local .text-link').attr('href'),work['reasoning.local.url']);
+assert.equal(workPage('.evidence-bridge h2').html(),work['evidence.title']);
+assert.equal(workPage('.evidence-stack a:nth-child(2) strong').text(),work['evidence.link.2.title']);
+assert.equal(workPage('.evidence-stack a:nth-child(2)').attr('href'),work['evidence.link.2.url']);
+assert.equal(workPage('title').text(),work['seo.title']);
+assert.equal(workPage('link[rel="canonical"]').attr('href'),work['seo.canonical']);
+assert.equal(workPage('meta[name="description"]').attr('content'),work['seo.description']);
+assert.equal(workPage('meta[name="keywords"]').attr('content'),work['seo.keywords']);
+assert.equal(workPage('meta[name="robots"]').attr('content'),work['seo.robots']);
+assert.equal(workPage('meta[property="og:title"]').attr('content'),work['seo.ogTitle']);
+assert.equal(workPage('meta[name="twitter:image"]').attr('content'),'https://fenil-dholariya.vercel.app/assets/og.png');
+assert.deepEqual(JSON.parse(workPage('#ldJsonEditor').text()),work['seo.schema']);
+assert.equal(JSON.parse(workPage('#ldJsonCollection').text()).name,work['seo.title']);
+assert.equal(workPage('.footer__tag').text(),'Shared footer on Work.');
+const workFallbacks = load((await renderPublicPage('work','',workData,{work:{...work,'seo.ogTitle':'','seo.ogDescription':'','seo.ogImage':''}})).html);
+assert.equal(workFallbacks('meta[property="og:title"]').attr('content'),work['seo.title']);
+assert.equal(workFallbacks('meta[property="og:description"]').attr('content'),work['seo.description']);
+assert.equal(workFallbacks('meta[property="og:image"]').attr('content'),`${SITE_URL}/assets/og.png`,'An empty OG image must use the built-in image');
+const emptyWork = load((await renderPublicPage('work','',{posts:[],projects:[]},{work})).html);
+assert.equal(emptyWork('#caseList .work-project').length,0);
+assert.equal(emptyWork('#workCount').text(),work['collection.empty']);
+assert.deepEqual(siteNoIndexPaths({work}),['/work']);
+assert.ok(!buildSitemap(workData,siteNoIndexPaths({work})).includes(`<loc>${SITE_URL}/work</loc>`));
+assert.ok(buildSitemap(workData,siteNoIndexPaths({work})).includes(`<loc>${SITE_URL}/work/an-edited-project</loc>`),'Page indexing must not remove individual case studies');
+const uneditedWork = load((await renderPublicPage('work','',workData)).html);
+const originalWork = load(await readFile('work.html','utf8'));
+assert.equal(uneditedWork('.work-heading').html(),originalWork('.work-heading').html(),'Preserve the default Work hero');
+assert.equal(uneditedWork('.depth-section').toArray().map(el=>uneditedWork(el).html()).join(''),originalWork('.depth-section').toArray().map(el=>originalWork(el).html()).join(''),'Preserve default project reasoning and evidence');
+console.log(`Verified ${SITE_FIELDS.home.length} home fields, ${SITE_FIELDS.services.length} services fields, ${SITE_FIELDS.work.length} work fields, ${SITE_FIELDS.footer.length} footer fields, SEO rendering, input validation, and admin persistence.`);

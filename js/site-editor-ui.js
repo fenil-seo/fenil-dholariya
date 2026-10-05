@@ -2,6 +2,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&'
 const editorPages = {
   home:{ title:'Home page', path:'/', resource:'home', description:'Edit each section and the search appearance of your home page.' },
   services:{ title:'Services page', path:'/services', resource:'services-page', description:'Edit your service details, recommendations, engagement models and search appearance.' },
+  work:{ title:'Work page', path:'/work', resource:'work', description:'Edit your case study collection, project reasoning, evidence links and search appearance.' },
   footer:{ title:'Footer', path:'/', resource:'footer', description:'Edit the footer shared by your public pages.' },
 };
 
@@ -32,6 +33,15 @@ const sectionDescriptions = {
   'Delivery journey': 'The delivery framework, its three stages and supporting points.',
   'Engagement models': 'The three ways to work together and their deliverables.',
   'Frequently asked questions': 'The questions and answers about scope, pricing, time zones and results.',
+  'Work hero': 'The opening headline, supporting copy and calls to action.',
+  'Hero imagery': 'The three images, overlay labels and caption in the opening composition.',
+  'Case study collection': 'Filter labels, card links, count messages and the collection disclosure. Edit individual cards through Manage case studies.',
+  'Project reasoning': 'The introduction and choices for the project decision panels.',
+  'E-commerce reasoning': 'The question, response and review shown for e-commerce projects.',
+  'Local services reasoning': 'The question, response and review shown for local service projects.',
+  'B2B reasoning': 'The question, response and review shown for B2B and SaaS projects.',
+  'Evidence invitation': 'The explanation that introduces the supporting evidence.',
+  'Evidence links': 'The three destinations, labels and descriptions linking to project evidence.',
 };
 const advice = {
   'hero.kicker': { target:80, hint:'A short line above the headline.' },
@@ -52,6 +62,7 @@ const schemaTemplates = {
   WebSite: canonical => ({ '@context':'https://schema.org', '@type':'WebSite', name:'Fenil Dholariya', url:canonical || '' }),
   Person: canonical => ({ '@context':'https://schema.org', '@type':'Person', name:'Fenil Dholariya', url:canonical || '' }),
   Service: canonical => ({ '@context':'https://schema.org', '@type':'Service', name:'', url:canonical || '', provider:{ '@type':'Person', name:'Fenil Dholariya' } }),
+  CollectionPage: canonical => ({ '@context':'https://schema.org', '@type':'CollectionPage', name:'', url:canonical || '' }),
   BreadcrumbList: () => ({ '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement:[] }),
   FAQPage: () => ({ '@context':'https://schema.org', '@type':'FAQPage', mainEntity:[] }),
   'Empty block': () => ({ '@context':'https://schema.org', '@type':'' }),
@@ -182,7 +193,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     }
     const items = formFields();
     const description = sectionDescriptions[state.group] || (page === 'services' ? 'Edit this service name, introduction, detailed scope and enquiry link.' : 'Edit the content used in this part of the site.');
-    return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(state.group)}</h2><p>${escapeHtml(description)}</p></div><div class="site-fields-grid">${items.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}</div></div>`;
+    return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(state.group)}</h2><p>${escapeHtml(description)}</p>${page === 'work' && state.group === 'Case study collection' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}</div><div class="site-fields-grid">${items.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}</div></div>`;
   }
   function seoBody() {
     const searchFields = seoFields.filter(field => ['seo.title','seo.description','seo.keywords','seo.canonical','seo.robots'].includes(field.key));
@@ -206,7 +217,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     });
     const title = info.title;
     panel.innerHTML = `<div class="site-editor-page"><div class="site-editor-heading"><p class="site-eyebrow">${page === 'footer' ? 'Shared resource' : 'Website'}</p><h1>${title}</h1><p>${info.description}</p></div>
-      <div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${hasSeo ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>
+      <div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${hasSeo ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>${page === 'work' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}
       <div class="site-editor-layout${state.view === 'seo' ? ' site-editor-layout--seo' : ''}">${state.view === 'content' ? `<aside class="site-editor-sections"><div class="site-editor-sections__head"><strong>Sections</strong><span>${groups.length}</span></div><nav aria-label="Page sections">${groups.map((group, index) => `<button type="button" class="site-editor-section${group === state.group ? ' is-active' : ''}" data-site-group="${escapeHtml(group)}"><span class="site-editor-section__number">${String(index + 1).padStart(2,'0')}</span><span><strong>${escapeHtml(group)}</strong><small>Section ${index + 1}</small></span></button>`).join('')}</nav></aside>` : '<div class="site-editor-spacer" aria-hidden="true"></div>'}
         <div class="site-editor-card">${toolbar()}${state.view === 'seo' ? seoBody() : contentBody()}</div></div>${mediaDialog()}</div>`;
     refreshPreview();
@@ -285,7 +296,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       doc.documentElement.dataset.draftPreviewBound = 'true';
     }
     if (page === 'footer') doc.querySelector('footer')?.scrollIntoView();
-    if (page === 'services') {
+    if (page === 'services' || page === 'work') {
       const field = formFields()[0];
       const goal = field?.key.match(/^goal\.(search|conversion|workflow)\./)?.[1];
       if (goal) doc.querySelector(`[data-goal="${goal}"]`)?.click();
@@ -397,6 +408,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       state.message = ''; draw(); panel.querySelector('[data-site-key="seo.schema"]')?.focus(); return;
     }
     const action = event.target.closest('[data-site-action]')?.dataset.siteAction;
+    if (action === 'manage-projects') { panel.dispatchEvent(new CustomEvent('site:open-page', { bubbles:true, detail:{ page:'projects' } })); return; }
     if (action === 'save') { await save(); return; }
     if (action === 'discard') { state.draft = { ...state.saved }; state.message = 'Changes discarded'; draw(); return; }
     if (action === 'close-media') { panel.querySelector('.site-media-dialog')?.close(); return; }

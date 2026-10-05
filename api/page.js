@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   // Fresh publication state on every request; never cache an unpublished page.
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
   res.setHeader('CDN-Cache-Control', 'no-store');
-  res.setHeader('X-Robots-Tag', page.status === 200 ? 'index, follow, max-image-preview:large' : 'noindex');
+  res.setHeader('X-Robots-Tag', page.status === 200 ? page.robots || 'index, follow, max-image-preview:large' : 'noindex');
   if (page.status === 503) res.setHeader('Retry-After', '60');
   return res.status(page.status).send(req.method === 'HEAD' ? '' : page.html);
 }

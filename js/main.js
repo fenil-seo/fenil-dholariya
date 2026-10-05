@@ -498,7 +498,7 @@
       });
       const count = cards.filter(card => !card.hidden).length;
       const status = document.getElementById("workCount");
-      if (status) status.textContent = count ? `${count} case ${count === 1 ? "study" : "studies"}` : "No case studies in this category.";
+      if (status) status.textContent = count ? `${count} ${status.getAttribute(count === 1 ? "data-count-singular" : "data-count-plural") ?? (count === 1 ? "case study" : "case studies")}` : status.getAttribute("data-count-empty") ?? "No case studies in this category.";
       if (grid) window.dispatchEvent(new CustomEvent("collection:change", { detail: { root:grid } }));
     };
     bar.addEventListener("click", event => {
@@ -507,6 +507,14 @@
     });
     apply("all");
     window.addEventListener("content:hydrated", () => apply(bar.querySelector('[aria-pressed="true"]')?.dataset.workFilter || "all"));
+    window.addEventListener("site:preview-updated", () => {
+      const label = document.getElementById("caseList")?.getAttribute("data-case-link-label");
+      if (label !== null && label !== undefined) document.querySelectorAll("#caseList .work-project__outcome .text-link").forEach(link => {
+        const node = [...link.childNodes].find(child => child.nodeType === Node.TEXT_NODE);
+        if (node) node.textContent = label + " ";
+      });
+      apply(bar.querySelector('[aria-pressed="true"]')?.dataset.workFilter || "all");
+    });
   }
 
   function bindServiceAnchors() {

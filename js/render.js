@@ -79,10 +79,14 @@ window.Render = (() => {
   }
 
   function projectMediaUrl(project) {
-    const approved = PROJECT_MEDIA[project?.slug];
-    if (approved) return approved;
     const candidate = normalizeAssetUrl(project?.image_url || "");
-    return isGalleryAsset(candidate) ? "" : candidate;
+    return candidate && !isGalleryAsset(candidate) ? candidate : PROJECT_MEDIA[project?.slug] || "";
+  }
+  function projectImageAlt(project) {
+    return project.image_alt || `${normalizeAssetUrl(project.image_url) && !isGalleryAsset(project.image_url) ? 'Project' : 'Editorial context'} image representing ${project.category || project.title}`;
+  }
+  function projectImageCaption(project) {
+    return normalizeAssetUrl(project.image_url) && !isGalleryAsset(project.image_url) ? 'Project image' : 'Editorial context photo · Not client photography';
   }
 
   function postMediaUrl(post) {
@@ -153,7 +157,7 @@ window.Render = (() => {
   function projectEvidence(project, className) {
     const image = projectMediaUrl(project);
     if (image) {
-      return `<div class="${className} ${className}--img editorial-media ${mediaClass(project.slug)}"><img src="${esc(image)}" alt="Editorial context image representing ${esc(project.category || project.title)}" width="1600" height="1067" loading="lazy" decoding="async"><span class="media-context-label">Editorial context photo · Not client photography</span></div>`;
+      return `<div class="${className} ${className}--img editorial-media ${mediaClass(project.slug)}"><img src="${esc(image)}" alt="${esc(projectImageAlt(project))}" width="1600" height="1067" loading="lazy" decoding="async"><span class="media-context-label">${esc(projectImageCaption(project))}</span></div>`;
     }
     return editorialCover({ slug: project.slug, category: project.category }, className);
   }
@@ -168,15 +172,18 @@ window.Render = (() => {
         "ayurvedic-technical-seo": ["commerce", "Ayurvedic commerce", "Crawl, indexation and performance improvements to strengthen an existing website."]
       };
       target.innerHTML = projects.filter(project => project.slug).map((project, index) => {
-        const [category, title, description] = indexCopy[project.slug] || ["other", project.title, project.desc];
+        const fallbackCategory = /local/i.test(project.category) ? "local" : /b2b|saas|software/i.test(project.category) ? "b2b" : /commerce|d2c/i.test(project.category) ? "commerce" : "other";
+        const fallback = indexCopy[project.slug] || [fallbackCategory, project.title, project.desc];
+        const [category, title, description] = [project.work_category || fallback[0], project.listing_title || fallback[1], project.listing_description || fallback[2]];
+        const linkLabel = target.getAttribute("data-case-link-label") ?? "View case study";
         const metric = project.metrics?.[0];
         const image = projectMediaUrl(project);
         const href = `/work/${encodeURIComponent(project.slug)}`;
         return `<article class="work-project" data-work-category="${esc(category)}">
-          <a class="work-project__image" href="${href}" tabindex="-1" aria-hidden="true">${image ? `<img src="${esc(image)}" alt="" width="1600" height="1067" loading="${index < 2 ? "eager" : "lazy"}" decoding="async">` : editorialCover(project)}<span aria-hidden="true">↗</span></a>
+          <a class="work-project__image" href="${href}" tabindex="-1" aria-hidden="true">${image ? `<img src="${esc(image)}" alt="${esc(project.image_alt || '')}" width="1600" height="1067" loading="${index < 2 ? "eager" : "lazy"}" decoding="async">` : editorialCover(project)}<span aria-hidden="true">↗</span></a>
           <div class="work-project__meta"><span>${esc(project.category)}</span><span>${String(index + 1).padStart(2, "0")}</span></div>
           <h2><a href="${href}">${esc(title)}</a></h2><p>${esc(description)}</p>
-          <div class="work-project__outcome">${metric ? `<p><strong>${esc(metric.value)}</strong><span>${esc(metric.label)}</span></p>` : ""}<a class="text-link" href="${href}" aria-label="Read ${esc(title)} case study">View case study <span aria-hidden="true">↗</span></a></div>
+          <div class="work-project__outcome">${metric ? `<p><strong>${esc(metric.value)}</strong><span>${esc(metric.label)}</span></p>` : ""}<a class="text-link" href="${href}" aria-label="${esc(linkLabel)}: ${esc(title)}">${esc(linkLabel)} <span aria-hidden="true">↗</span></a></div>
         </article>`;
       }).join("");
       return;
@@ -240,6 +247,8 @@ window.Render = (() => {
   }
 
   return {
+    projectImageAlt,
+    projectImageCaption,
     esc,
     fmtDate,
     renderStats,

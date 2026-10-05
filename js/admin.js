@@ -1,4 +1,4 @@
-import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
+import { mountSiteEditor } from './site-editor-ui.js?v=20261005work';
 
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
@@ -170,12 +170,15 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
       panels.forEach(panel => panel.classList.toggle('is-active', panel.id === `panel-${requested}`));
     }
     currentPage.textContent = document.querySelector('.admin__tab.is-active span')?.textContent || 'Home page';
-    document.querySelector('.admin__view-site').href = activeTabName() === 'services' ? '/services' : '/';
+    document.querySelector('.admin__view-site').href = publicPath(activeTabName());
     loadTab(activeTabName());
   }
 
   function activeTabName() {
     return document.querySelector(".admin__tab.is-active")?.dataset.tab || "profile";
+  }
+  function publicPath(tab) {
+    return tab === 'services' ? '/services' : ['work','projects'].includes(tab) ? '/work' : '/';
   }
 
   function noteDbStatus(ok, data) {
@@ -251,13 +254,17 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
       tab.classList.add("is-active");
       document.getElementById(`panel-${tab.dataset.tab}`).classList.add("is-active");
       currentPage.textContent = tab.querySelector('span')?.textContent || tab.textContent.trim();
-      document.querySelector('.admin__view-site').href = tab.dataset.tab === 'services' ? '/services' : '/';
+      document.querySelector('.admin__view-site').href = publicPath(tab.dataset.tab);
       const state = document.getElementById(`panel-${tab.dataset.tab}`).__siteEditorState;
       history.replaceState(null, '', `#${tab.dataset.tab}/${state?.view || 'content'}`);
       setSidebarOpen(false);
       loadTab(tab.dataset.tab);
       window.scrollTo(0, 0);
     });
+  });
+
+  document.addEventListener('site:open-page', event => {
+    if (['work','projects'].includes(event.detail?.page)) tabs.find(tab => tab.dataset.tab === event.detail.page)?.click();
   });
   menuToggle.addEventListener('click', () => setSidebarOpen(!sidebar.classList.contains('is-open')));
   backdrop.addEventListener('click', () => setSidebarOpen(false));
@@ -302,7 +309,11 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
       return `<label class="admin-checkbox" style="grid-column:1/-1"><input type="checkbox" data-field="${esc(f.key)}" ${value ? "checked" : ""}/><span>${esc(f.label)}</span></label>`;
     }
     if (f.type === "select") {
-      const opts = f.options.map((o) => `<option value="${esc(o)}" ${o === value ? "selected" : ""}>${esc(o)}</option>`).join("");
+      const opts = f.options.map(option => {
+        const choice = typeof option === 'object' ? option.value : option;
+        const label = typeof option === 'object' ? option.label : option;
+        return `<option value="${esc(choice)}" ${choice === value ? "selected" : ""}>${esc(label)}</option>`;
+      }).join("");
       return `<div class="field"><label>${esc(f.label)}</label><select class="select" data-field="${esc(f.key)}">${opts}</select></div>`;
     }
     if (f.type === "json") {
@@ -508,7 +519,7 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
   }
 
   /* ---------- Generic list-resource CRUD (stats, services, process, projects, posts, testimonials, skills, timeline) ---------- */
-  function listResource({ resource, title, hint, fields, summary }) {
+  function listResource({ resource, title, hint, fields, summary, backToPage }) {
     return {
       async render(panel) {
         const { ok, data } = await window.API.admin(resource, "list");
@@ -524,12 +535,13 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
         panel.innerHTML = `
           <div class="admin__panel-head">
             <div><h2>${esc(title)}</h2>${hint ? `<p>${esc(hint)}</p>` : ""}</div>
-            <button class="btn btn--primary btn--sm" data-action="add">+ Add</button>
+            <div>${backToPage ? `<button class="btn btn--ghost btn--sm" data-action="back-page">Work page editor</button>` : ''}<button class="btn btn--primary btn--sm" data-action="add">+ Add</button></div>
           </div>
           <div id="list-${resource}"></div>
         `;
 
         const listEl = panel.querySelector(`#list-${resource}`);
+        panel.querySelector('[data-action="back-page"]')?.addEventListener('click', () => panel.dispatchEvent(new CustomEvent('site:open-page', { bubbles:true, detail:{ page:backToPage } })));
         const items = data.items || [];
         if (items.length) items.forEach((item) => listEl.appendChild(buildCard(item)));
         else listEl.innerHTML = `<p class="admin-empty">Nothing here yet - click + Add.</p>`;
@@ -1200,6 +1212,7 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
     }),
 
     services: siteEditorResource('services'),
+    work: siteEditorResource('work'),
 
     process: listResource({
       resource: "process",
@@ -1216,7 +1229,8 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
     projects: listResource({
       resource: "projects",
       title: "Projects / Case Studies",
-      hint: "Each project is a full case study page at /work/<slug>. Fill in the Challenge → Approach → Results sections for a professional case study layout.",
+      hint: "Edit Work cards and the case study pages at /work/<slug>. The first headline metric appears on the Work card. Order controls the collection sequence.",
+      backToPage:'work',
       fields: [
         { key: "title", label: "Title" },
         { key: "slug", label: "URL slug", placeholder: "(auto from title if left blank)" },
@@ -1225,7 +1239,11 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005services';
         { key: "period", label: "Timeline", placeholder: "Jan 2026 – Jun 2026" },
         { key: "services", label: "Services provided", placeholder: "SEO, Content, CRO", hint: "Comma-separated. Shown as tags in the case study overview." },
         { key: "desc", label: "Short summary", type: "textarea", wide: true, hint: "1–2 sentences. Shown on project cards and under the case study title." },
-        { key: "image_url", label: "Cover image (16:9)", type: "image", wide: true, hint: "Shown on the /work cards and at the top of the case study. Leave blank to show the animated visual." },
+        { key: "listing_title", label: "Work card title", wide: true, hint: "Use a shorter title for the Work collection. Leave blank to use the existing display title or the case study title." },
+        { key: "listing_description", label: "Work card description", type: "textarea", wide: true, hint: "The description on the Work collection card. Leave blank to use the existing display description or short summary." },
+        { key: "work_category", label: "Work filter category", type: "select", options:[{value:'',label:'Automatic from industry'}, {value:'commerce',label:'E-commerce'}, {value:'local',label:'Local services'}, {value:'b2b',label:'B2B & SaaS'}, {value:'other',label:'All work only'}] },
+        { key: "image_url", label: "Cover image", type: "image", wide: true, siteMedia:true, placeholder:'/assets/media/project-photo.webp or HTTPS image URL', hint: "Used on the Work card and case study. Leave blank to use the existing cover or a text cover for a new project." },
+        { key: "image_alt", label: "Cover image alt text", wide: true, hint: "Describe the image briefly. Used on the Work card and case study cover." },
         { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
         { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
         { key: "metrics", label: "Headline metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label. Shown in the metrics bar under the hero." },

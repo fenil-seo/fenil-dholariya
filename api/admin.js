@@ -3,6 +3,7 @@ import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { notifyPublication } from "../lib/indexnow.js";
 import { POST_METADATA_FIELDS, validatePostMetadata } from '../lib/post-metadata.js';
+import { PROJECT_LISTING_FIELDS, validateProjectListing } from '../lib/project-listing.js';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 
 function slugify(str) {
@@ -43,6 +44,7 @@ export default async function handler(req, res) {
     }
     switch (resource) {
       case "home":
+      case "work":
       case "footer":
         return await handleSiteEditor(sql, resource, action, data, res);
       case "services-page":
@@ -173,10 +175,10 @@ async function handleProfile(sql, action, data, res) {
 }
 
 /* ---------- Projects (slug + JSONB metrics) ---------- */
-async function handleProjects(sql, action, id, data, res) {
-  await ensureNewColumns(sql);
+export async function handleProjects(sql, action, id, data, res, migrate = ensureNewColumns) {
+  await migrate(sql);
   const CS_COLS = ["period", "services", "challenge", "approach", "results_text", "takeaway", "testimonial", "testimonial_author"];
-  const RETURNING = `id, slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body, ${CS_COLS.map((c) => `COALESCE(${c},'') AS ${c}`).join(", ")}`;
+  const RETURNING = `id, slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body, ${[...CS_COLS,...PROJECT_LISTING_FIELDS].map((c) => `COALESCE(${c},'') AS ${c}`).join(", ")}`;
 
   if (action === "list") {
     const rows = await sql(`SELECT ${RETURNING} FROM projects ORDER BY sort_order, id`);
@@ -184,6 +186,9 @@ async function handleProjects(sql, action, id, data, res) {
   }
 
   if (action === "create" || action === "update") {
+    let listing;
+    try { listing = validateProjectListing(data); }
+    catch (error) { return res.status(400).json({ error:error.message }); }
     const slug = slugify(data?.slug) || slugify(data?.title);
     if (!slug) return res.status(400).json({ error: "Title or slug is required." });
     const metricsJson = JSON.stringify(data?.metrics || []);
@@ -203,12 +208,13 @@ async function handleProjects(sql, action, id, data, res) {
       data?.image_url || "",
       data?.body || "",
       ...CS_COLS.map((c) => data?.[c] || ""),
+      ...PROJECT_LISTING_FIELDS.map(key => listing[key] ?? (action === 'create' ? '' : null)),
     ];
 
     if (action === "create") {
       const rows = await sql(
-        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, schema_markup, image_url, body, ${CS_COLS.join(", ")})
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11::jsonb,$12,$13,${CS_COLS.map((_, i) => `$${14 + i}`).join(",")})
+        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, schema_markup, image_url, body, ${[...CS_COLS,...PROJECT_LISTING_FIELDS].join(", ")})
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11::jsonb,$12,$13,${[...CS_COLS,...PROJECT_LISTING_FIELDS].map((_, i) => `$${14 + i}`).join(",")})
          RETURNING ${RETURNING}`,
         params
       );
@@ -218,8 +224,9 @@ async function handleProjects(sql, action, id, data, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     params.push(id);
     const rows = await sql(
-      `UPDATE projects SET updated_at=NOW(), slug=$1, title=$2, category=$3, client=$4, description=$5, viz=$6, accent=$7, metrics=$8::jsonb, featured=$9, sort_order=$10, schema_markup=$11::jsonb, image_url=$12, body=$13, ${CS_COLS.map((c, i) => `${c}=$${14 + i}`).join(", ")}
-       WHERE id = $${14 + CS_COLS.length}
+      `UPDATE projects SET updated_at=NOW(), slug=$1, title=$2, category=$3, client=$4, description=$5, viz=$6, accent=$7, metrics=$8::jsonb, featured=$9, sort_order=$10, schema_markup=$11::jsonb, image_url=$12, body=$13, ${CS_COLS.map((c, i) => `${c}=$${14 + i}`).join(", ")},
+       ${PROJECT_LISTING_FIELDS.map((key,i) => `${key}=COALESCE($${14 + CS_COLS.length + i},${key})`).join(', ')}
+       WHERE id = $${14 + CS_COLS.length + PROJECT_LISTING_FIELDS.length}
        RETURNING ${RETURNING}`,
       params
     );

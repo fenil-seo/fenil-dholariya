@@ -66,19 +66,22 @@ If `DATABASE_URL` is unset, the site uses seed content. If a configured database
 
 ## Admin panel
 
-Go to `/admin` and log in with `ADMIN_PASSWORD` (default `Fenil@007`, override it via the environment variable - never edit it in the code). From the dashboard you can edit:
+Go to `/admin` and log in with the password configured in the `ADMIN_PASSWORD` environment variable. From the dashboard you can edit:
 
 - Profile (name, bio, contact links)
 - Stats and Process steps
-- Projects (case studies) and Blog posts - both support custom slugs, JSON metrics, and draft/publish state
+- Projects (case studies) with custom slugs, metrics, cover images and structured content
+- Blog posts with custom slugs, SEO fields and draft/publish state
 - Testimonials, Skills, Timeline
 - Leads - everyone who submits the contact form, with status triage
 
 The **Home page** editor covers every main section, its copy, links, images and the method video. The **Services page** editor covers 22 sections: the hero and photo, navigation, goal recommendations, all eight service cards, situation finder, delivery journey, engagement models and FAQs. The **Footer** editor controls the footer shared by all public pages. Media fields accept a deployed `/assets/` path or a hosted HTTPS URL; binary uploads are not stored by this project.
 
-Home and Services SEO include title, description, keywords, canonical URL, page robots, Open Graph fields and custom JSON-LD. Sitewide `robots.txt` is managed in Home SEO. Page robots settings also control the response header and sitemap inclusion; `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved content and metadata are rendered into the HTML response, and saved goal recommendations remain active when visitors switch goals.
+The **Work page** editor covers nine sections: the hero, its three images, collection labels, project reasoning and evidence links. **Manage case studies** opens the existing project editor with additional controls for each Work card's title, description, filter category and cover alt text. Cover changes now override the built-in image on both the Work card and the case study page. Card metrics and sequence come from the project's headline metrics and order. New columns are added automatically; returning to Work preserves its unsaved page draft.
 
-Use the section list to edit one part of the page at a time. **Preview** shows unsaved content at desktop or mobile size. **Save changes** or **Ctrl+S** saves the current draft; **Discard changes** returns to the last saved version. The **SEO** tabs include live search and social previews, JSON validation and schema starter templates. **Choose image/video** opens a searchable library generated from `assets/` during the build. Add new files to the repository and deploy, or use a hosted HTTPS URL. Direct editor links are `/admin#services/content` and `/admin#services/seo`.
+Home, Services and Work SEO include title, description, keywords, canonical URL, page robots, Open Graph fields and custom JSON-LD. Sitewide `robots.txt` is managed in Home SEO. Page robots settings also control the response header and sitemap inclusion; Work's indexing directive applies to the collection page, with individual case study URLs remaining independent. `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved content and metadata are rendered into the HTML response, and saved goal recommendations remain active when visitors switch goals.
+
+Use the section list to edit one part of the page at a time. **Preview** shows unsaved content at desktop or mobile size. **Save changes** or **Ctrl+S** saves the current draft; **Discard changes** returns to the last saved version. The **SEO** tabs include live search and social previews, JSON validation and schema starter templates. **Choose image/video** opens a searchable library generated from `assets/` during the build. Add new files to the repository and deploy, or use a hosted HTTPS URL. Direct editor links include `/admin#work/content`, `/admin#work/seo`, `/admin#services/content` and `/admin#services/seo`.
 
 ## Structured data (SEO / AEO / AIO / GEO)
 
