@@ -11,7 +11,7 @@ import { SEED } from '../lib/seed-data.js';
 const rows = new Map();
 let nextId = 1;
 const alias = key => key === 'description' ? 'desc' : key;
-const assign = (row,key,value) => { row[alias(key)] = ['metrics','schema_markup'].includes(key) ? JSON.parse(value) : value; };
+const assign = (row,key,value) => { row[alias(key)] = ['metrics','schema_markup','page_settings'].includes(key) ? JSON.parse(value) : value; };
 const sql = async (query,params=[]) => {
   if (query.startsWith('SELECT')) return [...rows.values()].sort((a,b)=>a.sort_order-b.sort_order);
   if (query.startsWith('INSERT')) {

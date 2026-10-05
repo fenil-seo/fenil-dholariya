@@ -3,7 +3,11 @@ import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { notifyPublication } from "../lib/indexnow.js";
 import { POST_METADATA_FIELDS, validatePostMetadata } from '../lib/post-metadata.js';
-import { PROJECT_LISTING_FIELDS, validateProjectListing } from '../lib/project-listing.js';
+import { PROJECT_LISTING_FIELDS } from '../lib/project-listing.js';
+import { projectSettingsFields, validateProjectContent } from '../lib/project-settings.js';
+import { loadPublicContent } from '../lib/public-content.js';
+import { renderPublicPage } from '../lib/public-page.js';
+import { load } from 'cheerio';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 
 function slugify(str) {
@@ -178,16 +182,37 @@ async function handleProfile(sql, action, data, res) {
 export async function handleProjects(sql, action, id, data, res, migrate = ensureNewColumns) {
   await migrate(sql);
   const CS_COLS = ["period", "services", "challenge", "approach", "results_text", "takeaway", "testimonial", "testimonial_author"];
-  const RETURNING = `id, slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body, ${[...CS_COLS,...PROJECT_LISTING_FIELDS].map((c) => `COALESCE(${c},'') AS ${c}`).join(", ")}`;
+  const RETURNING = `id, slug, title, category, client, description AS "desc", viz, accent, metrics, featured, sort_order, schema_markup, COALESCE(page_settings,'{}'::jsonb) AS page_settings, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body, ${[...CS_COLS,...PROJECT_LISTING_FIELDS].map((c) => `COALESCE(${c},'') AS ${c}`).join(", ")}`;
 
   if (action === "list") {
     const rows = await sql(`SELECT ${RETURNING} FROM projects ORDER BY sort_order, id`);
-    return res.status(200).json({ items: rows });
+    return res.status(200).json({ items: rows, settings_fields:await projectSettingsFields() });
+  }
+
+  if (action === 'preview') {
+    let validated;
+    try { validated = validateProjectContent(data); }
+    catch (error) { return res.status(400).json({error:error.message}); }
+    const content = await loadPublicContent({configured:true,sql,migrate});
+    const draft = {...data,...validated.listing,page_settings:validated.settings || {},slug:slugify(data.slug) || slugify(data.title)};
+    if (!draft.slug) return res.status(400).json({error:'Title or slug is required.'});
+    const previous = id ? (await sql('SELECT slug FROM projects WHERE id=$1',[id]))[0] : null;
+    content.projects = [draft,...content.projects.filter(p=>p.slug!==draft.slug && p.slug!==previous?.slug)];
+    const settings = await loadSiteSettings(sql);
+    const result = await renderPublicPage('project',draft.slug,content,settings);
+    // Preview uses the production renderer, with navigation and executable
+    // content removed. It never writes the case study or notifies crawlers.
+    const $ = load(result.html);
+    $('script,form,iframe,noscript').remove();$('a').removeAttr('href');
+    $('.reveal,[data-enter]').addClass('is-in is-entered').css('opacity','1').css('transform','none');
+    $('meta[name="robots"]').attr('content','noindex, nofollow');
+    res.setHeader('Cache-Control','no-store');
+    return res.status(200).json({html:$.html()});
   }
 
   if (action === "create" || action === "update") {
-    let listing;
-    try { listing = validateProjectListing(data); }
+    let listing, settings;
+    try { ({listing,settings} = validateProjectContent(data)); }
     catch (error) { return res.status(400).json({ error:error.message }); }
     const slug = slugify(data?.slug) || slugify(data?.title);
     if (!slug) return res.status(400).json({ error: "Title or slug is required." });
@@ -209,12 +234,13 @@ export async function handleProjects(sql, action, id, data, res, migrate = ensur
       data?.body || "",
       ...CS_COLS.map((c) => data?.[c] || ""),
       ...PROJECT_LISTING_FIELDS.map(key => listing[key] ?? (action === 'create' ? '' : null)),
+      settings===undefined ? (action==='create' ? '{}' : null) : JSON.stringify(settings),
     ];
 
     if (action === "create") {
       const rows = await sql(
-        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, schema_markup, image_url, body, ${[...CS_COLS,...PROJECT_LISTING_FIELDS].join(", ")})
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11::jsonb,$12,$13,${[...CS_COLS,...PROJECT_LISTING_FIELDS].map((_, i) => `$${14 + i}`).join(",")})
+        `INSERT INTO projects (slug, title, category, client, description, viz, accent, metrics, featured, sort_order, schema_markup, image_url, body, ${[...CS_COLS,...PROJECT_LISTING_FIELDS].join(", ")}, page_settings)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11::jsonb,$12,$13,${[...CS_COLS,...PROJECT_LISTING_FIELDS].map((_, i) => `$${14 + i}`).join(",")},$${14 + CS_COLS.length + PROJECT_LISTING_FIELDS.length}::jsonb)
          RETURNING ${RETURNING}`,
         params
       );
@@ -225,11 +251,12 @@ export async function handleProjects(sql, action, id, data, res, migrate = ensur
     params.push(id);
     const rows = await sql(
       `UPDATE projects SET updated_at=NOW(), slug=$1, title=$2, category=$3, client=$4, description=$5, viz=$6, accent=$7, metrics=$8::jsonb, featured=$9, sort_order=$10, schema_markup=$11::jsonb, image_url=$12, body=$13, ${CS_COLS.map((c, i) => `${c}=$${14 + i}`).join(", ")},
-       ${PROJECT_LISTING_FIELDS.map((key,i) => `${key}=COALESCE($${14 + CS_COLS.length + i},${key})`).join(', ')}
-       WHERE id = $${14 + CS_COLS.length + PROJECT_LISTING_FIELDS.length}
+       ${PROJECT_LISTING_FIELDS.map((key,i) => `${key}=COALESCE($${14 + CS_COLS.length + i},${key})`).join(', ')}, page_settings=COALESCE($${14 + CS_COLS.length + PROJECT_LISTING_FIELDS.length}::jsonb,page_settings)
+       WHERE id = $${15 + CS_COLS.length + PROJECT_LISTING_FIELDS.length}
        RETURNING ${RETURNING}`,
       params
     );
+    if (!rows[0]) return res.status(404).json({error:'This case study no longer exists. Reload the dashboard.'});
     return res.status(200).json({ item: rows[0] });
   }
 

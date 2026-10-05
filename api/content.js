@@ -4,6 +4,7 @@ import { ensureNewColumns } from "../lib/migrate.js";
 import { loadPublicContent } from "../lib/public-content.js";
 import { buildSitemap, buildLlmMap } from "../lib/search.js";
 import { loadSiteSettings, siteNoIndexPaths } from '../lib/site-settings.js';
+import { projectNoIndexPaths } from '../lib/project-settings.js';
 
 
 export default async function handler(req, res) {
@@ -21,11 +22,11 @@ export default async function handler(req, res) {
     try { data = await loadPublicContent(); }
     catch { res.setHeader('Retry-After', '60'); return res.status(503).send(req.method === 'HEAD' ? '' : 'Temporarily unavailable'); }
     res.setHeader("Content-Type", req.query.format === 'sitemap' ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
-    let excludedPaths = [];
+    let excludedPaths = projectNoIndexPaths(data.projects);
     if (req.query.format === 'sitemap' && isDbConfigured()) {
       try {
         const settings = await loadSiteSettings(getSql());
-        excludedPaths = siteNoIndexPaths(settings);
+        excludedPaths.push(...siteNoIndexPaths(settings));
       } catch (error) {
         console.error('Sitemap settings unavailable', error.name);
         res.setHeader('Retry-After', '60');

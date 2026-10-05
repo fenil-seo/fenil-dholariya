@@ -124,7 +124,7 @@
   ],
   "functions": {
     "api/site.js": { "includeFiles": "{index,about,services,gallery,contact}.html" },
-    "api/admin.js": { "includeFiles": "{index.html,services.html,work.html,robots.txt}" },
+    "api/admin.js": { "includeFiles": "{index.html,services.html,work.html,project.html,post.html,blog.html,404.html,robots.txt}" },
     "api/robots.js": { "includeFiles": "robots.txt" },
     "api/page.js": {
       "includeFiles": "{post,project,blog,work,404}.html"

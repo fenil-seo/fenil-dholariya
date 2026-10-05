@@ -1,4 +1,5 @@
 import { mountSiteEditor } from './site-editor-ui.js?v=20261005work2';
+import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
 
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
@@ -1228,46 +1229,7 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005work2';
       summary: (i) => ({ title: i.title, sub: i.description }),
     }),
 
-    projects: listResource({
-      resource: "projects",
-      title: "Projects / Case Studies",
-      hint: "Edit Work cards and the case study pages at /work/<slug>. The first headline metric appears on the Work card. Order controls the collection sequence.",
-      backToPage:'work',
-      fields: [
-        { key: "title", label: "Title" },
-        { key: "slug", label: "URL slug", placeholder: "(auto from title if left blank)" },
-        { key: "category", label: "Industry / category", placeholder: "D2C / E-commerce" },
-        { key: "client", label: "Client", placeholder: "Silver jewellery brand" },
-        { key: "period", label: "Timeline", placeholder: "Jan 2026 – Jun 2026" },
-        { key: "services", label: "Services provided", placeholder: "SEO, Content, CRO", hint: "Comma-separated. Shown as tags in the case study overview." },
-        { key: "desc", label: "Short summary", type: "textarea", wide: true, hint: "1–2 sentences. Shown on project cards and under the case study title." },
-        { key: "listing_title", label: "Work card title", wide: true, hint: "Use a shorter title for the Work collection. Leave blank to use the existing display title or the case study title." },
-        { key: "listing_description", label: "Work card description", type: "textarea", wide: true, hint: "The description on the Work collection card. Leave blank to use the existing display description or short summary." },
-        { key: "work_category", label: "Work filter category", type: "select", options:[{value:'',label:'Automatic from industry'}, {value:'commerce',label:'E-commerce'}, {value:'local',label:'Local services'}, {value:'b2b',label:'B2B & SaaS'}, {value:'other',label:'All work only'}] },
-        { key: "image_url", label: "Cover image", type: "image", wide: true, siteMedia:true, placeholder:'/assets/media/project-photo.webp or HTTPS image URL', hint: "Used on the Work card and case study. Leave blank to use the existing cover or a text cover for a new project." },
-        { key: "image_alt", label: "Cover image alt text", wide: true, hint: "Describe the image briefly. Used on the Work card and case study cover." },
-        { key: "viz", label: "Fallback animation (if no image)", type: "select", options: VIZ_OPTIONS },
-        { key: "accent", label: "Accent color", type: "select", options: ACCENT_OPTIONS },
-        { key: "metrics", label: "Headline metrics", type: "metrics", wide: true, placeholder: "2.1x | Organic sales", hint: "One per line, as: value | label. Shown in the metrics bar under the hero." },
-        { key: "challenge", label: "01 · The Challenge", type: "richtext", wide: true, hint: "Where the client was stuck - the problem you were hired to solve." },
-        { key: "approach", label: "02 · The Approach", type: "richtext", wide: true, hint: "What you actually did, step by step. Use headings and lists freely." },
-        { key: "results_text", label: "03 · The Results", type: "richtext", wide: true, hint: "The outcome, with numbers. You can insert screenshots with the Image button." },
-        { key: "takeaway", label: "Key takeaway", type: "textarea", wide: true, hint: "1–2 sentences. Shown as a highlighted card at the end of the case study." },
-        { key: "testimonial", label: "Client testimonial (optional)", type: "textarea", wide: true },
-        { key: "testimonial_author", label: "Testimonial author", placeholder: "Founder, D2C jewellery brand" },
-        { key: "body", label: "Extra content (optional)", type: "richtext", wide: true, hint: "Shown after the structured sections. Case studies written before the structured fields still live here - you can move that content into the sections above." },
-        { key: "sort_order", label: "Order", type: "number", default: 0 },
-        { key: "featured", label: "Show in home page highlights", type: "checkbox", default: true },
-        {
-          key: "schema_markup",
-          label: "Custom schema markup (JSON-LD)",
-          type: "json",
-          wide: true,
-          hint: "Optional. Paste any schema.org JSON-LD object (or array) - e.g. a Review or Product node for this case study. Leave blank to skip.",
-        },
-      ],
-      summary: (i) => ({ title: i.title, sub: `${i.category || ""} · /work/${i.slug}` }),
-    }),
+    projects: { render: panel => mountProjectEditor({ panel, api:window.API, noteDbStatus }) },
 
     posts: listResource({
       resource: "posts",
