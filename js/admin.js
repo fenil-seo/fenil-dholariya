@@ -1,4 +1,4 @@
-import { mountSiteEditor } from './site-editor-ui.js?v=20261005work';
+import { mountSiteEditor } from './site-editor-ui.js?v=20261005work2';
 
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
@@ -593,6 +593,7 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005work';
               if (ok) {
                 card.remove();
                 if (!listEl.children.length) listEl.innerHTML = `<p class="admin-empty">Nothing here yet - click + Add.</p>`;
+                if (resource === 'projects') window.dispatchEvent(new CustomEvent('site:projects-changed'));
               } else alert(data?.error || "Delete failed.");
             });
           }
@@ -626,6 +627,7 @@ import { mountSiteEditor } from './site-editor-ui.js?v=20261005work';
               const fresh = buildCard(data.item);
               fresh.classList.add("is-open");
               card.replaceWith(fresh);
+              if (resource === 'projects') window.dispatchEvent(new CustomEvent('site:projects-changed'));
             } else {
               statusEl.className = "form-status is-err";
               statusEl.textContent = data?.error || "Save failed.";

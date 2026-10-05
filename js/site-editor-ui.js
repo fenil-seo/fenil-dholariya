@@ -424,6 +424,10 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   };
   document.addEventListener('keydown', keydown, { signal:controller.signal });
   window.addEventListener('resize', refreshPreview, { signal:controller.signal });
+  if (page === 'work') window.addEventListener('site:projects-changed', () => {
+    const frame = panel.querySelector('.site-live-preview iframe');
+    if (frame) frame.src = info.path;
+  }, { signal:controller.signal });
   window.addEventListener('beforeunload', event => {
     if (dirty()) { event.preventDefault(); event.returnValue = ''; }
   }, { signal:controller.signal });
