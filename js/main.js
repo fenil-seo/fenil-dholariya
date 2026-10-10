@@ -413,23 +413,23 @@
         input.setCustomValidity(input.value.trim() ? "" : "Please complete this field.");
       });
       if (sending || !form.reportValidity()) return;
-      const selectedServices = serviceInputs.filter(input => input.checked).map(input => input.nextElementSibling.textContent.trim());
+      const selectedServices = serviceInputs.filter(input => input.checked).map(input => input.value);
       const budget = form.elements.budget?.value.trim() || "";
       const currency = form.elements.currency?.value || "";
       const timeline = form.elements.timeline?.value || "";
-      const context = [
-        selectedServices.length && `Services: ${selectedServices.join(", ")}`,
-        form.elements.website?.value.trim() && `Website: ${form.elements.website.value.trim()}`,
-        form.elements.market?.value.trim() && `Target market: ${form.elements.market.value.trim()}`,
-        budget && `Total project budget: ${[currency, budget].filter(Boolean).join(" ")}`,
-        timeline && `Preferred start: ${timeline}`,
-        form.elements.timezone?.value.trim() && `Location / time zone: ${form.elements.timezone.value.trim()}`
-      ].filter(Boolean).join("\n");
       const payload = {
         name: form.elements.name.value.trim(),
         email: form.elements.email.value.trim(),
         company: form.elements.company.value.trim(),
-        message: `${context}\n\nProject brief:\n${form.elements.message.value.trim()}`.trim()
+        message: form.elements.message.value.trim(),
+        services: selectedServices,
+        website: form.elements.website?.value.trim() || "",
+        market: form.elements.market?.value.trim() || "",
+        budget,
+        currency,
+        timeline,
+        timezone: form.elements.timezone?.value.trim() || "",
+        source_path: "/contact"
       };
 
       sending = true;
@@ -444,11 +444,11 @@
         status.className = "form-status";
       }
 
-      let ok = false;
+      let result;
       try {
-        if (window.API?.sendLead) ({ ok } = await window.API.sendLead(payload));
-      } catch {
-        ok = false;
+        if (window.API?.sendLead) result = await window.API.sendLead(payload);
+      } catch (error) {
+        result = { ok: false, status: 0, error };
       }
 
       sending = false;
@@ -457,7 +457,7 @@
         button.disabled = false;
         button.innerHTML = original;
       }
-      if (ok) {
+      if (result?.ok && result?.data?.stored === true) {
         if (status) {
           status.textContent = "Your brief has been received. Fenil will review it and reply by email. A copy of your project details is not sent automatically.";
           status.className = "form-status is-success";
@@ -465,8 +465,17 @@
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({ event: "portfolio_qualified_lead", service_count: selectedServices.length, budget_provided: Boolean(budget), timeline: timeline || "not_provided" });
         form.reset();
+        started = false;
       } else if (status) {
-        status.innerHTML = 'The form could not send. Please email <a href="mailto:fenil.seo@gmail.com">fenil.seo@gmail.com</a>.';
+        const serverMessage = typeof result?.data?.error === "string" ? result.data.error.trim().slice(0, 300) : "";
+        const message = serverMessage || (result?.status === 0
+          ? "We could not confirm receipt of your enquiry."
+          : "Your enquiry could not be saved.");
+        status.textContent = `${message} Your details are still in this form. Please try again or email `;
+        const emailLink = document.createElement("a");
+        emailLink.href = "mailto:fenil.seo@gmail.com";
+        emailLink.textContent = "fenil.seo@gmail.com";
+        status.append(emailLink, ".");
         status.className = "form-status is-error";
       }
       status?.focus({ preventScroll: true });

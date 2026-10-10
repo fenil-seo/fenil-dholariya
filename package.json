@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "vercel dev",
-    "test": "node scripts/verify-portfolio.mjs && node scripts/verify-editorial.mjs && node scripts/verify-search.mjs && node scripts/verify-site-editor.mjs && node scripts/verify-work-editor.mjs && node scripts/verify-case-editor.mjs && node scripts/verify-post-metadata.mjs",
+    "test": "node scripts/verify-portfolio.mjs && node scripts/verify-editorial.mjs && node scripts/verify-search.mjs && node scripts/verify-site-editor.mjs && node scripts/verify-work-editor.mjs && node scripts/verify-case-editor.mjs && node scripts/verify-post-metadata.mjs && node scripts/verify-leads.mjs && node scripts/verify-contact-flow.mjs",
     "search:submit": "node scripts/submit-indexnow.mjs",
     "build": "node scripts/build-server.mjs",
     "pretest": "npm run build"

@@ -9,6 +9,8 @@ import { loadPublicContent } from '../lib/public-content.js';
 import { renderPublicPage } from '../lib/public-page.js';
 import { load } from 'cheerio';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
+import { ensureLeadsSchema } from '../lib/lead-migration.js';
+import { LeadError, listLeads, updateLead, deleteLead, validateLeadList, validateLeadId, validateLeadUpdate } from '../lib/leads.js';
 
 function slugify(str) {
   return String(str || "")
@@ -22,8 +24,11 @@ function slugify(str) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  if (!isAuthenticated(req)) return res.status(401).json({ error: "Unauthorized" });
+  let authorized = false;
+  try { authorized = isAuthenticated(req); } catch { /* Malformed cookies do not grant access. */ }
+  if (!authorized) return res.status(401).json({ error: "Unauthorized" });
   if (!isDbConfigured()) {
     return res.status(503).json({ error: "Database not connected. Add DATABASE_URL in your environment variables, redeploy, then run setup from the dashboard." });
   }
@@ -81,6 +86,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Unknown resource" });
     }
   } catch (err) {
+    if (resource === 'leads') {
+      console.error('Admin lead storage failed', { action, code: err.code || 'storage_error' });
+      return res.status(500).json({ error: 'Could not complete this lead action. Please try again.' });
+    }
     console.error("admin api error", resource, action, err);
     if (err.code === "23505") {
       return res.status(409).json({ error: "That slug is already in use - choose a different one." });
@@ -437,24 +446,29 @@ async function handleGallery(sql, action, id, data, res) {
 }
 
 /* ---------- Leads (read / triage / delete only - created by the public contact form) ---------- */
-async function handleLeads(sql, action, id, data, res) {
-  if (action === "list") {
-    const rows = await sql(`SELECT id, name, email, company, message, status, created_at FROM leads ORDER BY created_at DESC LIMIT 300`);
-    return res.status(200).json({ items: rows });
+export async function handleLeads(sql, action, id, data, res, migrate = ensureLeadsSchema) {
+  res.setHeader?.('Cache-Control', 'no-store');
+  try {
+    // Validate every action before migration or a write can occur.
+    if (action === 'list') {
+      const filters = validateLeadList(data);
+      await migrate(sql);
+      return res.status(200).json(await listLeads(sql, filters));
+    }
+    if (action === 'update') {
+      const leadId = validateLeadId(id), values = validateLeadUpdate(data);
+      await migrate(sql);
+      return res.status(200).json({ item: await updateLead(sql, leadId, values) });
+    }
+    if (action === 'delete') {
+      const leadId = validateLeadId(id);
+      await migrate(sql);
+      await deleteLead(sql, leadId);
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(400).json({ error: 'Unknown action' });
+  } catch (error) {
+    if (error instanceof LeadError) return res.status(error.status).json({ error: error.message });
+    throw error;
   }
-
-  if (action === "update") {
-    if (!id) return res.status(400).json({ error: "Missing id" });
-    const status = data?.status || "new";
-    const rows = await sql(`UPDATE leads SET status = $1 WHERE id = $2 RETURNING id, status`, [status, id]);
-    return res.status(200).json({ item: rows[0] });
-  }
-
-  if (action === "delete") {
-    if (!id) return res.status(400).json({ error: "Missing id" });
-    await sql(`DELETE FROM leads WHERE id = $1`, [id]);
-    return res.status(200).json({ ok: true });
-  }
-
-  return res.status(400).json({ error: "Unknown action" });
 }

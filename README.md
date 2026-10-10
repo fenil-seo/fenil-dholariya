@@ -73,7 +73,7 @@ Go to `/admin` and log in with the password configured in the `ADMIN_PASSWORD` e
 - Projects (case studies) with custom slugs, metrics, cover images and structured content
 - Blog posts with custom slugs, SEO fields and draft/publish state
 - Testimonials, Skills, Timeline
-- Leads - everyone who submits the contact form, with status triage
+- Contact leads with complete project briefs, planning fields, private notes, priority and follow-ups
 
 The **Home page** editor covers every main section, its copy, links, images and the method video. The **Services page** editor covers 22 sections: the hero and photo, navigation, goal recommendations, all eight service cards, situation finder, delivery journey, engagement models and FAQs. The **Footer** editor controls the footer shared by all public pages. Media fields accept a deployed `/assets/` path or a hosted HTTPS URL; binary uploads are not stored by this project.
 
@@ -84,6 +84,14 @@ Each case study has its own **SEO** tab with title, description, keywords, canon
 Home, Services and Work SEO include title, description, keywords, canonical URL, page robots, Open Graph fields and custom JSON-LD. Sitewide `robots.txt` is managed in Home SEO. Page robots settings also control the response header and sitemap inclusion; Work's indexing directive applies to the collection page, with individual case study URLs remaining independent. `robots.txt` controls crawler access and can prevent crawlers from seeing a page's meta robots tag. Saved content and metadata are rendered into the HTML response, and saved goal recommendations remain active when visitors switch goals.
 
 Use the section list to edit one part of the page at a time. **Preview** shows unsaved content at desktop or mobile size. **Save changes** or **Ctrl+S** saves the current draft; **Discard changes** returns to the last saved version. The **SEO** tabs include live search and social previews, JSON validation and schema starter templates. **Choose image/video** opens a searchable library generated from `assets/` during the build. Add new files to the repository and deploy, or use a hosted HTTPS URL. Direct editor links include `/admin#projects/content`, `/admin#projects/seo`, `/admin#work/content`, `/admin#work/seo`, `/admin#services/content` and `/admin#services/seo`.
+
+### Contact leads
+
+Open **Contact leads** at `/admin#leads` to review contact-form submissions. The inbox shows global counts for all enquiries, new enquiries, active conversations and overdue follow-ups. Search, filter by status/service/priority/follow-up, sort, paginate, and select an enquiry to see its original brief, selected services, website, market, budget/currency, preferred start and time zone.
+
+Set a lead to **New**, **Contacted**, **Qualified**, **Closed** or **Spam**; add **High** priority, private notes and a follow-up date. Save changes to persist triage fields. Follow-up dates use your browser's local time zone and are stored as a timestamp with a time zone. **Next 24 hours** covers scheduled follow-ups from now through the next 24 hours; active conversations include New, Contacted and Qualified. Closed and Spam leads are excluded from follow-up counts. CSV export includes every result matching the current filters, including notes, with spreadsheet formula characters neutralized.
+
+`DATABASE_URL` is required to save enquiries. The public form confirms receipt only after a database insert is confirmed and preserves entered details on failure. Lead storage creates its table and adds new columns automatically on the first request through `lib/lead-migration.js`; it does not run public-content migrations or replace existing enquiries. Historical messages with labelled planning fields remain intact, with those fields separated for display. Current submissions store their plain project brief explicitly so text that looks like an old metadata heading is preserved. Lead lists and updates require the admin session and use `Cache-Control: no-store`. No submission confirmation email is sent automatically.
 
 ## Structured data (SEO / AEO / AIO / GEO)
 

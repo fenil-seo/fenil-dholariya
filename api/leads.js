@@ -1,47 +1,47 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
+import { ensureLeadsSchema } from '../lib/lead-migration.js';
+import { LeadError, insertLead, listLeads, validateLeadList, validateLeadSubmission } from '../lib/leads.js';
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export function createLeadsHandler(dependencies = {}) {
+  const configured = dependencies.isDbConfigured || isDbConfigured;
+  const client = dependencies.getSql || getSql;
+  const authenticated = dependencies.isAuthenticated || isAuthenticated;
+  const migrate = dependencies.migrate || ensureLeadsSchema;
+  const logger = dependencies.logger || console;
+  return async function handler(req, res) {
+    res.setHeader('Cache-Control', 'no-store');
+    if (!['POST', 'GET'].includes(req.method)) {
+      res.setHeader('Allow', 'POST, GET');
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+    if (req.method === 'GET') {
+      let authorized = false;
+      try { authorized = authenticated(req); } catch { /* Invalid cookies are unauthenticated. */ }
+      if (!authorized) return res.status(401).json({ error: 'Unauthorized' });
+    }
+    try {
+      // Validate before acquiring the client. Never silently truncate a brief.
+      const validated = req.method === 'POST' ? validateLeadSubmission(req.body) : validateLeadList(req.query || {});
+      if (!configured()) return res.status(503).json({ error: req.method === 'POST'
+        ? 'Could not save your message right now. Please email fenil.seo@gmail.com directly.'
+        : 'Database not connected. Contact leads are unavailable.' });
+      const sql = client();
+      await migrate(sql);
+      if (req.method === 'POST') {
+        await insertLead(sql, validated);
+        return res.status(200).json({ ok: true, stored: true });
+      }
+      const result = await listLeads(sql, validated);
+      return res.status(200).json({ ...result, leads: result.items });
+    } catch (err) {
+      if (err instanceof LeadError) return res.status(err.status).json({ error: err.message });
+      logger.error('Contact lead storage failed', { operation: req.method, code: err.code || 'storage_error' });
+      return res.status(500).json({ error: req.method === 'POST'
+        ? 'Could not save your message right now. Please email fenil.seo@gmail.com directly.'
+        : 'Could not load contact leads. Please try again.' });
+    }
+  };
 }
 
-export default async function handler(req, res) {
-  if (req.method === "POST") {
-    const { name, email, company, message } = req.body || {};
-    if (!name || !email || !message || !isValidEmail(email)) {
-      return res.status(400).json({ error: "Please fill in your name, a valid email, and a message." });
-    }
-
-    if (!isDbConfigured()) {
-      console.error("Lead dropped - DATABASE_URL not set:", { name, email });
-      return res.status(503).json({ error: "Could not save your message right now. Please email fenil.seo@gmail.com directly." });
-    }
-
-    try {
-      const sql = getSql();
-      await sql(
-        `INSERT INTO leads (name, email, company, message) VALUES ($1, $2, $3, $4)`,
-        [String(name).slice(0, 200), String(email).slice(0, 200), String(company || "").slice(0, 200), String(message).slice(0, 4000)]
-      );
-      return res.status(200).json({ ok: true, stored: true });
-    } catch (err) {
-      console.error("lead insert error", err);
-      return res.status(500).json({ error: "Could not save your message right now. Please email fenil.seo@gmail.com directly." });
-    }
-  }
-
-  if (req.method === "GET") {
-    if (!isAuthenticated(req)) return res.status(401).json({ error: "Unauthorized" });
-    if (!isDbConfigured()) return res.status(200).json({ leads: [] });
-    try {
-      const sql = getSql();
-      const rows = await sql(`SELECT id, name, email, company, message, status, created_at FROM leads ORDER BY created_at DESC LIMIT 300`);
-      return res.status(200).json({ leads: rows });
-    } catch (err) {
-      console.error("leads list error", err);
-      return res.status(500).json({ error: "Could not load leads." });
-    }
-  }
-
-  return res.status(405).json({ error: "Method not allowed" });
-}
+export default createLeadsHandler();

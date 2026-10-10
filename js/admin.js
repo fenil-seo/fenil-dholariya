@@ -1,5 +1,6 @@
 import { mountSiteEditor } from './site-editor-ui.js?v=20261005work2';
 import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
+import { mountLeadsInbox } from './leads-ui.js?v=20261010leads';
 
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
@@ -179,6 +180,7 @@ import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
     return document.querySelector(".admin__tab.is-active")?.dataset.tab || "profile";
   }
   function publicPath(tab) {
+    if (tab === 'leads') return '/contact';
     return tab === 'services' ? '/services' : ['work','projects'].includes(tab) ? '/work' : '/';
   }
 
@@ -223,10 +225,12 @@ import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
   });
 
   logoutBtn.addEventListener("click", async () => {
+    if (document.getElementById('panel-leads').__leadsCanLeave?.() === false) return;
     await window.API.logout();
     loaded.clear();
     panels.forEach(panel => {
       panel.__siteEditorAbort?.abort();
+      panel.__leadsAbort?.abort();
       delete panel.__siteEditorState;
       panel.innerHTML = '';
     });
@@ -250,6 +254,9 @@ import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
+      if (activeTabName() === 'leads' && tab.dataset.tab !== 'leads') {
+        if (document.getElementById('panel-leads').__leadsCanLeave?.() === false) return;
+      }
       tabs.forEach((t) => t.classList.remove("is-active"));
       panels.forEach((p) => p.classList.remove("is-active"));
       tab.classList.add("is-active");
@@ -716,69 +723,8 @@ import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
 
   /* ---------- Leads (read, triage, delete - created by the public contact form) ---------- */
   const leadsResource = {
-    async render(panel) {
-      const { ok, data } = await window.API.admin("leads", "list");
-      if (noteDbStatus(ok, data)) {
-        panel.innerHTML = `<p class="admin-empty">Connect the database to view leads. Until then, submissions are only logged on the server.</p>`;
-        return;
-      }
-      if (!ok) {
-        panel.innerHTML = `<p class="admin-empty">${esc(data?.error || "Failed to load.")}</p>`;
-        return;
-      }
-      const items = data.items || [];
-      panel.innerHTML = `
-        <div class="admin__panel-head"><div><h2>Leads</h2><p>Messages submitted through the contact form.</p></div></div>
-        <div id="list-leads"></div>
-      `;
-      const listEl = panel.querySelector("#list-leads");
-      if (!items.length) {
-        listEl.innerHTML = `<p class="admin-empty">No leads yet.</p>`;
-        return;
-      }
-      items.forEach((lead) => listEl.appendChild(buildLeadCard(lead, listEl)));
-    },
+    render(panel) { return mountLeadsInbox({ panel, api: window.API, noteDbStatus, esc }); },
   };
-
-  function buildLeadCard(lead, listEl) {
-    const card = document.createElement("div");
-    card.className = `admin-card lead-card is-status-${lead.status || "new"}`;
-    const when = new Date(lead.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
-    card.innerHTML = `
-      <div class="admin-card__row" data-action="toggle">
-        <div>
-          <div class="admin-card__title">${esc(lead.name)} ${lead.company ? `· ${esc(lead.company)}` : ""}</div>
-          <div class="lead-card__meta"><span>${esc(lead.email)}</span><span>·</span><span>${esc(when)}</span></div>
-        </div>
-        <div class="admin-card__actions">
-          <select class="select" data-action="status" style="width:auto;padding:0.4em 0.8em" onclick="event.stopPropagation()">
-            ${["new", "contacted", "closed"].map((s) => `<option value="${s}" ${s === (lead.status || "new") ? "selected" : ""}>${s}</option>`).join("")}
-          </select>
-          <button class="btn btn--danger btn--sm" data-action="delete">Delete</button>
-          <svg class="admin-card__chevron" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-        </div>
-      </div>
-      <div class="admin-card__body"><div class="lead-card__message">${esc(lead.message)}</div></div>
-    `;
-    card.querySelector('[data-action="toggle"]').addEventListener("click", () => card.classList.toggle("is-open"));
-    card.querySelector('[data-action="status"]').addEventListener("change", async (e) => {
-      const status = e.target.value;
-      const { ok } = await window.API.admin("leads", "update", { id: lead.id, data: { status } });
-      if (ok) {
-        card.className = `admin-card lead-card is-status-${status}`;
-      }
-    });
-    card.querySelector('[data-action="delete"]').addEventListener("click", async (e) => {
-      e.stopPropagation();
-      if (!confirm("Delete this lead?")) return;
-      const { ok } = await window.API.admin("leads", "delete", { id: lead.id });
-      if (ok) {
-        card.remove();
-        if (!listEl.children.length) listEl.innerHTML = `<p class="admin-empty">No leads yet.</p>`;
-      }
-    });
-    return card;
-  }
 
   /* ---------- Gallery (custom renderer - section-by-section, image upload, pin) ---------- */
   const galleryResource = {

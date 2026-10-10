@@ -1,6 +1,7 @@
 import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
 import { SEED } from "../lib/seed-data.js";
+import { LEAD_SCHEMA_SQL } from '../lib/lead-migration.js';
 
 const DDL = [
   `CREATE TABLE IF NOT EXISTS site_settings (key TEXT PRIMARY KEY, content JSONB NOT NULL DEFAULT '{}'::jsonb, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
@@ -44,10 +45,7 @@ const DDL = [
   `CREATE TABLE IF NOT EXISTS timeline (
     id SERIAL PRIMARY KEY, role TEXT NOT NULL, org TEXT, period TEXT, sort_order INT DEFAULT 0
   )`,
-  `CREATE TABLE IF NOT EXISTS leads (
-    id SERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, company TEXT, message TEXT,
-    status TEXT DEFAULT 'new', created_at TIMESTAMPTZ DEFAULT now()
-  )`,
+  ...LEAD_SCHEMA_SQL,
   `CREATE TABLE IF NOT EXISTS gallery (
     id SERIAL PRIMARY KEY,
     section TEXT NOT NULL DEFAULT 'general',

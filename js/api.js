@@ -1,31 +1,34 @@
 /* =================================================================
    API CLIENT - thin fetch wrapper around the Neon-backed endpoints.
-   Every call fails soft (returns null) so the static seed content in
-   data.js always remains a working fallback if the DB isn't connected.
+   Calls return their HTTP result or an error object so public reads can
+   fall back to seed content and writes can report delivery failures.
    ================================================================= */
 window.API = (() => {
   const TIMEOUT = 6000;
 
-  async function request(path, options = {}) {
+  async function request(path, options = {}, timeout = TIMEOUT) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT);
+    const timer = setTimeout(() => controller.abort(), timeout);
     try {
       const res = await fetch(path, {
         ...options,
         signal: controller.signal,
         headers: { "Content-Type": "application/json", ...(options.headers || {}) },
       });
-      clearTimeout(timer);
       if (!res.ok) return { ok: false, status: res.status, data: await safeJson(res) };
       return { ok: true, status: res.status, data: await safeJson(res) };
     } catch (err) {
-      clearTimeout(timer);
       return { ok: false, status: 0, error: err };
+    } finally {
+      clearTimeout(timer);
     }
   }
 
   async function safeJson(res) {
-    try { return await res.json(); } catch { return null; }
+    try { return await res.json(); } catch (error) {
+      if (error.name === "AbortError") throw error;
+      return null;
+    }
   }
 
   return {
@@ -37,7 +40,7 @@ window.API = (() => {
     getProjects: () => request("/api/projects"),
 
     // Public write
-    sendLead: (payload) => request("/api/leads", { method: "POST", body: JSON.stringify(payload) }),
+    sendLead: (payload) => request("/api/leads", { method: "POST", body: JSON.stringify(payload) }, 15000),
 
     // Auth
     login: (password) => request("/api/auth", { method: "POST", body: JSON.stringify({ action: "login", password }) }),
