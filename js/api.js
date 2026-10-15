@@ -49,7 +49,7 @@ window.API = (() => {
 
     // Admin CRUD (cookie-authenticated)
     admin: (resource, action, payload) =>
-      request("/api/admin", { method: "POST", body: JSON.stringify({ resource, action, ...payload }) }),
+      request("/api/admin", { method: "POST", body: JSON.stringify({ resource, action, ...payload }) }, resource === 'leads' && ['notify', 'test-notification'].includes(action) ? 15000 : TIMEOUT),
 
     seed: () => request("/api/seed", { method: "POST" }),
   };

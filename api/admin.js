@@ -11,6 +11,8 @@ import { load } from 'cheerio';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 import { ensureLeadsSchema } from '../lib/lead-migration.js';
 import { LeadError, listLeads, updateLead, deleteLead, validateLeadList, validateLeadId, validateLeadUpdate } from '../lib/leads.js';
+import { notificationSettings, sendLeadNotification } from '../lib/lead-notifications.js';
+import { attemptLeadNotification, deliverLeadNotification } from '../lib/lead-notification-state.js';
 
 function slugify(str) {
   return String(str || "")
@@ -29,14 +31,18 @@ export default async function handler(req, res) {
   let authorized = false;
   try { authorized = isAuthenticated(req); } catch { /* Malformed cookies do not grant access. */ }
   if (!authorized) return res.status(401).json({ error: "Unauthorized" });
-  if (!isDbConfigured()) {
-    return res.status(503).json({ error: "Database not connected. Add DATABASE_URL in your environment variables, redeploy, then run setup from the dashboard." });
-  }
-
   const { resource, action, id, data } = req.body || {};
-  const sql = getSql();
 
   try {
+    // Configuration checks and explicit owner tests need authentication, but
+    // do not require a database connection or create a contact enquiry.
+    if (resource === 'leads' && ['notification-settings', 'test-notification'].includes(action)) {
+      return await handleLeads(null, action, id, data, res);
+    }
+    if (!isDbConfigured()) {
+      return res.status(503).json({ error: "Database not connected. Add DATABASE_URL in your environment variables, redeploy, then run setup from the dashboard." });
+    }
+    const sql = getSql();
     // Notify only public content changes, including the old URL after a rename
     // or unpublish. Never submit drafts, admin URLs or preview deployments.
     if (['posts', 'projects'].includes(resource) && ['create', 'update', 'delete'].includes(action)) {
@@ -87,7 +93,9 @@ export default async function handler(req, res) {
     }
   } catch (err) {
     if (resource === 'leads') {
-      console.error('Admin lead storage failed', { action, code: err.code || 'storage_error' });
+      console.error('Admin lead storage failed', {
+        code: typeof err.code === 'string' && /^[0-9A-Z]{5}$/.test(err.code) ? err.code : 'storage_error',
+      });
       return res.status(500).json({ error: 'Could not complete this lead action. Please try again.' });
     }
     console.error("admin api error", resource, action, err);
@@ -445,10 +453,29 @@ async function handleGallery(sql, action, id, data, res) {
   return res.status(400).json({ error: "Unknown action" });
 }
 
-/* ---------- Leads (read / triage / delete only - created by the public contact form) ---------- */
-export async function handleLeads(sql, action, id, data, res, migrate = ensureLeadsSchema) {
+/* ---------- Leads (created by the public contact form) ---------- */
+export async function handleLeads(sql, action, id, data, res, migrate = ensureLeadsSchema, dependencies = {}) {
   res.setHeader?.('Cache-Control', 'no-store');
   try {
+    if (action === 'notification-settings') {
+      return res.status(200).json({ item: (dependencies.notificationSettings || notificationSettings)() });
+    }
+    if (action === 'test-notification') {
+      const notification = await attemptLeadNotification({
+        id: 'test', name: 'Portfolio notification test', email: 'fenil.seo@gmail.com', company: 'Portfolio admin',
+        message: 'This is an email notification test requested from your admin panel. It is not a website enquiry.',
+        project_brief: 'This is an email notification test requested from your admin panel. It is not a website enquiry.',
+        services: [], source_path: '/admin', created_at: new Date().toISOString(),
+      }, dependencies.notify || sendLeadNotification);
+      if (notification.status === 'sent') return res.status(200).json({ notification });
+      const errors = {
+        gmail_app_password_missing: 'Email notifications are not configured. Add GMAIL_APP_PASSWORD in Vercel and redeploy, then try again.',
+        notifications_disabled: 'Email notifications are disabled. Enable them in Vercel and redeploy, then try again.',
+        smtp_auth_failed: 'Gmail could not authenticate. Check the Gmail app password in Vercel and redeploy.',
+      };
+      const error = errors[notification.error_code] || 'The test email could not be sent. Check the Gmail configuration and try again.';
+      return res.status(['not_configured', 'disabled'].includes(notification.status) ? 503 : 502).json({ error, notification });
+    }
     // Validate every action before migration or a write can occur.
     if (action === 'list') {
       const filters = validateLeadList(data);
@@ -465,6 +492,14 @@ export async function handleLeads(sql, action, id, data, res, migrate = ensureLe
       await migrate(sql);
       await deleteLead(sql, leadId);
       return res.status(200).json({ ok: true });
+    }
+    if (action === 'notify') {
+      const leadId = validateLeadId(id);
+      if (data != null && (typeof data !== 'object' || Array.isArray(data))) throw new LeadError('Provide the notification options.');
+      if (data?.confirm_resend !== undefined && typeof data.confirm_resend !== 'boolean') throw new LeadError('Resend confirmation must be true or false.');
+      await migrate(sql);
+      const result = await deliverLeadNotification(sql, leadId, { ...dependencies, confirmResend: data?.confirm_resend === true });
+      return res.status(200).json(result);
     }
     return res.status(400).json({ error: 'Unknown action' });
   } catch (error) {

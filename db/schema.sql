@@ -129,7 +129,11 @@ CREATE TABLE IF NOT EXISTS leads (
   notes TEXT NOT NULL DEFAULT '',
   follow_up_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  email_notification_status TEXT NOT NULL DEFAULT 'not_sent',
+  email_notification_sent_at TIMESTAMPTZ,
+  email_notification_attempted_at TIMESTAMPTZ,
+  email_notification_error TEXT NOT NULL DEFAULT ''
 );
 
 -- Existing databases add these lead columns automatically through
@@ -147,7 +151,11 @@ ALTER TABLE leads
   ADD COLUMN IF NOT EXISTS priority TEXT NOT NULL DEFAULT 'normal',
   ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS follow_up_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS email_notification_status TEXT NOT NULL DEFAULT 'not_sent',
+  ADD COLUMN IF NOT EXISTS email_notification_sent_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS email_notification_attempted_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS email_notification_error TEXT NOT NULL DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS leads_created_at_idx ON leads (created_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS leads_follow_up_idx ON leads (follow_up_at)

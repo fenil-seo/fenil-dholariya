@@ -36,6 +36,15 @@ const fixtureSql = async (query, params = []) => {
     return [{ id: item.id }];
   }
   if (query.startsWith('UPDATE leads')) {
+    if (query.startsWith('UPDATE leads SET email_notification_status=$2')) {
+      const row = stored.get(params[0]);
+      if (!row || row.email_notification_status !== 'pending') return [];
+      if (params[3] && params[3] !== row.email_notification_attempted_at) return [];
+      row.email_notification_status = params[1];
+      row.email_notification_error = params[2];
+      if (params[1] === 'sent') row.email_notification_sent_at = new Date(now).toISOString();
+      return [{ ...row }];
+    }
     assert.match(query, /updated_at=now\(\)/);
     assert.match(query, new RegExp(`WHERE id=\\$${params.length} RETURNING`));
     const row = stored.get(params.at(-1));
@@ -88,7 +97,8 @@ const fixtureSql = async (query, params = []) => {
   return rows.slice(offset, offset + limit).map(row => ({ ...row }));
 };
 const silentLogger = { error() {} };
-const handler = createLeadsHandler({ getSql: () => fixtureSql, isDbConfigured: () => true, isAuthenticated: req => req.authorized === true, logger: silentLogger });
+const handler = createLeadsHandler({ getSql: () => fixtureSql, isDbConfigured: () => true, isAuthenticated: req => req.authorized === true,
+  notify: async () => ({ status: 'disabled', error_code: 'notifications_disabled' }), logger: silentLogger });
 const publicRequest = async (body, customHandler = handler, options = {}) => {
   const res = response();
   await customHandler({ method: 'POST', headers: {}, body, ...options }, res);
@@ -114,6 +124,9 @@ assert.equal(persisted.project_brief, submission.message);
 assert.deepEqual(persisted.services, submission.services); assert.equal(persisted.website, 'https://example.com/path');
 for (const field of ['market', 'budget', 'timeline', 'timezone', 'source_path']) assert.equal(persisted[field], submission[field]);
 assert.equal(persisted.currency, 'GBP');
+assert.equal(persisted.email_notification_status, 'disabled');
+assert.equal(persisted.email_notification_error, 'notifications_disabled');
+assert.ok(persisted.email_notification_attempted_at);
 
 const legacyMessage = 'Services: Local SEO, Content strategy\nWebsite: old.example.com\nTarget market: France\nTotal project budget: EUR 5000\nPreferred start: Flexible\nLocation / time zone: Paris\n\nProject brief:\nBring more local customers.\nServices: This line belongs to my brief.';
 const legacy = await publicRequest({ name: 'Old client', email: 'old@example.com', message: legacyMessage });
@@ -127,6 +140,10 @@ assert.equal(normalized.message, legacyMessage);
 assert.equal(normalized.project_brief, 'Bring more local customers.\nServices: This line belongs to my brief.');
 assert.deepEqual(normalized.services, ['local-seo', 'content-strategy']);
 assert.equal(normalized.updated_at, null, 'Historical last-update times are unknown until a real edit');
+assert.equal(normalized.email_notification_status, 'not_sent', 'Old enquiries do not imply an email was sent');
+assert.equal(normalized.email_notification_sent_at, null);
+assert.equal(normalized.email_notification_attempted_at, null);
+assert.equal(normalized.email_notification_error, '');
 assert.deepEqual(parseLegacyLeadMessage('My introduction\nProject brief:\nordinary prose'), { project_brief: 'My introduction\nProject brief:\nordinary prose' });
 for (const message of ['Project brief:\nThis label is intentional.', 'Services: Local SEO\n\nProject brief:\nThese labels are part of my message.']) {
   const brief = validateLeadSubmission({ ...submission, message, services: [] });

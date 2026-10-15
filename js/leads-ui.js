@@ -57,6 +57,8 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
   let filters = { ...DEFAULT_FILTERS };
   let items = [], total = 0, selected = null, dirty = false, saving = false, loading = false, exporting = false;
   let sequence = 0, searchTimer, lastLoaded = null, draftBefore = '';
+  let notificationConfig = null, notificationBusy = false;
+  const notificationLabels = { not_sent: 'Not sent', pending: 'Sending', sent: 'Accepted by Gmail', failed: 'Needs retry', not_configured: 'Not activated', disabled: 'Paused' };
   const number = value => Number(value || 0).toLocaleString();
   const date = (value, short = false) => {
     const parsed = new Date(value);
@@ -71,6 +73,17 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
         <div><p class="site-eyebrow">Enquiries & follow-ups</p><h1>Contact leads<span class="leads-heading__dot"></span></h1><p>Every conversation starts here. Turn project briefs into clear next steps.</p></div>
         <a class="leads-button" href="/contact" target="_blank" rel="noopener">View contact form ${icon('arrow')}</a>
       </header>
+      <section class="leads-alerts" aria-label="Lead email notifications">
+        <div class="leads-alerts__intro">${icon('mail')}<div><h2>Lead email alerts</h2><p>New enquiries go to <strong>fenil.seo@gmail.com</strong>. Enable Gmail notifications on your phone for alerts.</p></div></div>
+        <div class="leads-alerts__status" data-notification-config role="status" aria-live="polite">Checking email setup...</div>
+        <div class="leads-alerts__actions"><button type="button" class="leads-button" data-action="notification-test" disabled>Send test email</button><button type="button" class="leads-button" data-action="notification-settings">Check setup</button></div>
+        <details class="leads-alerts__setup"><summary>Activate free Gmail alerts</summary><ol>
+          <li>Enable <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">2-Step Verification</a> for <strong>fenil.seo@gmail.com</strong>, then create an <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer">App Password</a> named <strong>Portfolio lead alerts</strong>.</li>
+          <li>In your Vercel project's environment variables, add it as <code>GMAIL_APP_PASSWORD</code> for Production, then redeploy. Keep this secret in Vercel.</li>
+          <li>Use <strong>Send test email</strong> here, then check the inbox. On your phone, open Gmail settings, choose this account, enable all new-mail notifications and allow notifications in your phone settings.</li>
+        </ol><p>Uses your existing Gmail account with no messaging service subscription. Gmail sending limits apply. <a href="https://support.google.com/accounts/answer/185833" target="_blank" rel="noopener noreferrer">App Password help</a> · <a href="https://support.google.com/mail/answer/1075549" target="_blank" rel="noopener noreferrer">Phone notification help</a></p></details>
+        <p class="leads-alerts__feedback" data-notification-feedback role="status" aria-live="polite"></p>
+      </section>
       <div class="leads-stats" aria-label="Enquiry overview">
         ${[['total', 'All enquiries', 'Your complete inbox', 'inbox'], ['new', 'New enquiries', 'Ready for a first reply', 'mail'], ['active', 'Active conversations', 'New, contacted or qualified', 'check'], ['overdue', 'Overdue follow-ups', 'Active leads needing attention', 'clock']].map(([key, label, hint, glyph]) => `<button type="button" class="leads-stat" data-stat="${key}" aria-pressed="false"><span class="leads-stat__top">${label}${icon(glyph)}</span><strong data-count="${key}">...</strong><span class="leads-stat__hint">${hint}</span></button>`).join('')}
       </div>
@@ -112,7 +125,7 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
     feedback.classList.toggle('is-error', error);
   }
   function canLeave() {
-    if (saving) { notify('Please wait for the current save to finish.'); return false; }
+    if (saving || notificationBusy) { notify('Please wait for the current action to finish.'); return false; }
     if (!dirty) return true;
     if (!window.confirm('Discard unsaved changes to this enquiry?')) return false;
     renderDetail();
@@ -120,7 +133,7 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
   }
   panel.__leadsCanLeave = canLeave;
   window.addEventListener('beforeunload', event => {
-    if (dirty || saving) { event.preventDefault(); event.returnValue = ''; }
+    if (dirty || saving || notificationBusy) { event.preventDefault(); event.returnValue = ''; }
   }, { signal });
   signal.addEventListener('abort', () => { clearTimeout(searchTimer); delete panel.__leadsCanLeave; });
 
@@ -136,6 +149,71 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
   }
   function responseError(result, fallback) {
     return result.status === 401 ? 'Your session has expired. Sign out and sign in again to continue.' : result.data?.error || fallback;
+  }
+  function notificationFeedback(message = '', error = false) {
+    const target = root.querySelector('[data-notification-feedback]');
+    target.textContent = message;
+    target.classList.toggle('is-error', error);
+  }
+  async function loadNotificationSettings() {
+    const result = await request('notification-settings');
+    if (signal.aborted) return;
+    const target = root.querySelector('[data-notification-config]');
+    if (!result.ok || !result.data?.item) {
+      notificationConfig = null;
+      target.textContent = responseError(result, 'Could not check email setup. Try again.');
+      target.classList.add('is-error');
+    } else {
+      notificationConfig = result.data.item;
+      target.classList.remove('is-error');
+      target.textContent = notificationConfig.enabled && notificationConfig.configured ? 'Credentials added. Send a test to confirm delivery.' : notificationConfig.configured ? 'Email alerts are paused in server settings.' : 'Not activated yet. Add the Gmail App Password in Vercel, then redeploy.';
+    }
+    root.querySelector('[data-action="notification-test"]').disabled = !notificationConfig?.configured || !notificationConfig?.enabled || notificationBusy;
+    renderLeadNotification();
+  }
+  function renderLeadNotification() {
+    const target = detail.querySelector('[data-lead-notification]');
+    if (!target || !selected) return;
+    const status = Object.hasOwn(notificationLabels, selected.email_notification_status) ? selected.email_notification_status : 'not_sent';
+    const attempt = selected.email_notification_attempted_at;
+    const inFlight = status === 'pending' && attempt && Date.now() - new Date(attempt).getTime() < 120000;
+    const eligible = notificationConfig?.configured && notificationConfig?.enabled && !notificationBusy && !saving && !inFlight;
+    target.innerHTML = `<div class="leads-section-heading"><h3>Email alert</h3><span class="leads-email-state${status === 'failed' ? ' is-error' : ''}">${notificationLabels[status]}</span></div>
+      <p class="leads-help">${status === 'sent' && selected.email_notification_sent_at ? `Accepted ${esc(date(selected.email_notification_sent_at))}. Check the Gmail inbox for delivery.` : status === 'pending' ? 'An attempt is in progress. Refresh after a moment to check the result.' : status === 'failed' ? 'The request is safely saved. Check email setup and retry the alert.' : 'Send the saved project brief to fenil.seo@gmail.com.'}</p>
+      <button type="button" class="leads-button" data-action="notification-retry"${eligible ? '' : ' disabled'}>${icon('mail')} ${status === 'sent' ? 'Send alert again' : status === 'failed' || status === 'pending' ? 'Retry email alert' : 'Send email alert'}</button>
+      <p class="leads-save-feedback" data-lead-notification-feedback role="status" aria-live="polite"></p>`;
+  }
+  async function sendNotification(test = false) {
+    if (notificationBusy || saving || !notificationConfig?.configured || !notificationConfig?.enabled || !test && !selected) return;
+    const item = selected;
+    const resend = !test && item.email_notification_status === 'sent';
+    if (resend && !window.confirm(`Send another copy of enquiry #${item.id} to fenil.seo@gmail.com?`)) return;
+    notificationBusy = true;
+    if (detail.querySelector('form')) markDirty();
+    root.querySelector('[data-action="notification-test"]').disabled = true;
+    renderLeadNotification();
+    if (test) notificationFeedback('Sending a test email...');
+    else detail.querySelector('[data-lead-notification-feedback]').textContent = 'Sending email alert...';
+    const result = await request(test ? 'test-notification' : 'notify', test ? undefined : { id: item.id, data: { confirm_resend: resend } });
+    if (signal.aborted) return;
+    notificationBusy = false;
+    if (detail.querySelector('form')) markDirty();
+    const sent = result.ok && result.data?.notification?.status === 'sent';
+    const recorded = result.data?.notification?.recorded !== false;
+    const message = sent ? !recorded ? 'Gmail accepted the alert, but its status could not be saved. Check your inbox before retrying.' : test ? 'Gmail accepted the test email. Check your inbox and the Gmail notification on your phone.' : 'Gmail accepted the alert. Your enquiry remains saved.' : responseError(result, 'The email could not be confirmed. Check your inbox before retrying; the enquiry is safely saved.');
+    if (!test && result.data?.item) {
+      selected = { ...selected, ...result.data.item };
+      items = items.map(row => row.id === selected.id ? selected : row);
+      renderList();
+    }
+    renderLeadNotification();
+    if (test) notificationFeedback(message, !sent);
+    else {
+      const target = detail.querySelector('[data-lead-notification-feedback]');
+      target.textContent = message;
+      target.classList.toggle('is-error', !sent || !recorded);
+    }
+    root.querySelector('[data-action="notification-test"]').disabled = !notificationConfig?.configured || !notificationConfig?.enabled;
   }
   function syncFilters() {
     root.querySelectorAll('[data-filter]').forEach(input => { input.value = filters[input.dataset.filter]; });
@@ -173,8 +251,9 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
   }
   function markDirty() {
     dirty = JSON.stringify(draft()) !== draftBefore;
-    detail.querySelector('[data-action="save"]').disabled = !dirty || saving;
-    detail.querySelector('[data-action="discard"]').disabled = !dirty || saving;
+    detail.querySelector('[data-action="save"]').disabled = !dirty || saving || notificationBusy;
+    detail.querySelector('[data-action="discard"]').disabled = !dirty || saving || notificationBusy;
+    detail.querySelector('[data-action="delete"]').disabled = saving || notificationBusy;
     detail.querySelector('[data-draft]').textContent = dirty ? 'Unsaved changes' : 'All changes saved';
   }
   function renderDetail(focus = false) {
@@ -198,6 +277,7 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
         <section class="leads-brief"><h3>Project brief</h3><p>${esc(item.project_brief ?? item.message ?? '')}</p></section>
         <dl class="leads-metadata">${meta.map(([label, value, href]) => `<div><dt>${label}</dt><dd>${value ? href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(value)} ${icon('arrow')}</a>` : esc(value) : '<span class="leads-not-shared">Not shared</span>'}</dd></div>`).join('')}</dl>
         <a class="leads-button leads-button--reply" href="mailto:${esc(encodeURIComponent(item.email))}?subject=${esc(encodeURIComponent('Re: Your project enquiry'))}">${icon('mail')} Reply by email ${icon('arrow')}</a><p class="leads-help">Opens your email app. Update the status after you reply.</p>
+        <section class="leads-email-alert" data-lead-notification aria-label="Enquiry email notification"></section>
         <form class="leads-tracking" aria-label="Manage enquiry">
           <div class="leads-section-heading"><h3>Next steps</h3><span data-draft>All changes saved</span></div>
           <div class="leads-tracking__grid"><label>Status<select name="status">${options(STATUSES, item.status || 'new')}</select></label><label>Priority<select name="priority">${options({ normal: 'Normal', high: 'High' }, item.priority || 'normal')}</select></label></div>
@@ -211,6 +291,7 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
         <footer class="leads-detail__footer"><span>${item.updated_at ? `Last updated ${esc(date(item.updated_at))}` : `Source: ${esc(item.source_path || '/contact')}`}</span><button type="button" class="leads-delete" data-action="delete">Delete enquiry</button></footer>
       </div>`;
     draftBefore = JSON.stringify(draft());
+    renderLeadNotification();
     if (focus) {
       detail.querySelector('[data-detail-title]').focus({ preventScroll: true });
       if (window.matchMedia('(max-width: 1100px)').matches) detail.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -253,7 +334,7 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
     syncFilters();
   }
   async function save() {
-    if (!selected || saving || !dirty) return;
+    if (!selected || saving || notificationBusy || !dirty) return;
     const form = detail.querySelector('form');
     if (!form.reportValidity()) return;
     const values = draft();
@@ -309,7 +390,7 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
     finally { exporting = false; if (!signal.aborted) exportButton.disabled = !total || loading; }
   }
   async function remove() {
-    if (!selected || saving) return;
+    if (!selected || saving || notificationBusy) return;
     if (!window.confirm(`Permanently delete the enquiry from ${selected.name}? The project brief and private notes will be removed.`)) return;
     const id = selected.id;
     saving = true;
@@ -361,6 +442,9 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
     const button = event.target.closest('[data-action]');
     if (!button || button.disabled) return;
     const action = button.dataset.action;
+    if (action === 'notification-test') { await sendNotification(true); return; }
+    if (action === 'notification-retry') { await sendNotification(); return; }
+    if (action === 'notification-settings') { await loadNotificationSettings(); return; }
     if (action === 'export') { await exportCsv(); return; }
     if (action === 'save') return; // Form submit handles this action.
     if (action === 'discard') { renderDetail(); notify('Unsaved changes discarded.'); return; }
@@ -373,5 +457,5 @@ export async function mountLeadsInbox({ panel, api, noteDbStatus, esc }) {
     selected = null; renderDetail(); syncFilters(); notify(); await load();
   }, { signal });
   renderDetail(); syncFilters();
-  await load();
+  await Promise.all([load(), loadNotificationSettings()]);
 }

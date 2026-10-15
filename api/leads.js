@@ -2,6 +2,8 @@ import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
 import { ensureLeadsSchema } from '../lib/lead-migration.js';
 import { LeadError, insertLead, listLeads, validateLeadList, validateLeadSubmission } from '../lib/leads.js';
+import { sendLeadNotification } from '../lib/lead-notifications.js';
+import { attemptLeadNotification, recordLeadNotification, persistLeadNotification } from '../lib/lead-notification-state.js';
 
 export function createLeadsHandler(dependencies = {}) {
   const configured = dependencies.isDbConfigured || isDbConfigured;
@@ -9,6 +11,8 @@ export function createLeadsHandler(dependencies = {}) {
   const authenticated = dependencies.isAuthenticated || isAuthenticated;
   const migrate = dependencies.migrate || ensureLeadsSchema;
   const logger = dependencies.logger || console;
+  const notify = dependencies.notify || sendLeadNotification;
+  const recordNotification = dependencies.recordNotification || recordLeadNotification;
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     if (!['POST', 'GET'].includes(req.method)) {
@@ -29,14 +33,22 @@ export function createLeadsHandler(dependencies = {}) {
       const sql = client();
       await migrate(sql);
       if (req.method === 'POST') {
-        await insertLead(sql, validated);
+        const attemptedAt = new Date().toISOString();
+        const id = await insertLead(sql, validated, attemptedAt);
+        // Saving the enquiry is the delivery guarantee. Email is a secondary
+        // alert and must never turn a confirmed insert into a form error.
+        const notification = await attemptLeadNotification({ ...validated, id }, notify);
+        await persistLeadNotification(sql, id, notification, {
+          recordNotification, expectedAttempt: attemptedAt, timeoutMs: dependencies.recordTimeoutMs,
+        });
         return res.status(200).json({ ok: true, stored: true });
       }
       const result = await listLeads(sql, validated);
       return res.status(200).json({ ...result, leads: result.items });
     } catch (err) {
       if (err instanceof LeadError) return res.status(err.status).json({ error: err.message });
-      logger.error('Contact lead storage failed', { operation: req.method, code: err.code || 'storage_error' });
+      logger.error('Contact lead storage failed', { operation: req.method,
+        code: typeof err.code === 'string' && /^[0-9A-Z]{5}$/.test(err.code) ? err.code : 'storage_error' });
       return res.status(500).json({ error: req.method === 'POST'
         ? 'Could not save your message right now. Please email fenil.seo@gmail.com directly.'
         : 'Could not load contact leads. Please try again.' });

@@ -1,6 +1,6 @@
 import { mountSiteEditor } from './site-editor-ui.js?v=20261005work2';
 import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
-import { mountLeadsInbox } from './leads-ui.js?v=20261010leads';
+import { mountLeadsInbox } from './leads-ui.js?v=20261015alerts';
 
 /* =================================================================
    ADMIN DASHBOARD - login, tabs, and generic CRUD forms for every
