@@ -6,6 +6,9 @@ The site works fully out of the box with zero configuration - it serves built-in
 
 ## Stack
 
+For the current section editor, shared Services list and Gallery workflow, see
+[Editing website content](docs/admin-editing.md).
+
 - **Front end:** plain HTML/CSS/JS, no framework, no build step
 - **Back end:** Vercel serverless functions (`/api`) backed by Neon Postgres (`@neondatabase/serverless`)
 - **Auth:** signed HTTP-only cookie (HMAC-SHA256), no third-party auth provider

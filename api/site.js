@@ -2,7 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { load } from 'cheerio';
 import { getSql, isDbConfigured } from '../lib/db.js';
-import { SITE_FIELDS, applySiteSettings, loadSiteSettings } from '../lib/site-settings.js';
+import { SITE_FIELDS, applySiteSettings, applySharedHeader, loadSiteSettings } from '../lib/site-settings.js';
+import { renderServiceCatalog } from '../lib/service-catalog.js';
 import { loadGalleryContent, renderGallery } from '../lib/gallery-content.js';
 
 const templates = { home:'index.html', about:'about.html', services:'services.html', gallery:'gallery.html', contact:'contact.html' };
@@ -12,6 +13,8 @@ export async function renderSitePage(kind, settings = {}, content = {}) {
   const $ = load((await readFile(join(process.cwd(), templates[kind]), 'utf8')).replace(/^\uFEFF/, ''));
   if (kind === 'gallery' && content.gallery) renderGallery($,content.gallery,settings.gallery);
   if (Object.hasOwn(SITE_FIELDS, kind)) applySiteSettings($, kind, settings[kind]);
+  if(['home','services'].includes(kind))renderServiceCatalog($,kind,settings['service-catalog']?.items);
+  applySharedHeader($,settings.home);
   applySiteSettings($, 'footer', settings.footer);
   return { html:$.html(), robots:$('meta[name="robots"]').attr('content') || 'index, follow' };
 }

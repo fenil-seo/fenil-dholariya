@@ -1,0 +1,27 @@
+.cms-section__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+.cms-section__layout:has(> .cms-section__media) {
+  grid-template-columns: 1fr 1fr;
+}
+.cms-section__body {
+  white-space: pre-line;
+  margin: 1.5rem 0;
+}
+.cms-section__media {
+  width: 100%;
+  max-height: 620px;
+  object-fit: contain;
+  border-radius: 1.25rem;
+}
+.cms-section .btn {
+  margin-top: 1.5rem;
+}
+@media (max-width: 700px) {
+  .cms-section__layout:has(> .cms-section__media) {
+    grid-template-columns: 1fr;
+  }
+}

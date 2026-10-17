@@ -1,5 +1,6 @@
 import { SEED } from '../../lib/seed-data.js';
 import { galleryDefaults } from '../../lib/gallery-content.js';
+import {isDeepStrictEqual} from 'node:util';
 
 // Isolated storage adapter for exercising the actual CMS handlers and renderers.
 // It never connects to Neon, sends email, or modifies production content.
@@ -24,8 +25,10 @@ export async function createCmsStore({migrated=true}={}) {
       return [{count:gallery.size}];
     }
     if(query.startsWith('SELECT key, content'))return [...settings].map(([key,content])=>({key,content:clone(content)}));
-    if(query.startsWith('INSERT INTO site_settings')){const content=JSON.parse(params[1]);settings.set(params[0],content);writes.push('site:'+params[0]);return [{content:clone(content)}];}
+    if(query.startsWith('WITH catalog AS')){const previous=settings.get('service-catalog');if(previous&&!isDeepStrictEqual(previous.items,JSON.parse(params[4])))return [];const content={...(settings.get(params[0])||{}),...JSON.parse(params[1])};settings.set(params[2],JSON.parse(params[3]));settings.set(params[0],content);writes.push('site:service-catalog','site:'+params[0]);return [{key:params[0],content:clone(content)}];}
+    if(query.startsWith('INSERT INTO site_settings')){const rows=[];for(let i=0;i<params.length;i+=2){const key=params[i],content={...(settings.get(key)||{}),...JSON.parse(params[i+1])};settings.set(key,content);writes.push('site:'+key);rows.push({key,content:clone(content)});}return rows;}
     if(query.startsWith('SELECT g.id FROM gallery g JOIN')){const category=categories.get(Number(params[0]));const capture=[...gallery.values()].find(g=>g.section===category?.key);return capture?[{id:capture.id}]:[];}
+    if(query.startsWith('UPDATE gallery_sections g SET')){for(const item of JSON.parse(params[0]))categories.get(item.id).position=item.position;writes.push('gallery-sections:reorder');return clone(sortCategories());}
     if(query.startsWith('SELECT key FROM gallery_sections WHERE'))return sortCategories().filter(s=>s.key===params[0]).map(s=>({key:s.key}));
     const table=query.match(/(?:FROM|INTO|UPDATE) (gallery_sections|gallery|posts|projects)\b/)?.[1];
     const map={gallery_sections:categories,gallery,posts,projects}[table];

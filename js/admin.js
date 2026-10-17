@@ -1,4 +1,4 @@
-import { mountSiteEditor } from './site-editor-ui.js?v=20261017cms';
+import { mountSiteEditor } from './site-editor-ui.js?v=20261017sections';
 import { mountCollectionEditor } from './collection-editor-ui.js?v=20261017cms';
 import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
 import { mountLeadsInbox } from './leads-ui.js?v=20261015alerts';

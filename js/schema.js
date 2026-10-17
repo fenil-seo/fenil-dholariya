@@ -174,6 +174,7 @@ window.Schema = (() => {
 
   /** Writes (or removes, if value is null/undefined) a JSON-LD <script> tag by id. */
   function setScript(id, value) {
+    if(document.getElementById(id)?.hasAttribute('data-cms-managed'))return;
     if (value === null || value === undefined) {
       document.getElementById(id)?.remove();
       return;
@@ -192,7 +193,7 @@ window.Schema = (() => {
     const person = personNode(data.profile);
     setScript("ldJsonPerson", person);
     setScript("ldJsonWebsite", websiteNode());
-    setScript("ldJsonServices", serviceCatalogNode(data.services));
+    if(document.querySelector('.home-service-index,#servicesList'))setScript("ldJsonServices", serviceCatalogNode(data.services));
     setScript("ldJsonCustom", data.profile?.schema_markup || null);
   }
 

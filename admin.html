@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css?v=20260709e" />
   <link rel="stylesheet" href="/css/admin.css?v=20261001cms" />
-  <link rel="stylesheet" href="/css/admin-workspace.css?v=20261017cms" />
+  <link rel="stylesheet" href="/css/admin-workspace.css?v=20261017sections" />
   <link rel="stylesheet" href="/css/liquid-admin.css?v=20261004optical4" />
   <link rel="stylesheet" href="/css/leads.css?v=20261015alerts" />
 </head>
@@ -57,16 +57,19 @@
           <button class="admin__tab" data-tab="leads"><svg><use href="#admin-i-chat"></use></svg><span>Contact leads</span></button>
         </div>
         <div class="admin__nav-group" data-nav-group><p class="admin__nav-label">Shared resources</p>
-          <button class="admin__tab" data-tab="gallery-media"><svg><use href="#admin-i-image"></use></svg><span>Gallery captures</span></button>
-          <button class="admin__tab" data-tab="gallery-sections"><svg><use href="#admin-i-layers"></use></svg><span>Gallery categories</span></button>
           <button class="admin__tab" data-tab="posts"><svg><use href="#admin-i-page"></use></svg><span>Articles</span></button>
           <button class="admin__tab" data-tab="profile"><svg><use href="#admin-i-user"></use></svg><span>Profile &amp; contact</span></button>
           <button class="admin__tab" data-tab="footer"><svg><use href="#admin-i-layers"></use></svg><span>Footer</span></button>
+          <details class="admin__advanced"><summary>Advanced records</summary>
+          <p>Use the page editors above for current website sections.</p>
+          <button class="admin__tab" data-tab="gallery-media"><svg><use href="#admin-i-image"></use></svg><span>All gallery captures</span></button>
+          <button class="admin__tab" data-tab="gallery-sections"><svg><use href="#admin-i-layers"></use></svg><span>All gallery sections</span></button>
           <button class="admin__tab" data-tab="stats"><svg><use href="#admin-i-chart"></use></svg><span>Stats</span></button>
           <button class="admin__tab" data-tab="process"><svg><use href="#admin-i-grid"></use></svg><span>Process</span></button>
           <button class="admin__tab" data-tab="testimonials"><svg><use href="#admin-i-chat"></use></svg><span>Testimonials</span></button>
           <button class="admin__tab" data-tab="skills"><svg><use href="#admin-i-grid"></use></svg><span>Skills</span></button>
           <button class="admin__tab" data-tab="timeline"><svg><use href="#admin-i-chart"></use></svg><span>Timeline</span></button>
+          </details>
         </div>
       </nav>
       <div class="admin__sidebar-foot"><span class="admin__account-mark">FD</span><span class="admin__account"><strong>Fenil Admin</strong><small>Site administrator</small></span><button id="logoutBtn" class="admin__logout" title="Sign out" aria-label="Sign out"><svg><use href="#admin-i-logout"></use></svg></button></div>
@@ -99,6 +102,6 @@
   </div>
 
   <script src="/js/api.js?v=20261015alerts"></script>
-  <script type="module" src="/js/admin.js?v=20261017cms"></script>
+  <script type="module" src="/js/admin.js?v=20261017sections"></script>
 </body>
 </html>

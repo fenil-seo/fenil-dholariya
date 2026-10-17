@@ -61,11 +61,14 @@ const oldNames=['SEO & Technical Audits','Content That Converts','Local SEO & Go
 const oldServices=SEED.services.map((s,i)=>({...s,title:oldNames[i]}));
 const sql=async(query)=>{queries.push(query);if(query.includes('FROM services'))return oldServices;if(query.includes('FROM skills'))return SEED.skills.map(name=>({name}));if(query.includes('FROM timeline'))return SEED.timeline;if(query.includes('FROM projects'))return SEED.projects;return [];};
 const apiSource=(await readFile('api/content.js','utf8')).replace(/^import .*;\r?\n/gm,'').replace('export default async function handler','async function handler');
-const context={getSql:()=>sql,isDbConfigured:()=>true,ensureNewColumns:async()=>{},SEED,console};
+const context={getSql:()=>sql,isDbConfigured:()=>true,ensureNewColumns:async()=>{},loadSiteSettings:async()=>({}),SEED,console};
 vm.createContext(context);vm.runInContext(apiSource,context);
 let output;
 const res={status(){return this},setHeader(){},json(value){output=value;return this}};
 await context.handler({method:'GET',query:{}},res);
 assert.equal(output.services.length,8,'Renamed services must not duplicate');
 assert.ok(!queries.some(q=>q.startsWith('INSERT INTO services')),'Service renames caused inserts');
+context.loadSiteSettings=async()=>({'service-catalog':{items:[{id:'measurement',title:'Measurement',body:'A measurement plan.',published:true},{id:'private-service',title:'Private service',body:'Not published.',published:false}]}});
+await context.handler({method:'GET',query:{}},res);
+assert.equal(output.services.length,1,'Shared catalog must replace legacy service records');assert.equal(output.services[0].title,'Measurement');assert.equal(output.services[0].desc,'A measurement plan.');
 console.log(`PASS: ${pages.length} HTML pages, ${scripts} inline scripts/JSON blocks, ${assets} asset references, inner-page interaction scope and syntax, eight-service contract, legacy database identity. No real database writes.`);

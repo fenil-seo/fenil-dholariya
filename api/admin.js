@@ -12,6 +12,8 @@ import { renderSitePage } from './site.js';
 import { loadGalleryContent, ensureGalleryCollection } from '../lib/gallery-content.js';
 import { previewHtml } from '../lib/admin-preview.js';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
+import { PAGE_SECTIONS, defaultSections } from '../lib/page-sections.js';
+import { serviceCatalog, validateServiceCatalog } from '../lib/service-catalog.js';
 import { ensureLeadsSchema } from '../lib/lead-migration.js';
 import { LeadError, listLeads, updateLead, deleteLead, validateLeadList, validateLeadId, validateLeadUpdate } from '../lib/leads.js';
 import { notificationSettings, sendLeadNotification } from '../lib/lead-notifications.js';
@@ -117,23 +119,39 @@ export async function handleSiteEditor(sql, page, action, data, res, dependencie
   const fields = getEditorFields(page);
   if (action === 'get') {
     const settings = await loadSiteSettings(sql);
-    return res.status(200).json({ fields, item: { ...await editorDefaults(page), ...(settings[page] || {}) } });
+    const item={...await editorDefaults(page),...(settings[page]||{})};
+    if(PAGE_SECTIONS[page])item['layout.sections']??=defaultSections(page);
+    if(['home','services'].includes(page))item['shared.services']=await serviceCatalog(settings);
+    return res.status(200).json({ fields, sections:PAGE_SECTIONS[page]||[], item });
   }
   if (!['update','preview'].includes(action)) return res.status(400).json({ error: 'Unknown action' });
   let content;
   try { content = validateSiteSettings(page, action==='preview' && data?.content ? data.content : data); }
   catch (error) { return res.status(400).json({ error: error.message }); }
+  const existing=await loadSiteSettings(sql);
+  const shared=content['shared.services'],base=content['shared.servicesBase'];delete content['shared.services'];delete content['shared.servicesBase'];
   if(action==='preview') {
-    const settings={...await loadSiteSettings(sql),[page]:content};
-    const result=page==='insights' ? await renderPublicPage('blog','',await loadPublicContent({configured:true,sql,migrate:dependencies.migrate}),settings)
+    const settings={...existing,[page]:{...existing[page],...content},...(shared?{'service-catalog':{items:shared}}:{})};
+    const result=['insights','work'].includes(page) ? await renderPublicPage(page==='insights'?'blog':'work','',await loadPublicContent({configured:true,sql,migrate:dependencies.migrate}),settings)
       : await renderSitePage(page,settings,page==='gallery'?{gallery:await loadGalleryContent(sql)}:{});
-    return res.status(200).json({html:previewHtml(result.html,fields.find(field=>field.group===data?.group)?.selector)});
+    const selected=PAGE_SECTIONS[page]?.find(s=>s.id===data?.group);
+    const custom=content['layout.sections']?.find(s=>s.id===data?.group&&s.type);
+    return res.status(200).json({html:previewHtml(result.html,selected?.selector||(custom?`#${custom.id}`:fields.find(field=>field.group===data?.group)?.selector),{focus:Boolean(selected||custom)})});
   }
-  await loadSiteSettings(sql);
-  const rows = await sql(`INSERT INTO site_settings (key, content, updated_at) VALUES ($1, $2::jsonb, now())
-    ON CONFLICT (key) DO UPDATE SET content=EXCLUDED.content, updated_at=now() RETURNING content`,
-    [page, JSON.stringify(content)]);
-  return res.status(200).json({ item: rows[0].content });
+  // A shared catalog and page copy save in one atomic statement. Patch only
+  // submitted keys so another page editor cannot overwrite unrelated content.
+  const conflict=()=>res.status(409).json({error:'Services changed in another editor. Load the latest services before saving this list.',conflict:'services'});
+  if(shared&&base&&JSON.stringify(base)!==JSON.stringify(validateServiceCatalog(await serviceCatalog(existing))))return conflict();
+  const catalogStatement=`WITH catalog AS (
+    INSERT INTO site_settings (key, content, updated_at) VALUES ($3, $4::jsonb, now())
+    ON CONFLICT (key) DO UPDATE SET content=site_settings.content || EXCLUDED.content, updated_at=now()
+      WHERE site_settings.content->'items'=$5::jsonb RETURNING key
+  ) `;
+  const rows = await sql(`${shared?catalogStatement:''}INSERT INTO site_settings (key, content, updated_at) ${shared?'SELECT $1, $2::jsonb, now() WHERE EXISTS (SELECT 1 FROM catalog)':'VALUES ($1, $2::jsonb, now())'}
+    ON CONFLICT (key) DO UPDATE SET content=site_settings.content || EXCLUDED.content, updated_at=now() RETURNING key, content`,
+    [page, JSON.stringify(content),...(shared?['service-catalog',JSON.stringify({items:shared}),JSON.stringify(base||await serviceCatalog(existing))]:[])]);
+  if(!rows.length&&shared)return conflict();
+  return res.status(200).json({ item: rows.find(r=>r.key===page)?.content||rows[0].content });
 }
 
 /* ---------- Generic CRUD for flat list tables (whitelisted columns only) ---------- */
@@ -377,6 +395,14 @@ export async function handlePosts(sql, action, id, data, res, migrate = ensureNe
 /* ---------- Gallery sections (CRUD for section metadata) ---------- */
 export async function handleGallerySections(sql, action, id, data, res) {
   await ensureGalleryCollection(sql);
+  if(action==='reorder'){
+    const ids=data?.ids;
+    if(!Array.isArray(ids)||ids.length>300||ids.some(v=>!Number.isSafeInteger(v)||v<1)||new Set(ids).size!==ids.length)return res.status(400).json({error:'Invalid gallery section order.'});
+    const current=await sql('SELECT id FROM gallery_sections ORDER BY position, id');
+    if(current.length!==ids.length||current.some(c=>!ids.includes(c.id)))return res.status(409).json({error:'Gallery sections changed. Reload and try again.'});
+    const items=await sql('UPDATE gallery_sections g SET position=s.position FROM jsonb_to_recordset($1::jsonb) AS s(id integer, position integer) WHERE g.id=s.id RETURNING g.*',[JSON.stringify(ids.map((id,position)=>({id,position})))]);
+    return res.status(200).json({items});
+  }
   const COLS = ["key", "label", "eyebrow", "description", "position", "filter_label"];
   const c = (arr) => arr.map((f) => `"${f}"`).join(", ");
   if(['create','update','preview'].includes(action)){

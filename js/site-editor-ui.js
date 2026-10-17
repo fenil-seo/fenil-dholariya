@@ -1,10 +1,12 @@
+import {readList,sectionActions,customSectionFields,catalogMarkup,chooseSectionType} from './page-section-controls.js?v=20261017sections';
+import {createGalleryWorkspace} from './gallery-workspace.js?v=20261017sections';
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]);
 const editorPages = {
   home:{ title:'Home page', path:'/', resource:'home', description:'Edit each section and the search appearance of your home page.' },
   services:{ title:'Services page', path:'/services', resource:'services-page', description:'Edit your service details, recommendations, engagement models and search appearance.' },
   work:{ title:'Work page', path:'/work', resource:'work', description:'Edit your case study collection, project reasoning, evidence links and search appearance.' },
   footer:{ title:'Footer', path:'/', resource:'footer', description:'Edit the footer shared by your public pages.' },
-  gallery:{title:'Gallery page',path:'/gallery',resource:'gallery-page',serverPreview:true,description:'Edit the gallery introduction, filters, evidence guidance and search appearance.',links:[{page:'gallery-media',label:'Manage captures'},{page:'gallery-sections',label:'Manage categories'}]},
+  gallery:{title:'Gallery page',path:'/gallery',resource:'gallery-page',serverPreview:true,description:'Edit page content, add gallery sections and manage their captures in one place.'},
   about:{title:'About page',path:'/about',resource:'about',serverPreview:true,description:'Edit your portrait, approach, experience, working principles and search appearance.'},
   insights:{title:'Insights page',path:'/blog',resource:'insights',serverPreview:true,description:'Edit the journal, featured article, library labels, editorial note and search appearance.',links:[{page:'posts',label:'Manage articles'}]},
 };
@@ -96,6 +98,7 @@ export function normalizeSiteDraft(item, fields) {
     const value = item?.[field.key];
     draft[field.key] = field.mode === 'json' ? value == null ? '' : JSON.stringify(value, null, 2) : String(value ?? '');
   }
+  for(const key of ['layout.sections','shared.services'])if(item?.[key]!==undefined)draft[key]=JSON.stringify(item[key]);
   return draft;
 }
 export function siteDraftIsDirty(draft, saved) {
@@ -103,6 +106,7 @@ export function siteDraftIsDirty(draft, saved) {
 }
 export function parseSitePayload(draft) {
   const payload = { ...draft };
+  for(const key of ['layout.sections','shared.services'])if(Object.hasOwn(payload,key))payload[key]=JSON.parse(payload[key]);
   if (Object.hasOwn(payload, 'seo.schema')) {
     const raw = payload['seo.schema'].trim();
     if (!raw) payload['seo.schema'] = null;
@@ -128,7 +132,7 @@ function labelFor(field) {
   return field.label;
 }
 function mediaField(field) { return field.attr === 'src' || field.attr === 'poster' || field.key === 'seo.ogImage'; }
-function videoField(field) { return /video(?:Webm|Mp4)$/.test(field.key); }
+function videoField(field) { return /(?:video(?:Webm|Mp4)|block\.video)$/.test(field.key); }
 function multilineField(field, value) {
   return field.mode === 'markup' || field.multiline || field.mode === 'json' || /(?:body|description|intro|lede|note|tagline|caption)$/i.test(field.key) || String(value).length > 115;
 }
@@ -139,6 +143,11 @@ function fieldMarkup(field, value, scope) {
   const counter = info.target ? `<span class="site-field__counter" data-counter="${escapeHtml(field.key)}">${String(value).length} / ${info.target}</span>` : '';
   const wide = field.group === 'SEO' || info.target || field.mode === 'json' || field.multiline || field.mode === 'markup' || multilineField(field, value) || mediaField(field);
   const label = `<div class="site-field__label-row"><label for="${id}">${escapeHtml(labelFor(field))}</label>${counter}</div>`;
+  if(field.mode==='markup'){
+    const doc=new DOMParser().parseFromString(String(value),'text/html');
+    doc.body.querySelectorAll('*').forEach(node=>{if(!['BR','SPAN','EM','STRONG','B','I'].includes(node.tagName))node.replaceWith(...node.childNodes);else [...node.attributes].forEach(a=>node.removeAttribute(a.name));});
+    return `<div class="site-field site-field--wide">${label}<div class="case-richtext"><div class="rte-toolbar"><button type="button" class="rte-btn" data-heading-command="bold" aria-label="Bold heading text">B</button><button type="button" class="rte-btn" data-heading-command="italic" aria-label="Italic heading text">I</button></div><div id="${id}" class="rte-editor" role="textbox" aria-label="${escapeHtml(field.label)}" contenteditable="true" data-site-key="${escapeHtml(field.key)}">${doc.body.innerHTML}</div></div><p class="site-field__hint">Type directly. Use Shift+Enter for a new line, or select text to format it.</p></div>`;
+  }
   if (mediaField(field)) {
     const url = safeMedia(value);
     const preview = url ? videoField(field)
@@ -191,7 +200,12 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   const contentFields = fields.filter(field => field.group !== 'SEO');
   const seoFields = fields.filter(field => field.group === 'SEO');
   const hasSeo = seoFields.length > 0;
-  const groups = [...new Set(contentFields.map(field => field.group))];
+  const definitions=data.sections||[];
+  // Home service names and the old eight fixed service forms are superseded by
+  // the shared collection below. Legacy values remain available for migration.
+  const editableContent=contentFields.filter(f=>!/^services\.item\./.test(f.key)&&!/^service\./.test(f.key));
+  let groups = definitions.length?(data.item['layout.sections']||[]).map(s=>s.id):[...new Set(contentFields.map(field => field.group))];
+  if(definitions.length)info.serverPreview=true;
   const initial = normalizeSiteDraft(data.item || {}, fields);
   const state = {
     draft: { ...initial }, saved: { ...initial },
@@ -200,9 +214,18 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     openSeo:new Set(['search','social']),
   };
   panel.__siteEditorState = state;
+  const sections=()=>readList(state.draft,'layout.sections');
+  const selectedSection=()=>sections().find(s=>s.id===state.group);
+  const selectedDefinition=()=>definitions.find(s=>s.id===state.group);
+  const groupTitle=id=>sections().find(s=>s.id===id)?.title||id;
+  const writeList=(key,value)=>{state.draft[key]=JSON.stringify(value);state.message='';updateControls();};
+  let selectedService='',galleryWorkspace;
+  if(page==='gallery'){
+    try{galleryWorkspace=await createGalleryWorkspace({panel,api,onChange:()=>{},signal:controller.signal});}catch(error){state.message=error.message;}
+  }
 
   const dirty = () => siteDraftIsDirty(state.draft, state.saved);
-  const formFields = () => contentFields.filter(field => field.group === state.group);
+  const formFields = () => definitions.length?editableContent.filter(field=>selectedDefinition()?.groups.includes(field.group)):contentFields.filter(field => field.group === state.group);
 
   function toolbar() {
     return `<div class="site-editor-toolbar"><div class="site-editor-toolbar__left">${state.view === 'content'
@@ -215,7 +238,12 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     }
     const items = formFields();
     const description = page==='about' && state.group==='Page navigation' ? 'The links to your approach, experience and working principles.' : sectionDescriptions[state.group] || (page === 'services' ? 'Edit this service name, introduction, detailed scope and enquiry link.' : 'Edit the content used in this part of the site.');
-    return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(state.group)}</h2><p>${escapeHtml(description)}</p>${page === 'work' && state.group === 'Case study collection' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}</div><div class="site-fields-grid">${items.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}</div></div>`;
+    const section=selectedSection(),definition=selectedDefinition();
+    const collection=definition?.collection;
+    const intro=section?.type?'Edit this section, then save changes to publish.':collection==='services'?'Edit the section introduction and the shared service list below.':collection==='gallery'?'Add a section, then add or edit its captures. Gallery saves are applied using the buttons in each dialog.':'Edit the words, images and links in this section. Save changes to publish.';
+    const fieldGroups=[...new Set(items.map(f=>f.group))];
+    const fieldForms=fieldGroups.length>1?fieldGroups.map((name,i)=>`<details class="site-seo-block cms-field-group" ${i===0?'open':''}><summary><strong>${escapeHtml(name==='Goal explorer'?'Introduction and choices':name)}</strong><span>Edit content</span></summary><div class="site-fields-grid">${items.filter(f=>f.group===name).map(f=>fieldMarkup(f,state.draft[f.key],page)).join('')}</div></details>`).join(''):`<div class="site-fields-grid">${items.map(field=>fieldMarkup(field,state.draft[field.key],page)).join('')}</div>`;
+    return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(groupTitle(state.group))}</h2><p>${escapeHtml(definitions.length?intro:description)}</p>${section?sectionActions(section,definition,groups.indexOf(state.group),groups.length,definitions.find(d=>d.id===groups[groups.indexOf(state.group)-1])?.fixed):''}${collection==='projects'?'<button class="site-button" type="button" data-site-action="manage-projects">Edit / add case studies</button>':''}${collection==='posts'?'<button class="site-button" type="button" data-open-page="posts">Edit / add articles</button>':''}</div>${section?.type?customSectionFields(section,page):fieldForms}${collection==='services'?catalogMarkup(readList(state.draft,'shared.services'),selectedService,page)+(state.serviceConflict?'<button type="button" class="site-button" data-site-action="reload-services">Load latest services</button>':''):''}${collection==='gallery'?`<div data-gallery-host>${galleryWorkspace?.markup()||'<p>Gallery could not load. Reload to retry.</p>'}</div>`:''}</div>`;
   }
   function seoBody() {
     const searchFields = seoFields.filter(field => ['seo.title','seo.description','seo.keywords','seo.canonical','seo.robots'].includes(field.key));
@@ -233,6 +261,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     return `<dialog class="site-media-dialog"><div class="site-media-dialog__head"><div><strong>Choose published media</strong><p>Files already deployed in this site's assets folder.</p></div><button type="button" class="site-media-dialog__close" data-site-action="close-media" aria-label="Close media picker">×</button></div><label class="site-media-dialog__search">Search assets<input class="site-input" type="search" data-media-search placeholder="Search by filename or folder"></label><div class="site-media-dialog__list" data-media-list><p>Loading media...</p></div><div class="site-media-dialog__foot">For a new file, publish it to the site's assets folder or use a hosted HTTPS URL.</div></dialog>`;
   }
   function draw() {
+    if(definitions.length){groups=sections().map(s=>s.id);if(!groups.includes(state.group))state.group=groups[0];}
     panel.querySelectorAll('[data-seo-section]').forEach(section => {
       if (section.open) state.openSeo.add(section.dataset.seoSection);
       else state.openSeo.delete(section.dataset.seoSection);
@@ -240,7 +269,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     const title = info.title;
     panel.innerHTML = `<div class="site-editor-page"><div class="site-editor-heading"><p class="site-eyebrow">${page === 'footer' ? 'Shared resource' : 'Website'}</p><h1>${title}</h1><p>${info.description}</p></div>
       ${(info.links || []).length?'<div class="site-editor-navigation">':''}<div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${hasSeo ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>${page === 'work' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}${(info.links || []).map(link=>`<button type="button" class="site-button" data-open-page="${link.page}">${link.label}</button>`).join(' ')}${(info.links || []).length?'</div>':''}
-      <div class="site-editor-layout${state.view === 'seo' ? ' site-editor-layout--seo' : ''}">${state.view === 'content' ? `<aside class="site-editor-sections"><div class="site-editor-sections__head"><strong>Sections</strong><span>${groups.length}</span></div><nav aria-label="Page sections">${groups.map((group, index) => `<button type="button" class="site-editor-section${group === state.group ? ' is-active' : ''}" data-site-group="${escapeHtml(group)}"><span class="site-editor-section__number">${String(index + 1).padStart(2,'0')}</span><span><strong>${escapeHtml(group)}</strong><small>Section ${index + 1}</small></span></button>`).join('')}</nav></aside>` : '<div class="site-editor-spacer" aria-hidden="true"></div>'}
+      <div class="site-editor-layout${state.view === 'seo' ? ' site-editor-layout--seo' : ''}">${state.view === 'content' ? `<aside class="site-editor-sections"><div class="site-editor-sections__head"><strong>Page sections</strong><span>${groups.length}</span></div>${definitions.length?`${page==='gallery'?'<button type="button" class="site-button site-button--orange cms-add-section-button" data-site-action="add-gallery-section">+ Add gallery section</button>':''}<button type="button" class="site-button cms-add-section-button" data-section-action="add">+ Add ${page==='gallery'?'content block':'section'}</button>`:''}<label class="cms-page-select">Choose a section<select class="site-input" data-site-section-select>${groups.map(g=>`<option value="${escapeHtml(g)}" ${g===state.group?'selected':''}>${escapeHtml(groupTitle(g))}${sections().find(s=>s.id===g)?.hidden?' (hidden)':''}</option>`).join('')}</select></label><nav aria-label="Page sections">${groups.map((group, index) => `<button type="button" class="site-editor-section${group === state.group ? ' is-active' : ''}" data-site-group="${escapeHtml(group)}"><span class="site-editor-section__number">${String(index + 1).padStart(2,'0')}</span><span><strong>${escapeHtml(groupTitle(group))}</strong><small>${sections().find(s=>s.id===group)?.hidden?'Hidden on website':definitions.find(s=>s.id===group)?.collection==='services'?'Shared service list':`Section ${index+1}`}</small></span></button>`).join('')}</nav></aside>` : '<div class="site-editor-spacer" aria-hidden="true"></div>'}
         <div class="site-editor-card">${toolbar()}${state.view === 'seo' ? seoBody() : contentBody()}</div></div>${mediaDialog()}</div>`;
     refreshPreview();
   }
@@ -294,7 +323,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
         el.setAttribute(field.attr, value);
       } else if (field.mode === 'markup') {
         const parsed = new DOMParser().parseFromString(value, 'text/html');
-        const allowed = new Set(['BR','SPAN','EM','STRONG']);
+        const allowed = new Set(['BR','SPAN','EM','STRONG','B','I']);
         const transfer = (node, parent) => {
           if (node.nodeType === Node.TEXT_NODE) { parent.appendChild(doc.createTextNode(node.textContent)); return; }
           if (node.nodeType !== Node.ELEMENT_NODE) return;
@@ -351,22 +380,23 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   }
   async function renderServerPreview(frame){
     const status=panel.querySelector('[data-server-preview-status]');if(status)status.textContent='Rendering unsaved changes...';
-    try{const response=await api.admin(info.resource,'preview',{data:{content:parseSitePayload({...state.draft}),group:state.group}});if(!frame.isConnected)return;if(!response.ok)throw new Error(response.data?.error || 'Preview unavailable.');frame.srcdoc=response.data.html;if(status)status.textContent='Includes unsaved content and the current shared footer. Links are disabled.';}
+    try{const response=await api.admin(info.resource,'preview',{data:{content:parseSitePayload({...state.draft}),group:state.group}});if(!frame.isConnected)return;if(!response.ok)throw new Error(response.data?.error || 'Preview unavailable.');frame.srcdoc=response.data.html;if(status)status.textContent='Preview includes unsaved changes. Links are disabled.';}
     catch(error){if(frame.isConnected && status)status.textContent=error.message;}
   }
   async function save() {
     if (!dirty() || state.saving) return;
     const submitted = { ...state.draft };
     let payload;
-    try { payload = parseSitePayload(submitted); }
-    catch (error) { state.message = error.message; state.view = 'seo'; draw(); const field = panel.querySelector('[data-site-key="seo.schema"]'); if (field) { field.closest('details').open = true; field.focus(); } return; }
+    try { payload = parseSitePayload(Object.fromEntries(Object.entries(submitted).filter(([key,value])=>value!==state.saved[key]))); }
+    catch (error) { state.message = error.message; draw(); return; }
+    if(Object.hasOwn(payload,'shared.services'))payload['shared.servicesBase']=JSON.parse(state.saved['shared.services']);
     state.saving = true; state.message = ''; updateControls();
     let result;
     try { result = await api.admin(info.resource, 'update', { data:payload }); }
     catch (error) { result = { ok:false, data:{ error:error.message || 'Save failed. Try again.' } }; }
     state.saving = false;
-    if (result.ok) { state.saved = submitted; state.message = dirty() ? '' : 'Saved just now'; }
-    else state.message = result.data?.error || 'Save failed. Try again.';
+    if (result.ok) { state.saved = submitted; state.message = dirty() ? '' : 'Saved just now';if(Object.hasOwn(payload,'shared.services'))window.dispatchEvent(new CustomEvent('site:services-changed',{detail:{items:payload['shared.services'],source:panel}})); }
+    else {state.message = result.data?.error || 'Save failed. Try again.';if(result.data?.conflict==='services'){state.serviceConflict=true;state.group='services';state.view='content';state.mode='edit';draw();}}
     updateControls();
   }
   async function openMedia(key) {
@@ -389,21 +419,42 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   function renderMediaList() {
     const list = panel.querySelector('[data-media-list]');
     if (!list || !state.media) return;
-    const video = /video(?:Webm|Mp4)$/.test(state.mediaKey);
+    const video = /(?:video(?:Webm|Mp4)|block\.video)$/.test(state.mediaKey);
     const extension = state.mediaKey.endsWith('Webm') ? '.webm' : '.mp4';
     const query = state.mediaQuery.trim().toLowerCase();
-    const matches = state.media.filter(item => item.type === (video ? 'video' : 'image') && (!video || item.path.toLowerCase().endsWith(extension)) && (state.mediaKey !== 'seo.ogImage' || !item.path.toLowerCase().endsWith('.svg')) && (!query || item.path.toLowerCase().includes(query))).slice(0, 96);
+    const matches = state.media.filter(item => item.type === (video ? 'video' : 'image') && (!video || state.mediaKey==='block.video' || item.path.toLowerCase().endsWith(extension)) && (state.mediaKey !== 'seo.ogImage' || !item.path.toLowerCase().endsWith('.svg')) && (!query || item.path.toLowerCase().includes(query))).slice(0, 96);
     list.innerHTML = matches.length ? matches.map(item => `<button type="button" class="site-media-option" data-media-choice="${escapeHtml(item.path)}">${video ? '<span class="site-media-option__video">Video</span>' : `<img src="${escapeHtml(item.path)}" alt="" loading="lazy">`}<span title="${escapeHtml(item.path)}">${escapeHtml(item.name)}</span></button>`).join('') : '<p>No matching assets. Try a shorter search or paste a URL directly.</p>';
   }
 
   panel.addEventListener('input', event => {
+    const structured=event.target.closest('[data-structured-key]');
+    if(structured){
+      const [scope,key]=structured.dataset.structuredKey.split('.'),value=structured.type==='checkbox'?structured.checked:structured.value;
+      if(scope==='block'){const list=sections();list.find(s=>s.id===state.group)[key]=value;writeList('layout.sections',list);if(key==='title')panel.querySelector(`[data-site-group="${state.group}"] strong`).textContent=value;}
+      if(scope==='service'){
+        const list=readList(state.draft,'shared.services'),item=list.find(s=>s.id===selectedService)||list[0];
+        if(item){
+          const oldId=item.id;item[key]=key==='scope'?value.split('\n'):value;
+          if(key==='title'&&!readList(state.saved,'shared.services').some(s=>s.id===oldId)){
+            const name=value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,72).replace(/-$/,'');
+            const slug=name?`service-${name}`:'';
+            if(slug&&!list.some(s=>s!==item&&s.id===slug)){item.id=slug;if(item.url===`/contact?interest=${oldId}`){item.url=`/contact?interest=${slug}`;const url=panel.querySelector('[data-structured-key="service.url"]');if(url)url.value=item.url;}}
+          }
+          selectedService=item.id;writeList('shared.services',list);
+          const tab=panel.querySelector(`[data-service-select="${oldId}"]`);if(tab){tab.dataset.serviceSelect=item.id;tab.textContent=(item.title||'New service')+(item.published?'':' · Hidden');}
+          const option=panel.querySelector(`[data-service-dropdown] option[value="${oldId}"]`);if(option){option.value=item.id;option.textContent=(item.title||'New service')+(item.published?'':' (hidden)');}
+          const path=panel.querySelector('[data-service-path]');if(path)path.textContent='/services#'+item.id;
+        }
+      }
+      return;
+    }
     const input = event.target.closest('[data-site-key]');
     if (input) {
-      state.draft[input.dataset.siteKey] = input.value;
+      state.draft[input.dataset.siteKey] = input.isContentEditable?input.innerHTML:input.value;
       state.message = '';
       updateControls();
       const counter = [...panel.querySelectorAll('[data-counter]')].find(node => node.dataset.counter === input.dataset.siteKey);
-      if (counter) counter.textContent = `${input.value.length} / ${advice[input.dataset.siteKey]?.target || 0}`;
+      if (counter) counter.textContent = `${state.draft[input.dataset.siteKey].length} / ${advice[input.dataset.siteKey]?.target || 0}`;
       updateSeoPreviews();
       updateFieldPreview(input.dataset.siteKey);
       return;
@@ -411,10 +462,36 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     if (event.target.matches('[data-media-search]')) { state.mediaQuery = event.target.value; renderMediaList(); }
   }, { signal:controller.signal });
   panel.addEventListener('change', event => {
+    if(event.target.matches('[data-site-section-select]')){state.group=event.target.value;state.mode='edit';draw();return;}
+    if(event.target.matches('[data-service-dropdown]')){selectedService=event.target.value;draw();return;}
     const select = event.target.closest('select[data-site-key]');
     if (select) { state.draft[select.dataset.siteKey] = select.value; state.message = ''; updateControls(); }
   }, { signal:controller.signal });
   panel.addEventListener('click', async event => {
+    const headingCommand=event.target.closest('[data-heading-command]');if(headingCommand){const editor=headingCommand.closest('.case-richtext').querySelector('[contenteditable]');editor.focus();document.execCommand(headingCommand.dataset.headingCommand,false,null);editor.dispatchEvent(new Event('input',{bubbles:true}));return;}
+    const sectionAction=event.target.closest('[data-section-action]')?.dataset.sectionAction;
+    if(sectionAction){
+      const list=sections(),index=list.findIndex(s=>s.id===state.group),definition=selectedDefinition();
+      if(sectionAction==='add'){
+        const choice=await chooseSectionType(panel,definitions,list);if(!choice)return;
+        if(choice.restore){const def=definitions.find(d=>d.id===choice.restore);list.push({id:def.id,title:def.title,hidden:false});state.group=def.id;}
+        else{const id=`custom-${crypto.randomUUID().slice(0,12)}`,title={text:'Text section',image:'Image and text',video:'Video and text',cta:'Call to action'}[choice.type];list.push({id,type:choice.type,title,heading:title,hidden:false,eyebrow:'',body:'',image:'',alt:'',video:'',poster:'',button:'',url:''});state.group=id;}
+      }else{
+        if(index<0||definition?.fixed)return;
+        if(sectionAction==='visibility')list[index].hidden=!list[index].hidden;
+        if(sectionAction==='remove'){if(!confirm('Remove this section from the page? You can restore built-in sections using Add section.'))return;list.splice(index,1);state.group=list[Math.min(index,list.length-1)]?.id;}
+        if(sectionAction==='up'||sectionAction==='down'){const to=index+(sectionAction==='up'?-1:1);if(to<0||to>=list.length||definitions.find(d=>d.id===list[to].id)?.fixed)return;[list[index],list[to]]=[list[to],list[index]];}
+      }
+      writeList('layout.sections',list);draw();return;
+    }
+    const serviceSelect=event.target.closest('[data-service-select]');if(serviceSelect){selectedService=serviceSelect.dataset.serviceSelect;draw();return;}
+    const serviceAction=event.target.closest('[data-service-action]')?.dataset.serviceAction;
+    if(serviceAction){const list=readList(state.draft,'shared.services');let index=Math.max(0,list.findIndex(s=>s.id===selectedService));
+      if(serviceAction==='add'){const id=`service-${crypto.randomUUID().slice(0,8)}`;list.push({id,title:'New service',intro:'',body:'',scopeTitle:'Typical scope',scope:[],button:'Discuss this service',url:`/contact?interest=${id}`,published:false,showOnHome:true});selectedService=id;}
+      if(serviceAction==='remove'){if(!confirm('Remove this service from Home and Services?'))return;list.splice(index,1);selectedService=list[Math.min(index,list.length-1)]?.id||'';}
+      if(serviceAction==='up'||serviceAction==='down'){const to=index+(serviceAction==='up'?-1:1);if(to<0||to>=list.length)return;selectedService=list[index].id;[list[index],list[to]]=[list[to],list[index]];}
+      writeList('shared.services',list);draw();return;
+    }
     const destination=event.target.closest('[data-open-page]');if(destination){document.dispatchEvent(new CustomEvent('site:open-page',{detail:{page:destination.dataset.openPage}}));return;}
     const view = event.target.closest('[data-site-view]');
     if (view) { state.view = view.dataset.siteView; state.message = ''; history.replaceState(null, '', `#${page}/${state.view}`); draw(); return; }
@@ -427,7 +504,8 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     const opener = event.target.closest('[data-open-media]');
     if (opener) { await openMedia(opener.dataset.openMedia); return; }
     const choice = event.target.closest('[data-media-choice]');
-    if (choice) { state.draft[state.mediaKey] = choice.dataset.mediaChoice; state.message = ''; panel.querySelector('.site-media-dialog')?.close(); draw(); return; }
+    if (choice) { if(state.mediaKey.startsWith('block.')){const list=sections();list.find(s=>s.id===state.group)[state.mediaKey.slice(6)]=choice.dataset.mediaChoice;writeList('layout.sections',list);}else state.draft[state.mediaKey] = choice.dataset.mediaChoice; state.message = ''; panel.querySelector('.site-media-dialog')?.close(); draw(); return; }
+    const sectionMedia=event.target.closest('[data-section-media]');if(sectionMedia){await openMedia(`block.${sectionMedia.dataset.sectionMedia}`);return;}
     const template = event.target.closest('[data-schema-template]');
     if (template) {
       const block = schemaTemplates[template.dataset.schemaTemplate]?.(state.draft['seo.canonical']);
@@ -440,6 +518,15 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       state.message = ''; draw(); panel.querySelector('[data-site-key="seo.schema"]')?.focus(); return;
     }
     const action = event.target.closest('[data-site-action]')?.dataset.siteAction;
+    if(action==='reload-services'){
+      if(!confirm('Replace your service list draft with the latest saved services? Other page edits will be kept.'))return;
+      const latest=await api.admin(info.resource,'get');if(!latest.ok){state.message=latest.data?.error||'Could not reload services.';updateControls();return;}
+      state.draft['shared.services']=state.saved['shared.services']=JSON.stringify(latest.data.item['shared.services']);state.serviceConflict=false;state.message='Latest services loaded';draw();return;
+    }
+    if(action==='add-gallery-section'){
+      const list=sections();if(!list.some(s=>s.id==='captures')){list.push({id:'captures',title:definitions.find(s=>s.id==='captures').title,hidden:false});writeList('layout.sections',list);state.message='Save changes to publish the restored gallery block.';}
+      state.group='captures';state.view='content';state.mode='edit';draw();galleryWorkspace?.addSection();return;
+    }
     if (action === 'manage-projects') { panel.dispatchEvent(new CustomEvent('site:open-page', { bubbles:true, detail:{ page:'projects' } })); return; }
     if (action === 'save') { await save(); return; }
     if (action === 'discard') { state.draft = { ...state.saved }; state.message = 'Changes discarded'; draw(); return; }
@@ -449,9 +536,11 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
       catch (error) { const status = panel.querySelector('[data-schema-status]'); if (status) status.textContent = `Invalid JSON: ${error.message}`; }
     }
   }, { signal:controller.signal });
+  panel.addEventListener('mousedown',event=>{if(event.target.closest('[data-heading-command]'))event.preventDefault();},{signal:controller.signal});
+  panel.addEventListener('paste',event=>{const editor=event.target.closest('[contenteditable][data-site-key]');if(!editor)return;event.preventDefault();document.execCommand('insertText',false,event.clipboardData.getData('text/plain'));},{signal:controller.signal});
   const keydown = event => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's' && panel.classList.contains('is-active')) {
-      event.preventDefault(); save();
+      event.preventDefault(); if(!galleryWorkspace?.saveOpenDialog())save();
     }
   };
   document.addEventListener('keydown', keydown, { signal:controller.signal });
@@ -463,7 +552,8 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   const changedEvent=page==='gallery'?'site:gallery-changed':page==='insights'?'site:posts-changed':null;
   if(changedEvent)window.addEventListener(changedEvent,()=>{const frame=panel.querySelector('.site-live-preview iframe');if(frame){delete frame.dataset.serverRequested;refreshPreview();}},{signal:controller.signal});
   window.addEventListener('beforeunload', event => {
-    if (dirty()) { event.preventDefault(); event.returnValue = ''; }
+    if (dirty()||galleryWorkspace?.hasUnsavedChanges()) { event.preventDefault(); event.returnValue = ''; }
   }, { signal:controller.signal });
+  window.addEventListener('site:services-changed',event=>{if(!['home','services'].includes(page)||event.detail?.source===panel)return;const key='shared.services';if(state.draft[key]!==state.saved[key])return;state.draft[key]=state.saved[key]=JSON.stringify(event.detail.items);draw();},{signal:controller.signal});
   draw();
 }
