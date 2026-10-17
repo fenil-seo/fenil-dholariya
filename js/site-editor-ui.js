@@ -4,9 +4,29 @@ const editorPages = {
   services:{ title:'Services page', path:'/services', resource:'services-page', description:'Edit your service details, recommendations, engagement models and search appearance.' },
   work:{ title:'Work page', path:'/work', resource:'work', description:'Edit your case study collection, project reasoning, evidence links and search appearance.' },
   footer:{ title:'Footer', path:'/', resource:'footer', description:'Edit the footer shared by your public pages.' },
+  gallery:{title:'Gallery page',path:'/gallery',resource:'gallery-page',serverPreview:true,description:'Edit the gallery introduction, filters, evidence guidance and search appearance.',links:[{page:'gallery-media',label:'Manage captures'},{page:'gallery-sections',label:'Manage categories'}]},
+  about:{title:'About page',path:'/about',resource:'about',serverPreview:true,description:'Edit your portrait, approach, experience, working principles and search appearance.'},
+  insights:{title:'Insights page',path:'/blog',resource:'insights',serverPreview:true,description:'Edit the journal, featured article, library labels, editorial note and search appearance.',links:[{page:'posts',label:'Manage articles'}]},
 };
 
 const sectionDescriptions = {
+  'About hero':'Your greeting, headline, introduction, calls to action and location.',
+  'Portrait and identity':'Your portrait, accessible image description, name, role and image notes.',
+  'Approach introduction':'The introduction to your three areas of practice.',
+  'Approach: Search strategy':'The search strategy choice, explanation, supporting points and service link.',
+  'Approach: Useful content':'The content strategy choice, explanation, supporting points and service link.',
+  'Approach: Practical AI':'The AI workflow choice, explanation, supporting points and service link.',
+  'Experience introduction':'The context above your career history.',
+  'Experience: Role 1':'Company identity, job title, role label and dates for the first career card.',
+  'Experience: Role 2':'Company identity, job title, role label and dates for the second career card.',
+  'Experience: Role 3':'Company identity, job title, role label and dates for the third career card.',
+  'Gallery hero':'The gallery introduction, preview image, caption and date.',
+  'Filters and viewer':'Filter labels, capture counts, expand/collapse copy and accessible viewer labels.',
+  'Reading the evidence':'The guidance that explains how visitors should interpret your captures.',
+  'Insights hero':'Your journal name, author line, portrait and opening introduction.',
+  'Featured article':'Choose a published article by its slug, or leave the slug blank to use the latest article.',
+  'Article library':'Search, topic filters, card labels, counts and empty results messages.',
+  'Editorial note':'The closing note about your writing and its About page link.',
   Hero: 'The first screen: positioning, calls to action, portrait and featured outcome.',
   'Working principles': 'Three short principles that explain how you work.',
   'Featured case': 'The highlighted case study, its image, result and link.',
@@ -44,6 +64,8 @@ const sectionDescriptions = {
   'Evidence links': 'The three destinations, labels and descriptions linking to project evidence.',
 };
 const advice = {
+  'feature.slug':{hint:'Use the URL slug only, for example technical-seo-audit-checklist. Blank or unavailable articles fall back to the latest published article.'},
+  'collection.more':{hint:'Use {count} for the number of additional captures hidden in the collapsed grid.'},
   'hero.kicker': { target:80, hint:'A short line above the headline.' },
   'hero.title': { target:120, hint:'Use <span> or <em> for the highlighted phrase, and <br> for a line break.' },
   'hero.lede': { target:320, hint:'One clear paragraph explaining whom you help and how.' },
@@ -189,10 +211,10 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   }
   function contentBody() {
     if (state.mode === 'preview') {
-      return `<div class="site-live-preview"><div class="site-live-preview__bar"><span>Draft preview</span><div class="site-segmented"><button type="button" class="${state.device === 'desktop' ? 'is-active' : ''}" data-site-device="desktop">Desktop</button><button type="button" class="${state.device === 'mobile' ? 'is-active' : ''}" data-site-device="mobile">Mobile</button></div></div><p>Preview includes your unsaved content. Links are disabled here.</p><div class="site-live-preview__viewport"><iframe title="${info.title} draft preview" src="${info.path}" loading="lazy"></iframe></div></div>`;
+      return `<div class="site-live-preview"><div class="site-live-preview__bar"><span>Draft preview</span><div class="site-segmented"><button type="button" class="${state.device === 'desktop' ? 'is-active' : ''}" data-site-device="desktop">Desktop</button><button type="button" class="${state.device === 'mobile' ? 'is-active' : ''}" data-site-device="mobile">Mobile</button></div></div><p data-server-preview-status>Preview includes your unsaved content. Links are disabled here.</p><div class="site-live-preview__viewport"><iframe title="${info.title} draft preview" ${info.serverPreview?'sandbox=""':`src="${info.path}" loading="lazy"`}></iframe></div></div>`;
     }
     const items = formFields();
-    const description = sectionDescriptions[state.group] || (page === 'services' ? 'Edit this service name, introduction, detailed scope and enquiry link.' : 'Edit the content used in this part of the site.');
+    const description = page==='about' && state.group==='Page navigation' ? 'The links to your approach, experience and working principles.' : sectionDescriptions[state.group] || (page === 'services' ? 'Edit this service name, introduction, detailed scope and enquiry link.' : 'Edit the content used in this part of the site.');
     return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(state.group)}</h2><p>${escapeHtml(description)}</p>${page === 'work' && state.group === 'Case study collection' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}</div><div class="site-fields-grid">${items.map(field => fieldMarkup(field, state.draft[field.key], page)).join('')}</div></div>`;
   }
   function seoBody() {
@@ -217,7 +239,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     });
     const title = info.title;
     panel.innerHTML = `<div class="site-editor-page"><div class="site-editor-heading"><p class="site-eyebrow">${page === 'footer' ? 'Shared resource' : 'Website'}</p><h1>${title}</h1><p>${info.description}</p></div>
-      <div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${hasSeo ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>${page === 'work' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}
+      ${(info.links || []).length?'<div class="site-editor-navigation">':''}<div class="site-editor-views" role="tablist" aria-label="${title} editor views"><button role="tab" aria-selected="${state.view === 'content'}" class="${state.view === 'content' ? 'is-active' : ''}" data-site-view="content">Content</button>${hasSeo ? `<button role="tab" aria-selected="${state.view === 'seo'}" class="${state.view === 'seo' ? 'is-active' : ''}" data-site-view="seo">SEO</button>` : ''}</div>${page === 'work' ? '<button class="site-button" type="button" data-site-action="manage-projects">Manage case studies</button>' : ''}${(info.links || []).map(link=>`<button type="button" class="site-button" data-open-page="${link.page}">${link.label}</button>`).join(' ')}${(info.links || []).length?'</div>':''}
       <div class="site-editor-layout${state.view === 'seo' ? ' site-editor-layout--seo' : ''}">${state.view === 'content' ? `<aside class="site-editor-sections"><div class="site-editor-sections__head"><strong>Sections</strong><span>${groups.length}</span></div><nav aria-label="Page sections">${groups.map((group, index) => `<button type="button" class="site-editor-section${group === state.group ? ' is-active' : ''}" data-site-group="${escapeHtml(group)}"><span class="site-editor-section__number">${String(index + 1).padStart(2,'0')}</span><span><strong>${escapeHtml(group)}</strong><small>Section ${index + 1}</small></span></button>`).join('')}</nav></aside>` : '<div class="site-editor-spacer" aria-hidden="true"></div>'}
         <div class="site-editor-card">${toolbar()}${state.view === 'seo' ? seoBody() : contentBody()}</div></div>${mediaDialog()}</div>`;
     refreshPreview();
@@ -317,11 +339,20 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     frame.style.width = `${width}px`;
     frame.style.transform = `scale(${scale})`;
     viewport.style.height = `${850 * scale}px`;
+    if(info.serverPreview){
+      if(!frame.dataset.serverRequested){frame.dataset.serverRequested='true';renderServerPreview(frame);}
+      return;
+    }
     if (!frame.dataset.previewListening) {
       frame.addEventListener('load', () => applyDraftToFrame(frame));
       frame.dataset.previewListening = 'true';
     }
     if (frame.contentDocument?.readyState === 'complete' && frame.contentWindow?.location.pathname === info.path) applyDraftToFrame(frame);
+  }
+  async function renderServerPreview(frame){
+    const status=panel.querySelector('[data-server-preview-status]');if(status)status.textContent='Rendering unsaved changes...';
+    try{const response=await api.admin(info.resource,'preview',{data:{content:parseSitePayload({...state.draft}),group:state.group}});if(!frame.isConnected)return;if(!response.ok)throw new Error(response.data?.error || 'Preview unavailable.');frame.srcdoc=response.data.html;if(status)status.textContent='Includes unsaved content and the current shared footer. Links are disabled.';}
+    catch(error){if(frame.isConnected && status)status.textContent=error.message;}
   }
   async function save() {
     if (!dirty() || state.saving) return;
@@ -384,6 +415,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     if (select) { state.draft[select.dataset.siteKey] = select.value; state.message = ''; updateControls(); }
   }, { signal:controller.signal });
   panel.addEventListener('click', async event => {
+    const destination=event.target.closest('[data-open-page]');if(destination){document.dispatchEvent(new CustomEvent('site:open-page',{detail:{page:destination.dataset.openPage}}));return;}
     const view = event.target.closest('[data-site-view]');
     if (view) { state.view = view.dataset.siteView; state.message = ''; history.replaceState(null, '', `#${page}/${state.view}`); draw(); return; }
     const group = event.target.closest('[data-site-group]');
@@ -428,6 +460,8 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     const frame = panel.querySelector('.site-live-preview iframe');
     if (frame) frame.src = info.path;
   }, { signal:controller.signal });
+  const changedEvent=page==='gallery'?'site:gallery-changed':page==='insights'?'site:posts-changed':null;
+  if(changedEvent)window.addEventListener(changedEvent,()=>{const frame=panel.querySelector('.site-live-preview iframe');if(frame){delete frame.dataset.serverRequested;refreshPreview();}},{signal:controller.signal});
   window.addEventListener('beforeunload', event => {
     if (dirty()) { event.preventDefault(); event.returnValue = ''; }
   }, { signal:controller.signal });

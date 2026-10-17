@@ -44,7 +44,7 @@ const sql = async (query, params = []) => {
   if (query.startsWith('INSERT INTO posts') || query.startsWith('UPDATE posts')) {
     assert.match(query, /og_title/);
     const id = query.startsWith('INSERT') ? stored.size + 1 : params.at(-1);
-    if (query.startsWith('UPDATE')) assert.match(query, /WHERE id = \$19/);
+    if (query.startsWith('UPDATE')) assert.ok(query.includes(`WHERE id = $${params.length}`));
     const item = { ...(stored.get(id) || {}), id, slug: params[0], title: params[1] };
     POST_METADATA_FIELDS.forEach((key, i) => { if (params[13 + i] !== null) item[key] = params[13 + i]; });
     stored.set(id, item);

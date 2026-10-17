@@ -65,9 +65,16 @@
     const socialImage = new URL(R.postSocialImageUrl(post), "https://fenil-dholariya.vercel.app").href;
     setMeta("ogImage", "content", socialImage);
     setMeta("twitterImage", "content", socialImage);
-    setMeta("ogUrl", "content", `https://fenil-dholariya.vercel.app/post/${post.slug}`);
+    setMeta("ogUrl", "content", post.canonical_url || `https://fenil-dholariya.vercel.app/post/${post.slug}`);
     const canonical = document.getElementById("metaCanonical");
-    if (canonical) canonical.href = `https://fenil-dholariya.vercel.app/post/${post.slug}`;
+    if (canonical) canonical.href = post.canonical_url || `https://fenil-dholariya.vercel.app/post/${post.slug}`;
+    for(const [name,value] of [['robots',post.robots || 'index, follow, max-image-preview:large'],['keywords',post.meta_keywords || '']]){let node=document.querySelector(`meta[name="${name}"]`);if(!node){node=document.createElement('meta');node.name=name;document.head.append(node);}node.content=value;}
+    if(post.hero_image_alt)document.querySelector('#postHeroWrap img')?.setAttribute('alt',post.hero_image_alt);
+    if(/^(?:\/(?!\/)|https:\/\/)/i.test(post.video_url || '') && /\.(mp4|webm)(?:[?#]|$)/i.test(post.video_url)){
+      const video=document.createElement('video');video.controls=true;video.playsInline=true;video.preload='metadata';video.src=post.video_url;video.style.width='100%';
+      if(/^(?:\/(?!\/)|https:\/\/)/i.test(post.video_poster || ''))video.poster=post.video_poster;
+      const figure=document.createElement('figure');figure.append(video);if(post.video_caption){const caption=document.createElement('figcaption');caption.textContent=post.video_caption;figure.append(caption);}document.getElementById('postBody').prepend(figure);
+    }
 
     const S = window.Schema;
     if (S) {

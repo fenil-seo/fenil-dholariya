@@ -3,12 +3,14 @@ import { join } from 'node:path';
 import { load } from 'cheerio';
 import { getSql, isDbConfigured } from '../lib/db.js';
 import { SITE_FIELDS, applySiteSettings, loadSiteSettings } from '../lib/site-settings.js';
+import { loadGalleryContent, renderGallery } from '../lib/gallery-content.js';
 
 const templates = { home:'index.html', about:'about.html', services:'services.html', gallery:'gallery.html', contact:'contact.html' };
 
-export async function renderSitePage(kind, settings = {}) {
+export async function renderSitePage(kind, settings = {}, content = {}) {
   if (!templates[kind]) throw new Error('Unknown site page');
   const $ = load((await readFile(join(process.cwd(), templates[kind]), 'utf8')).replace(/^\uFEFF/, ''));
+  if (kind === 'gallery' && content.gallery) renderGallery($,content.gallery,settings.gallery);
   if (Object.hasOwn(SITE_FIELDS, kind)) applySiteSettings($, kind, settings[kind]);
   applySiteSettings($, 'footer', settings.footer);
   return { html:$.html(), robots:$('meta[name="robots"]').attr('content') || 'index, follow' };
@@ -22,8 +24,10 @@ export default async function handler(req, res) {
   const kind = typeof req.query?.kind === 'string' ? req.query.kind : '';
   if (!templates[kind]) return res.status(404).send('Not found');
   try {
-    const settings = isDbConfigured() ? await loadSiteSettings(getSql()) : {};
-    const { html, robots } = await renderSitePage(kind, settings);
+    const sql = isDbConfigured() ? getSql() : null;
+    const settings = sql ? await loadSiteSettings(sql) : {};
+    const content = kind==='gallery' ? {gallery:await loadGalleryContent(sql)} : {};
+    const { html, robots } = await renderSitePage(kind, settings,content);
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, max-age=0, must-revalidate');
     res.setHeader('CDN-Cache-Control','no-store');

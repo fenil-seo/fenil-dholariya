@@ -5,6 +5,7 @@ import { loadPublicContent } from "../lib/public-content.js";
 import { buildSitemap, buildLlmMap } from "../lib/search.js";
 import { loadSiteSettings, siteNoIndexPaths } from '../lib/site-settings.js';
 import { projectNoIndexPaths } from '../lib/project-settings.js';
+import { postNoIndexPaths } from '../lib/post-metadata.js';
 
 
 export default async function handler(req, res) {
@@ -22,7 +23,7 @@ export default async function handler(req, res) {
     try { data = await loadPublicContent(); }
     catch { res.setHeader('Retry-After', '60'); return res.status(503).send(req.method === 'HEAD' ? '' : 'Temporarily unavailable'); }
     res.setHeader("Content-Type", req.query.format === 'sitemap' ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
-    let excludedPaths = projectNoIndexPaths(data.projects);
+    let excludedPaths = [...projectNoIndexPaths(data.projects),...postNoIndexPaths(data.posts)];
     if (req.query.format === 'sitemap' && isDbConfigured()) {
       try {
         const settings = await loadSiteSettings(getSql());
@@ -58,7 +59,7 @@ async function loadContent() {
       sql(`SELECT slug, title, category, client, description AS "desc", viz, accent, metrics, featured, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body,
         COALESCE(listing_title,'') AS listing_title, COALESCE(listing_description,'') AS listing_description,
         COALESCE(work_category,'') AS work_category, COALESCE(image_alt,'') AS image_alt FROM projects ORDER BY sort_order, id`),
-      sql(`SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url FROM posts WHERE published = true ORDER BY date DESC, id DESC`),
+      sql(`SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url, COALESCE(image_alt,'') AS image_alt FROM posts WHERE published = true ORDER BY date DESC, id DESC`),
       sql(`SELECT quote, name, role, initials FROM testimonials ORDER BY sort_order, id`),
       sql(`SELECT name FROM skills ORDER BY sort_order, id`),
       sql(`SELECT role, org, period FROM timeline ORDER BY sort_order, id`),

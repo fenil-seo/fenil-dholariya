@@ -635,13 +635,16 @@
       button.type = "button";
       button.className = "gallery-toggle";
       const initiallyExpanded = grid.classList.contains("is-expanded");
+      const galleryCopy=grid.closest('#galleryRoot')?.dataset || {};
+      const collapseText=galleryCopy.lessLabel ?? 'Show fewer screenshots';
+      const expandText=(galleryCopy.moreLabel ?? 'Show {count} more screenshots').replaceAll('{count}',String(total-visible));
       button.setAttribute("aria-expanded", String(initiallyExpanded));
-      button.textContent = initiallyExpanded ? "Show fewer screenshots" : `Show ${total - visible} more screenshots`;
+      button.textContent = initiallyExpanded ? collapseText : expandText;
       grid.after(button);
       button.addEventListener("click", () => {
         const expanded = grid.classList.toggle("is-expanded");
         button.setAttribute("aria-expanded", String(expanded));
-        button.textContent = expanded ? "Show fewer screenshots" : `Show ${total - visible} more screenshots`;
+        button.textContent = expanded ? collapseText : expandText;
         if (!expanded) {
           const section = grid.closest("section");
           if (window.SiteScroll) window.SiteScroll.scrollToElement(section);

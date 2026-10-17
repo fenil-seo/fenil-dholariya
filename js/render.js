@@ -201,25 +201,26 @@ window.Render = (() => {
       </a>`).join("");
   }
 
-  function postCard(post, delay = 0) {
+  function postCard(post, delay = 0, options = {}) {
     const image = postMediaUrl(post);
     const media = image
-      ? `<div class="post-card__media post-card__media--img editorial-media ${mediaClass(post.slug)}"><img src="${esc(image)}" alt="Editorial image for ${esc(post.title)}" width="1200" height="675" loading="lazy" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`
+      ? `<div class="post-card__media post-card__media--img editorial-media ${mediaClass(post.slug)}"><img src="${esc(image)}" alt="${esc(post.image_alt || `Editorial image for ${post.title}`)}" width="1200" height="675" loading="lazy" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`
       : editorialCover(post, "post-card__media");
     return `<a class="post-card reveal is-in" data-delay="${delay}" href="/post/${esc(post.slug)}" data-category="${esc(post.category)}">
       ${media}
       <div class="post-card__body">
-        <div class="post-card__meta"><span class="post-card__cat">${esc(post.category)}</span><span>·</span><span>${esc(fmtDate(post.date))}</span><span>·</span><span>${esc(post.reading_time || 5)} min</span></div>
+        <div class="post-card__meta"><span class="post-card__cat">${esc(post.category)}</span><span>·</span><span>${esc(fmtDate(post.date))}</span><span>·</span><span>${esc(post.reading_time || 5)} ${esc(options.minutesLabel ?? 'min')}</span></div>
         <h3 class="post-card__title">${esc(post.title)}</h3>
         <p class="post-card__excerpt">${esc(post.excerpt)}</p>
-        <div class="post-card__foot"><span>Read article</span><span aria-hidden="true">↗</span></div>
+        <div class="post-card__foot"><span>${esc(options.readLabel ?? 'Read article')}</span><span aria-hidden="true">↗</span></div>
       </div>
     </a>`;
   }
 
   function renderPosts(posts, target) {
     if (!target || !posts?.length) return;
-    target.innerHTML = posts.map((post, index) => postCard(post, index % 4)).join("");
+    const options={readLabel:target.getAttribute?.('data-read-label') ?? undefined,minutesLabel:target.getAttribute?.('data-minutes-label') ?? undefined};
+    target.innerHTML = posts.map((post, index) => postCard(post, index % 4,options)).join("");
   }
 
   function renderTestimonials(items, target) {

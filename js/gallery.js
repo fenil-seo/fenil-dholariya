@@ -16,8 +16,8 @@
         key: ["d2c-revenue", "lead-gen", "ai-search", "search-console"][index],
         anchor: section.id,
         label: section.querySelector("h2").textContent.trim(),
-        eyebrow: section.querySelector(".eyebrow").textContent.trim(),
-        description: section.querySelector(".lead").textContent.trim(),
+        eyebrow: section.querySelector(".eyebrow")?.textContent.trim() || '',
+        description: section.querySelector(".lead")?.textContent.trim() || '',
         items: Array.from(section.querySelectorAll(".gallery-item")).map(function (figure) {
           var img = figure.querySelector("img");
           return { image_url: img.getAttribute("src"), alt: img.alt, caption: figure.querySelector("figcaption").textContent.trim(), highlight: figure.classList.contains("gallery-item--highlight") };
@@ -54,15 +54,15 @@
         button.classList.toggle("is-active", active);
         button.setAttribute("aria-pressed", String(active));
       });
-      document.getElementById("galleryCount").textContent = total + " captures";
+      document.getElementById("galleryCount").textContent = total + ' ' + (document.getElementById('galleryRoot').dataset.countLabel ?? 'captures');
       if (categorySelect) categorySelect.value = activeFilter;
       window.refreshAnimations?.();
     }
 
     function syncFilters() {
       var sections = Array.from(document.querySelectorAll("#galleryRoot > section"));
-      var options = [{ id: "all", label: "All captures", count: sections.reduce(function (n,s) { return n + s.querySelectorAll(".gallery-item").length; },0) }]
-        .concat(sections.map(function (section) { return { id:section.id, label:labels[section.id] || section.querySelector("h2").textContent, count:section.querySelectorAll(".gallery-item").length }; }));
+      var options = [{ id: "all", label: document.getElementById('galleryRoot').dataset.allLabel ?? "All captures", count: sections.reduce(function (n,s) { return n + s.querySelectorAll(".gallery-item").length; },0) }]
+        .concat(sections.map(function (section) { return { id:section.id, label:section.dataset.galleryLabel || labels[section.id] || section.querySelector("h2").textContent, count:section.querySelectorAll(".gallery-item").length }; }));
       filters.innerHTML = options.map(function (option) { return '<button type="button" class="filter-chip" data-gallery-filter="'+esc(option.id)+'" aria-pressed="false">'+esc(option.label)+' <span>'+option.count+'</span></button>'; }).join("");
       if (categorySelect) categorySelect.innerHTML = options.map(function (option) { return '<option value="'+esc(option.id)+'">'+esc(option.label)+'</option>'; }).join("");
       applyFilter();
@@ -115,15 +115,16 @@
       return combined;
     }
 
-    function renderGallery(sections) {
+    function renderGallery(sections, authoritative) {
       var root = document.getElementById("galleryRoot");
       if (!sections || !sections.length) {
+        if(authoritative)root.innerHTML='<p class="container">'+esc(root.dataset.emptyLabel ?? 'No captures to show yet.')+'</p>';
         enhanceGallery();
         return;
       }
       var expanded = new Set(Array.from(root.querySelectorAll(".gallery-grid.is-expanded")).map(function (grid) { return grid.closest("section").id; }));
       var html = "";
-      includeRequiredEvidence(sections).forEach(function (sec) {
+      (authoritative ? sections : includeRequiredEvidence(sections)).forEach(function (sec) {
         var collapsible = sec.items.length > 4 ? " gallery-grid--collapsible" : "";
         if (expanded.has(sec.anchor || sec.key || "")) collapsible += " is-expanded";
         html += '<section class="container" id="' + esc(sec.anchor || sec.key || "") + '" style="padding-bottom:clamp(4rem,8vw,7rem)">';
@@ -157,11 +158,12 @@
     }
 
     enhanceGallery();
+    if(document.body.dataset.galleryRendered==='true')return;
     var galleryController = typeof AbortController === "function" ? new AbortController() : null;
     var galleryTimeout = setTimeout(function () { if (galleryController) galleryController.abort(); }, 2500);
     fetch("/api/gallery", galleryController ? { signal: galleryController.signal } : {})
       .then(function (r) { if (!r.ok) throw new Error("Gallery unavailable"); return r.json(); })
-      .then(function (d) { renderGallery(d.sections || []); })
+      .then(function (d) { renderGallery(d.sections || [], d.authoritative===true); })
       .catch(enhanceGallery)
       .finally(function () { clearTimeout(galleryTimeout); });
   })();

@@ -17,7 +17,8 @@
     R.renderPosts(matches, grid);
     if (!matches.length) grid.innerHTML = "";
     document.getElementById("emptyState").hidden = matches.length > 0;
-    document.getElementById("articleCount").textContent = `${matches.length} ${matches.length === 1 ? "article" : "articles"}`;
+    const count=document.getElementById('articleCount');
+    count.textContent = `${matches.length} ${matches.length === 1 ? count.dataset.singular ?? "article" : count.dataset.plural ?? "articles"}`;
     feature.hidden = category !== "all" || Boolean(query) || !posts.length;
     filters.querySelectorAll("button").forEach(button => {
       const active = button.dataset.filter === category;
@@ -33,15 +34,18 @@
       .sort((a,b) => new Date(b.date) - new Date(a.date));
     const categories = [...new Set(posts.map(post => post.category).filter(Boolean))];
     if (!categories.includes(category)) category = "all";
-    filters.innerHTML = [{label:"All articles",value:"all"}, ...categories.map(value=>({label:value,value}))]
+    filters.innerHTML = [{label:filters.dataset.allLabel ?? "All articles",value:"all"}, ...categories.map(value=>({label:value,value}))]
       .map(({label,value})=>`<button type="button" class="filter-chip" data-filter="${R.esc(value)}" aria-pressed="false">${R.esc(label)}</button>`).join("");
-    const post = posts[0];
+    const post = posts.find(p=>p.slug===feature.dataset.featureSlug) || posts[0];
     if (post) {
       const href = `/post/${encodeURIComponent(post.slug)}`;
       const image = R.postMediaUrl(post);
       feature.innerHTML = `<a class="journal-feature__image" href="${href}" tabindex="-1" aria-hidden="true">${image ? `<img src="${R.esc(image)}" alt="" width="1200" height="675" fetchpriority="high">` : R.editorialCover(post)}<span>THE LATEST PERSPECTIVE <span aria-hidden="true">↗</span></span></a>
         <div class="journal-feature__story"><div class="journal-feature__label"><span>Featured read</span><span>${R.esc(post.category)}</span></div><h2><a href="${href}">${R.esc(post.title)}</a></h2><p>${R.esc(post.excerpt)}</p><div class="journal-feature__bottom"><span>${R.esc(R.fmtDate(post.date))} · ${R.esc(post.reading_time || 5)} min read</span><a href="${href}" aria-label="Read ${R.esc(post.title)}">Read the story <span aria-hidden="true">↗</span></a></div></div>`;
     }
+    const banner=feature.querySelector('.journal-feature__image > span');if(banner){const node=[...banner.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);if(node)node.textContent=(feature.dataset.featureBanner ?? 'THE LATEST PERSPECTIVE')+' ';}
+    const label=feature.querySelector('.journal-feature__label > span');if(label)label.textContent=feature.dataset.featureLabel ?? 'Featured read';
+    const link=feature.querySelector('.journal-feature__bottom > a');if(link){const node=[...link.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);if(node)node.textContent=(feature.dataset.featureLink ?? 'Read the story')+' ';}
     renderResults();
   }
   filters.addEventListener("click",event=>{

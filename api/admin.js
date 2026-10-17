@@ -2,12 +2,15 @@ import { getSql, isDbConfigured } from "../lib/db.js";
 import { isAuthenticated } from "../lib/auth.js";
 import { ensureNewColumns } from "../lib/migrate.js";
 import { notifyPublication } from "../lib/indexnow.js";
-import { POST_METADATA_FIELDS, validatePostMetadata } from '../lib/post-metadata.js';
+import { POST_METADATA_FIELDS, validatePostContent } from '../lib/post-metadata.js';
 import { PROJECT_LISTING_FIELDS } from '../lib/project-listing.js';
 import { projectSettingsFields, validateProjectContent } from '../lib/project-settings.js';
 import { loadPublicContent } from '../lib/public-content.js';
 import { renderPublicPage } from '../lib/public-page.js';
 import { load } from 'cheerio';
+import { renderSitePage } from './site.js';
+import { loadGalleryContent, ensureGalleryCollection } from '../lib/gallery-content.js';
+import { previewHtml } from '../lib/admin-preview.js';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 import { ensureLeadsSchema } from '../lib/lead-migration.js';
 import { LeadError, listLeads, updateLead, deleteLead, validateLeadList, validateLeadId, validateLeadUpdate } from '../lib/leads.js';
@@ -61,9 +64,13 @@ export default async function handler(req, res) {
       case "home":
       case "work":
       case "footer":
+      case "about":
+      case "insights":
         return await handleSiteEditor(sql, resource, action, data, res);
       case "services-page":
         return await handleSiteEditor(sql, 'services', action, data, res);
+      case 'gallery-page':
+        return await handleSiteEditor(sql,'gallery',action,data,res);
       case "profile":
         return await handleProfile(sql, action, data, res);
       case "stats":
@@ -106,16 +113,22 @@ export default async function handler(req, res) {
   }
 }
 
-export async function handleSiteEditor(sql, page, action, data, res) {
+export async function handleSiteEditor(sql, page, action, data, res, dependencies = {}) {
   const fields = getEditorFields(page);
   if (action === 'get') {
     const settings = await loadSiteSettings(sql);
     return res.status(200).json({ fields, item: { ...await editorDefaults(page), ...(settings[page] || {}) } });
   }
-  if (action !== 'update') return res.status(400).json({ error: 'Unknown action' });
+  if (!['update','preview'].includes(action)) return res.status(400).json({ error: 'Unknown action' });
   let content;
-  try { content = validateSiteSettings(page, data); }
+  try { content = validateSiteSettings(page, action==='preview' && data?.content ? data.content : data); }
   catch (error) { return res.status(400).json({ error: error.message }); }
+  if(action==='preview') {
+    const settings={...await loadSiteSettings(sql),[page]:content};
+    const result=page==='insights' ? await renderPublicPage('blog','',await loadPublicContent({configured:true,sql,migrate:dependencies.migrate}),settings)
+      : await renderSitePage(page,settings,page==='gallery'?{gallery:await loadGalleryContent(sql)}:{});
+    return res.status(200).json({html:previewHtml(result.html,fields.find(field=>field.group===data?.group)?.selector)});
+  }
   await loadSiteSettings(sql);
   const rows = await sql(`INSERT INTO site_settings (key, content, updated_at) VALUES ($1, $2::jsonb, now())
     ON CONFLICT (key) DO UPDATE SET content=EXCLUDED.content, updated_at=now() RETURNING content`,
@@ -296,9 +309,19 @@ export async function handlePosts(sql, action, id, data, res, migrate = ensureNe
     return res.status(200).json({ items: rows });
   }
 
+  if(action==='preview') {
+    let metadata;
+    try{metadata=validatePostContent(data);}catch(error){return res.status(400).json({error:error.message});}
+    const slug=slugify(data.slug) || slugify(data.title);if(!slug)return res.status(400).json({error:'Title or slug is required.'});
+    const content=await loadPublicContent({configured:true,sql,migrate}),previous=id?(await sql('SELECT slug FROM posts WHERE id=$1',[id]))[0]:null;
+    const draft={...data,...metadata,slug};content.posts=[draft,...content.posts.filter(p=>p.slug!==slug && p.slug!==previous?.slug)];
+    const result=await renderPublicPage('post',slug,content,await loadSiteSettings(sql));
+    return res.status(200).json({html:previewHtml(result.html)});
+  }
+
   if (action === "create" || action === "update") {
     let metadata;
-    try { metadata = validatePostMetadata(data); }
+    try { metadata = validatePostContent(data); }
     catch (error) { return res.status(400).json({ error: error.message }); }
     const slug = slugify(data?.slug) || slugify(data?.title);
     if (!slug) return res.status(400).json({ error: "Title or slug is required." });
@@ -313,7 +336,7 @@ export async function handlePosts(sql, action, id, data, res, migrate = ensureNe
       data?.accent || "violet",
       Number(data?.reading_time) || 5,
       data?.date || new Date().toISOString().slice(0, 10),
-      data?.published !== false,
+      action==='create' ? data?.published===true : data?.published ?? null,
       schemaJson,
       data?.image_url || "",
       data?.blog_image_url || "",
@@ -333,7 +356,7 @@ export async function handlePosts(sql, action, id, data, res, migrate = ensureNe
     if (!id) return res.status(400).json({ error: "Missing id" });
     params.push(id);
     const rows = await sql(
-      `UPDATE posts SET updated_at=NOW(), slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=$10, schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13,
+      `UPDATE posts SET updated_at=NOW(), slug=$1, title=$2, category=$3, excerpt=$4, body=$5, viz=$6, accent=$7, reading_time=$8, date=$9, published=COALESCE($10,published), schema_markup=$11::jsonb, image_url=$12, blog_image_url=$13,
        ${POST_METADATA_FIELDS.map((key, i) => `${key}=COALESCE($${14 + i},${key})`).join(', ')}
        WHERE id = $${14 + POST_METADATA_FIELDS.length}
        RETURNING ${RETURNING}`,
@@ -352,9 +375,17 @@ export async function handlePosts(sql, action, id, data, res, migrate = ensureNe
 }
 
 /* ---------- Gallery sections (CRUD for section metadata) ---------- */
-async function handleGallerySections(sql, action, id, data, res) {
-  const COLS = ["key", "label", "eyebrow", "description", "position"];
+export async function handleGallerySections(sql, action, id, data, res) {
+  await ensureGalleryCollection(sql);
+  const COLS = ["key", "label", "eyebrow", "description", "position", "filter_label"];
   const c = (arr) => arr.map((f) => `"${f}"`).join(", ");
+  if(['create','update','preview'].includes(action)){
+    if(!data || typeof data!=='object' || typeof data.label!=='string' || !data.label.trim())return res.status(400).json({error:'Category heading is required.'});
+    if(action==='create' && (typeof data.key!=='string' || data.key.length>80 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.key)))return res.status(400).json({error:'Use a category key of up to 80 lowercase letters, numbers and hyphens.'});
+    for(const key of ['label','eyebrow','description','filter_label'])if(data[key]!==undefined&&(typeof data[key]!=='string'||data[key].length>5000))return res.status(400).json({error:`${key} is too long or invalid.`});
+    if(data.position!==undefined && (!Number.isInteger(Number(data.position)) || Math.abs(Number(data.position))>100000))return res.status(400).json({error:'Category order must be a whole number between -100000 and 100000.'});
+  }
+  if(action==='preview')return galleryPreview(sql,'category',id,data,res);
 
   if (action === "list") {
     const rows = await sql(`SELECT id, ${c(COLS)} FROM gallery_sections ORDER BY position ASC, id ASC`);
@@ -388,6 +419,8 @@ async function handleGallerySections(sql, action, id, data, res) {
 
   if (action === "delete") {
     if (!id) return res.status(400).json({ error: "Missing id" });
+    const used=await sql('SELECT g.id FROM gallery g JOIN gallery_sections s ON g.section=s.key WHERE s.id=$1 LIMIT 1',[id]);
+    if(used.length)return res.status(409).json({error:'Move or delete the captures in this category before deleting it.'});
     await sql(`DELETE FROM gallery_sections WHERE id = $1`, [id]);
     return res.status(200).json({ ok: true });
   }
@@ -396,18 +429,28 @@ async function handleGallerySections(sql, action, id, data, res) {
 }
 
 /* ---------- Gallery items (images shown on /gallery) ---------- */
-async function handleGallery(sql, action, id, data, res) {
-  const COLS = ["section", "image_url", "alt", "badge", "caption", "highlight", "pinned"];
+export async function handleGallery(sql, action, id, data, res) {
+  await ensureGalleryCollection(sql);
+  const COLS = ["section", "image_url", "alt", "badge", "caption", "highlight", "pinned", "sort_order"];
   const cols = (arr) => arr.map((f) => `"${f}"`).join(", ");
   const normalizeLocalImage = (url) => {
     const value = String(url || "");
     return value.startsWith("/assets/gallery/") ? value.replace(/\.(?:png|jpe?g)$/i, ".webp") : value;
   };
+  if(['create','update','preview'].includes(action)){
+    if(!data || typeof data!=='object' || !/^(?:\/(?!\/)|https:\/\/)/i.test(data.image_url || ''))return res.status(400).json({error:'Choose a published image or HTTPS image URL.'});
+    if(!data.alt || typeof data.alt!=='string')return res.status(400).json({error:'Image alt text is required.'});
+    for(const key of ['image_url','alt','badge','caption','section'])if(data[key]!==undefined && (typeof data[key]!=='string'||data[key].length>5000))return res.status(400).json({error:`${key} is too long or invalid.`});
+    if(data.sort_order!==undefined&&(!Number.isInteger(Number(data.sort_order)) || Math.abs(Number(data.sort_order))>100000))return res.status(400).json({error:'Capture order must be a whole number between -100000 and 100000.'});
+    for(const key of ['pinned','highlight'])if(data[key]!==undefined && typeof data[key]!=='boolean')return res.status(400).json({error:`${key} must be checked or unchecked.`});
+    if(!(await sql('SELECT key FROM gallery_sections WHERE key=$1',[data.section])).length)return res.status(400).json({error:'Choose an existing gallery category.'});
+  }
+  if(action==='preview')return galleryPreview(sql,'capture',id,data,res);
 
   if (action === "list") {
     let rows;
     try {
-      rows = await sql(`SELECT id, ${cols(COLS)}, created_at FROM gallery ORDER BY pinned DESC NULLS LAST, id DESC`);
+      rows = await sql(`SELECT id, ${cols(COLS)}, created_at FROM gallery ORDER BY pinned DESC NULLS LAST, sort_order, id DESC`);
     } catch (e) {
       if (/column "pinned"/.test(e.message)) {
         const noPinned = COLS.filter((f) => f !== "pinned");
@@ -451,6 +494,19 @@ async function handleGallery(sql, action, id, data, res) {
   }
 
   return res.status(400).json({ error: "Unknown action" });
+}
+
+async function galleryPreview(sql,kind,id,data,res){
+  let sections=await loadGalleryContent(sql);
+  if(kind==='category'){
+    const previous=sections.find(s=>String(s.id)===String(id));
+    if(previous)Object.assign(previous,data,{key:previous.key});else sections.push({...data,items:[]});
+  }else{
+    sections.forEach(s=>s.items=s.items.filter(i=>String(i.id)!==String(id)));
+    sections.find(s=>s.key===data.section)?.items.unshift({...data,id:id || 'preview'});
+  }
+  const result=await renderSitePage('gallery',await loadSiteSettings(sql),{gallery:sections});
+  return res.status(200).json({html:previewHtml(result.html)});
 }
 
 /* ---------- Leads (created by the public contact form) ---------- */
