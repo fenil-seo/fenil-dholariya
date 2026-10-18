@@ -20,3 +20,8 @@ export const COLLECTIONS={
     field('key','Category key','Category details',{required:true,hint:'Lowercase words separated by hyphens. The key stays fixed after the category is created.'}),field('label','Category heading','Category details',{required:true,wide:true}),field('filter_label','Filter label','Category details',{hint:'A short label for the gallery filters.'}),field('eyebrow','Eyebrow','Category details'),field('description','Description','Category details',{type:'textarea',wide:true}),field('position','Category order','Category details',{type:'number',default:99}),
   ]},
 };
+for(const [page,config] of Object.entries(COLLECTIONS))for(const f of [...config.fields]){
+  if(f.type!=='image'||f.group==='SEO'||f.key==='video_poster')continue;
+  f.mediaTypeKey=page==='posts'?f.key+'_media_type':'media_type';f.mediaVideoKey=page==='posts'?f.key+'_video_url':'video_url';
+  config.fields.push(field(f.mediaTypeKey,'Display as',f.group,{hidden:true,default:'image'}),field(f.mediaVideoKey,'Video link',f.group,{hidden:true,default:''}));
+}

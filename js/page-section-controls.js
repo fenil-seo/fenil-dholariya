@@ -1,3 +1,4 @@
+import {mediaChoice} from './video-media.js?v=20261018media';
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 export const readList = (draft, key) => {
   try {
@@ -12,7 +13,8 @@ export function sectionActions(section, definition, index, total, fixedBefore = 
 }
 export function customSectionFields(section, scope = "page") {
   const input = (key,label,value,options) => scopedInput(key,label,value,options,scope);
-  return `<div class="site-fields-grid">${input("block.title", "Section name in the editor", section.title, { wide: true })}${input("block.eyebrow", "Small label above heading", section.eyebrow)}${input("block.heading", "Heading", section.heading)}${input("block.body", "Content", section.body, { area: true, wide: true })}${section.type === "image" ? `${input("block.image", "Image URL", section.image, { wide: true })}<button type="button" class="site-button" data-section-media="image">Choose image</button>${input("block.alt", "Image description", section.alt, { wide: true })}` : ""}${section.type === "video" ? `${input("block.video", "Video URL (MP4 or WebM)", section.video, { wide: true })}<button type="button" class="site-button" data-section-media="video">Choose video</button>${input("block.poster", "Poster image URL", section.poster, { wide: true })}<button type="button" class="site-button" data-section-media="poster">Choose poster</button>${input("block.alt", "Video description", section.alt, { wide: true })}` : ""}${input("block.button", "Button label", section.button)}${input("block.url", "Button link", section.url)}</div>`;
+  const media=['image','video'].includes(section.type)?`<div class="site-field site-field--wide">${mediaChoice({key:'block',typeKey:'block.type',videoKey:'block.video',type:section.type,video:section.video||'',scope:`block-${scope}`,binding:'structured'})}<div data-image-controls${section.type==='video'?' hidden':''}>${input('block.image','Image URL',section.image,{wide:true})}<button type="button" class="site-button" data-section-media="image">Choose image</button></div></div>${input('block.alt','Media description / alt text',section.alt,{wide:true})}`:'';
+  return `<div class="site-fields-grid">${input("block.title", "Section name in the editor", section.title, { wide: true })}${input("block.eyebrow", "Small label above heading", section.eyebrow)}${input("block.heading", "Heading", section.heading)}${input("block.body", "Content", section.body, { area: true, wide: true })}${media}${input("block.button", "Button label", section.button)}${input("block.url", "Button link", section.url)}</div>`;
 }
 export function catalogMarkup(items, selected, scope = "page") {
   const input = (key,label,value,options) => scopedInput(key,label,value,options,scope);

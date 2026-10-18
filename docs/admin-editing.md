@@ -50,6 +50,21 @@ block around the gallery. Its publication follows the page Save changes button.
 
 ## Media and stored content
 
+Content image controls include **Display as: Image / Video**. Choose **Video**,
+paste a YouTube, YouTube Shorts, Instagram Reel or direct MP4 / WebM link, and
+use **Preview video** to check the player. Save the page, capture, case study or
+article to publish it. Switching to **Image** restores the saved image; neither
+choice deletes the other URL.
+
+This applies to page section images, Gallery captures, case study covers and
+article card / hero images. Logos, author avatars, video posters and social
+sharing images remain image controls. Added image and video content blocks use
+the same selector. Page previews show a static video placeholder; the separate
+Preview video dialog contains the player.
+
+Third party playback depends on the video being public and available for
+embedding. Each published player includes a link to open the source video.
+
 Choose existing published media from the picker, or paste a hosted HTTPS URL.
 New media files must be hosted or deployed to `assets` before selection. These
 editors do not upload files to a storage provider.

@@ -59,7 +59,7 @@ async function loadContent() {
       sql(`SELECT slug, title, category, client, description AS "desc", viz, accent, metrics, featured, schema_markup, COALESCE(image_url,'') AS image_url, COALESCE(body,'') AS body,
         COALESCE(listing_title,'') AS listing_title, COALESCE(listing_description,'') AS listing_description,
         COALESCE(work_category,'') AS work_category, COALESCE(image_alt,'') AS image_alt FROM projects ORDER BY sort_order, id`),
-      sql(`SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url, COALESCE(image_alt,'') AS image_alt FROM posts WHERE published = true ORDER BY date DESC, id DESC`),
+      sql(`SELECT slug, title, category, excerpt, viz, accent, reading_time, date, COALESCE(image_url,'') AS image_url, COALESCE(blog_image_url,'') AS blog_image_url, COALESCE(image_alt,'') AS image_alt, COALESCE(image_url_media_type,'image') AS image_url_media_type, COALESCE(image_url_video_url,'') AS image_url_video_url, COALESCE(blog_image_url_media_type,'image') AS blog_image_url_media_type, COALESCE(blog_image_url_video_url,'') AS blog_image_url_video_url FROM posts WHERE published = true ORDER BY date DESC, id DESC`),
       sql(`SELECT quote, name, role, initials FROM testimonials ORDER BY sort_order, id`),
       sql(`SELECT name FROM skills ORDER BY sort_order, id`),
       sql(`SELECT role, org, period FROM timeline ORDER BY sort_order, id`),

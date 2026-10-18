@@ -202,9 +202,9 @@ window.Render = (() => {
   }
 
   function postCard(post, delay = 0, options = {}) {
-    const image = postMediaUrl(post);
+    const image = postMediaUrl(post)||(post.image_url_media_type==='video'?'/assets/og.png':'');
     const media = image
-      ? `<div class="post-card__media post-card__media--img editorial-media ${mediaClass(post.slug)}"><img src="${esc(image)}" alt="${esc(post.image_alt || `Editorial image for ${post.title}`)}" width="1200" height="675" loading="lazy" decoding="async"><span class="media-context-label">Editorial context photo</span></div>`
+      ? `<div class="post-card__media post-card__media--img editorial-media ${mediaClass(post.slug)}"><img src="${esc(image)}" alt="${esc(post.image_alt || `Editorial image for ${post.title}`)}" width="1200" height="675" loading="lazy" decoding="async"${post.image_url_media_type==='video'?` data-media-type="video" data-video-url="${esc(post.image_url_video_url)}"`:''}><span class="media-context-label">Editorial context photo</span></div>`
       : editorialCover(post, "post-card__media");
     return `<a class="post-card reveal is-in" data-delay="${delay}" href="/post/${esc(post.slug)}" data-category="${esc(post.category)}">
       ${media}

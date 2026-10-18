@@ -1,6 +1,6 @@
-import { mountSiteEditor } from './site-editor-ui.js?v=20261017sections';
-import { mountCollectionEditor } from './collection-editor-ui.js?v=20261017cms';
-import { mountProjectEditor } from './project-editor-ui.js?v=20261005case';
+import { mountSiteEditor } from './site-editor-ui.js?v=20261018media';
+import { mountCollectionEditor } from './collection-editor-ui.js?v=20261018media';
+import { mountProjectEditor } from './project-editor-ui.js?v=20261018media';
 import { mountLeadsInbox } from './leads-ui.js?v=20261015alerts';
 
 /* =================================================================

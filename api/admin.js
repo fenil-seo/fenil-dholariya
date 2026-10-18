@@ -14,6 +14,7 @@ import { previewHtml } from '../lib/admin-preview.js';
 import { getEditorFields, editorDefaults, loadSiteSettings, validateSiteSettings } from '../lib/site-settings.js';
 import { PAGE_SECTIONS, defaultSections } from '../lib/page-sections.js';
 import { serviceCatalog, validateServiceCatalog } from '../lib/service-catalog.js';
+import {validateVideo} from '../lib/video-media.js';
 import { ensureLeadsSchema } from '../lib/lead-migration.js';
 import { LeadError, listLeads, updateLead, deleteLead, validateLeadList, validateLeadId, validateLeadUpdate } from '../lib/leads.js';
 import { notificationSettings, sendLeadNotification } from '../lib/lead-notifications.js';
@@ -129,6 +130,11 @@ export async function handleSiteEditor(sql, page, action, data, res, dependencie
   try { content = validateSiteSettings(page, action==='preview' && data?.content ? data.content : data); }
   catch (error) { return res.status(400).json({ error: error.message }); }
   const existing=await loadSiteSettings(sql);
+  if(action==='update'){
+    const effective={...existing[page],...content};
+    const missing=fields.find(f=>f.mediaTypeKey&&effective[f.mediaTypeKey]==='video'&&!effective[f.mediaVideoKey]?.trim());
+    if(missing)return res.status(400).json({error:`Add a video link for ${missing.label}.`});
+  }
   const shared=content['shared.services'],base=content['shared.servicesBase'];delete content['shared.services'];delete content['shared.servicesBase'];
   if(action==='preview') {
     const settings={...existing,[page]:{...existing[page],...content},...(shared?{'service-catalog':{items:shared}}:{})};
@@ -457,14 +463,16 @@ export async function handleGallerySections(sql, action, id, data, res) {
 /* ---------- Gallery items (images shown on /gallery) ---------- */
 export async function handleGallery(sql, action, id, data, res) {
   await ensureGalleryCollection(sql);
-  const COLS = ["section", "image_url", "alt", "badge", "caption", "highlight", "pinned", "sort_order"];
+  const COLS = ["section", "image_url", "alt", "badge", "caption", "highlight", "pinned", "sort_order","media_type","video_url"];
   const cols = (arr) => arr.map((f) => `"${f}"`).join(", ");
   const normalizeLocalImage = (url) => {
     const value = String(url || "");
     return value.startsWith("/assets/gallery/") ? value.replace(/\.(?:png|jpe?g)$/i, ".webp") : value;
   };
   if(['create','update','preview'].includes(action)){
-    if(!data || typeof data!=='object' || !/^(?:\/(?!\/)|https:\/\/)/i.test(data.image_url || ''))return res.status(400).json({error:'Choose a published image or HTTPS image URL.'});
+    if(!data || typeof data!=='object')return res.status(400).json({error:'Invalid media.'});
+    try{if(data.media_type!==undefined&&!['image','video'].includes(data.media_type))throw new Error('Choose Image or Video.');if(data.video_url!==undefined)validateVideo(data.video_url);if(data.media_type==='video'&&!data.video_url?.trim())throw new Error('Add the video link.');}catch(error){return res.status(400).json({error:error.message});}
+    if(data.media_type!=='video'&&!/^(?:\/(?!\/)|https:\/\/)/i.test(data.image_url || ''))return res.status(400).json({error:'Choose a published image or HTTPS image URL.'});
     if(!data.alt || typeof data.alt!=='string')return res.status(400).json({error:'Image alt text is required.'});
     for(const key of ['image_url','alt','badge','caption','section'])if(data[key]!==undefined && (typeof data[key]!=='string'||data[key].length>5000))return res.status(400).json({error:`${key} is too long or invalid.`});
     if(data.sort_order!==undefined&&(!Number.isInteger(Number(data.sort_order)) || Math.abs(Number(data.sort_order))>100000))return res.status(400).json({error:'Capture order must be a whole number between -100000 and 100000.'});

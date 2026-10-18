@@ -1,6 +1,8 @@
+import {mediaChoice,bindVideoChoices} from './video-media.js?v=20261018media';
 export const esc=value=>String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const safeMedia=value=>/^(?:\/(?!\/)|https:\/\/)/i.test(String(value || '').trim())?String(value).trim():'';
-export function fieldMarkup(field,value,scope='record') {
+export function fieldMarkup(field,value,scope='record',values={}) {
+  if(field.hidden)return '';
   const id=`cms-${scope}-${field.key}`,key=`data-cms-key="${esc(field.key)}"`;
   let control;
   if(field.type==='checkbox')control=`<input type="checkbox" id="${id}" ${key} ${value?'checked':''}>`;
@@ -9,6 +11,7 @@ export function fieldMarkup(field,value,scope='record') {
   else if(field.type==='richtext')control=`<div class="case-richtext" data-cms-rich="${field.key}"><div class="rte-toolbar"><button type="button" class="rte-btn" data-cms-command="bold" title="Bold">B</button><button type="button" class="rte-btn" data-cms-command="italic" title="Italic">I</button><button type="button" class="rte-btn" data-cms-command="formatBlock">Heading</button><button type="button" class="rte-btn" data-cms-command="insertUnorderedList">Bullet list</button><button type="button" class="rte-btn" data-cms-command="createLink">Link</button><button type="button" class="rte-btn" data-cms-inline-image>Image</button><button type="button" class="rte-btn" data-cms-html aria-pressed="false">HTML</button></div><div id="${id}" role="textbox" aria-label="${esc(field.label)}" aria-multiline="true" class="rte-editor" contenteditable="true" ${key}></div><textarea class="site-input site-textarea--code" data-cms-source="${field.key}" aria-label="${esc(field.label)} HTML" hidden>${esc(value)}</textarea></div>`;
   else if(['textarea','json'].includes(field.type))control=`<textarea class="site-input site-textarea${field.type==='json'?' site-textarea--code':''}" id="${id}" ${key} rows="${field.type==='json'?12:4}">${esc(value)}</textarea>`;
   else control=`<input class="site-input" type="${field.type==='number'?'number':field.type==='date'?'date':'text'}" id="${id}" ${key} value="${esc(value)}" ${field.readonly?'readonly':''}>`;
+  if(field.mediaTypeKey)control=mediaChoice({key:field.key,typeKey:field.mediaTypeKey,videoKey:field.mediaVideoKey,type:values[field.mediaTypeKey]||'image',video:values[field.mediaVideoKey]||'',scope:`cms-${scope}`})+`<div data-image-controls${values[field.mediaTypeKey]==='video'?' hidden':''}>${control}</div>`;
   return `<div class="site-field${field.wide || ['richtext','textarea','image','video','json'].includes(field.type)?' site-field--wide':''}"><div class="site-field__label-row"><label for="${id}">${esc(field.label)}${field.required?' *':''}</label>${field.target?`<span class="site-field__counter" data-cms-counter="${field.key}">${String(value).length} / ${field.target}</span>`:''}</div>${control}${field.hint?`<p class="site-field__hint">${esc(field.hint)}</p>`:''}</div>`;
 }
 function mediaMarkup(value,type){const url=safeMedia(value);return url?type==='video'?`<video src="${esc(url)}" preload="metadata" muted playsinline></video>`:`<img src="${esc(url)}" alt="Selected image" loading="lazy">`:'<span class="site-media__empty">No media selected</span>';}
@@ -16,6 +19,7 @@ function safeRich(value){const doc=new DOMParser().parseFromString(value,'text/h
 export function initializeRichControls(panel,draft){panel.querySelectorAll('[data-cms-rich]').forEach(w=>w.querySelector('[contenteditable]').innerHTML=safeRich(draft[w.dataset.cmsRich] || ''));}
 let mediaLibrary;
 export function bindControls({panel,fields,draft,onChange,signal,allowGallery=false}) {
+  bindVideoChoices(panel,{signal});
   const set=(key,value)=>{draft()[key]=value;const el=panel.querySelector(`[data-cms-key="${key}"]`);if(el && !el.isContentEditable)el.value=value;
     const thumb=panel.querySelector(`[data-cms-thumb="${key}"]`);if(thumb)thumb.innerHTML=mediaMarkup(value,fields.find(f=>f.key===key)?.type);
     const counter=panel.querySelector(`[data-cms-counter="${key}"]`);if(counter)counter.textContent=`${String(value).length} / ${fields.find(f=>f.key===key).target}`;onChange(key);};

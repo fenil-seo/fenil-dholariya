@@ -1,5 +1,6 @@
-import {readList,sectionActions,customSectionFields,catalogMarkup,chooseSectionType} from './page-section-controls.js?v=20261017sections';
-import {createGalleryWorkspace} from './gallery-workspace.js?v=20261017sections';
+import {readList,sectionActions,customSectionFields,catalogMarkup,chooseSectionType} from './page-section-controls.js?v=20261018media';
+import {createGalleryWorkspace} from './gallery-workspace.js?v=20261018media';
+import {mediaChoice,bindVideoChoices} from './video-media.js?v=20261018media';
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]);
 const editorPages = {
   home:{ title:'Home page', path:'/', resource:'home', description:'Edit each section and the search appearance of your home page.' },
@@ -136,7 +137,8 @@ function videoField(field) { return /(?:video(?:Webm|Mp4)|block\.video)$/.test(f
 function multilineField(field, value) {
   return field.mode === 'markup' || field.multiline || field.mode === 'json' || /(?:body|description|intro|lede|note|tagline|caption)$/i.test(field.key) || String(value).length > 115;
 }
-function fieldMarkup(field, value, scope) {
+function fieldMarkup(field, value, scope, values={}) {
+  if(field.hidden)return '';
   const id = `site-field-${scope}-${field.key.replace(/[^a-z0-9-]/gi, '-')}`;
   const info = advice[field.key] || {};
   const hint = info.hint || (field.mode === 'markup' ? 'Use plain text with optional <br>, <span>, <em> or <strong> tags.' : '');
@@ -154,10 +156,11 @@ function fieldMarkup(field, value, scope) {
       ? `<video src="${escapeHtml(url)}" preload="metadata" muted playsinline></video>`
       : `<img src="${escapeHtml(url)}" alt="Selected media preview" loading="lazy">`
       : `<span class="site-media__empty">No media selected</span>`;
-    return `<div class="site-field site-field--wide site-field--media">${label}
+    const choice=field.mediaTypeKey?mediaChoice({key:field.key,typeKey:field.mediaTypeKey,videoKey:field.mediaVideoKey,type:values[field.mediaTypeKey]||'image',video:values[field.mediaVideoKey]||'',scope:`site-${scope}`,binding:'site'}):'';
+    return `<div class="site-field site-field--wide site-field--media">${label}${choice}<div data-image-controls${field.mediaTypeKey&&values[field.mediaTypeKey]==='video'?' hidden':''}>
       <div class="site-media"><div class="site-media__thumb" data-media-preview="${escapeHtml(field.key)}">${preview}</div><div class="site-media__details"><strong>${url ? 'Selected media' : 'Choose an image or video'}</strong><p>Use an asset already published on the site or paste a secure URL.</p><button class="site-button site-button--orange" type="button" data-open-media="${escapeHtml(field.key)}">Choose ${videoField(field) ? 'video' : 'image'}</button></div></div>
       <input class="site-input" id="${id}" data-site-key="${escapeHtml(field.key)}" type="text" value="${escapeHtml(value)}" placeholder="/assets/media/file.webp or https://..." autocomplete="off">
-      ${hint ? `<p class="site-field__hint">${escapeHtml(hint)}</p>` : ''}</div>`;
+      ${hint ? `<p class="site-field__hint">${escapeHtml(hint)}</p>` : ''}</div></div>`;
   }
   if (field.options) {
     return `<div class="site-field${wide ? ' site-field--wide' : ''}">${label}<select class="site-input site-select" id="${id}" data-site-key="${escapeHtml(field.key)}">${field.options.map(option => `<option value="${escapeHtml(option)}" ${option === value ? 'selected' : ''}>${escapeHtml(option)}</option>`).join('')}</select>${hint ? `<p class="site-field__hint">${escapeHtml(hint)}</p>` : ''}</div>`;
@@ -185,6 +188,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
   panel.__siteEditorAbort?.abort();
   const controller = new AbortController();
   panel.__siteEditorAbort = controller;
+  bindVideoChoices(panel,{signal:controller.signal});
   const { ok, data } = await api.admin(info.resource, 'get');
   if (noteDbStatus(ok, data)) {
     panel.innerHTML = `<div class="site-editor-empty"><h2>Connect the database to edit this page</h2><p>Page changes are stored in Neon. Use Initialize database above once the connection is configured.</p></div>`;
@@ -242,7 +246,7 @@ export async function mountSiteEditor({ page, panel, api, noteDbStatus }) {
     const collection=definition?.collection;
     const intro=section?.type?'Edit this section, then save changes to publish.':collection==='services'?'Edit the section introduction and the shared service list below.':collection==='gallery'?'Add a section, then add or edit its captures. Gallery saves are applied using the buttons in each dialog.':'Edit the words, images and links in this section. Save changes to publish.';
     const fieldGroups=[...new Set(items.map(f=>f.group))];
-    const fieldForms=fieldGroups.length>1?fieldGroups.map((name,i)=>`<details class="site-seo-block cms-field-group" ${i===0?'open':''}><summary><strong>${escapeHtml(name==='Goal explorer'?'Introduction and choices':name)}</strong><span>Edit content</span></summary><div class="site-fields-grid">${items.filter(f=>f.group===name).map(f=>fieldMarkup(f,state.draft[f.key],page)).join('')}</div></details>`).join(''):`<div class="site-fields-grid">${items.map(field=>fieldMarkup(field,state.draft[field.key],page)).join('')}</div>`;
+    const fieldForms=fieldGroups.length>1?fieldGroups.map((name,i)=>`<details class="site-seo-block cms-field-group" ${i===0?'open':''}><summary><strong>${escapeHtml(name==='Goal explorer'?'Introduction and choices':name)}</strong><span>Edit content</span></summary><div class="site-fields-grid">${items.filter(f=>f.group===name).map(f=>fieldMarkup(f,state.draft[f.key],page,state.draft)).join('')}</div></details>`).join(''):`<div class="site-fields-grid">${items.map(field=>fieldMarkup(field,state.draft[field.key],page,state.draft)).join('')}</div>`;
     return `<div class="site-editor-card__body"><div class="site-editor-section-head"><span class="site-editor-section-head__number">Section ${groups.indexOf(state.group) + 1} of ${groups.length}</span><h2>${escapeHtml(groupTitle(state.group))}</h2><p>${escapeHtml(definitions.length?intro:description)}</p>${section?sectionActions(section,definition,groups.indexOf(state.group),groups.length,definitions.find(d=>d.id===groups[groups.indexOf(state.group)-1])?.fixed):''}${collection==='projects'?'<button class="site-button" type="button" data-site-action="manage-projects">Edit / add case studies</button>':''}${collection==='posts'?'<button class="site-button" type="button" data-open-page="posts">Edit / add articles</button>':''}</div>${section?.type?customSectionFields(section,page):fieldForms}${collection==='services'?catalogMarkup(readList(state.draft,'shared.services'),selectedService,page)+(state.serviceConflict?'<button type="button" class="site-button" data-site-action="reload-services">Load latest services</button>':''):''}${collection==='gallery'?`<div data-gallery-host>${galleryWorkspace?.markup()||'<p>Gallery could not load. Reload to retry.</p>'}</div>`:''}</div>`;
   }
   function seoBody() {

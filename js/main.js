@@ -596,7 +596,7 @@
     };
 
     window.bindLightboxItems = () => {
-      $$(".gallery-item img:not([data-lightbox-bound])").forEach((trigger) => {
+      $$(".gallery-item:not(.gallery-item--video) img:not([data-lightbox-bound])").forEach((trigger) => {
         trigger.dataset.lightboxBound = "1";
         trigger.tabIndex = 0;
         trigger.setAttribute("role", "button");

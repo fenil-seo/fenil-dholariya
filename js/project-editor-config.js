@@ -13,7 +13,7 @@ export const PROJECT_SECTIONS = [
     text('viz','Fallback animation',{type:'select',options:['network','bars','orbit','wave']}), text('accent','Accent color',{type:'select',options:['violet','cyan']}),
   ]},
   { name:'Images and video', description:'The shared card / case study cover and an optional film below the cover. Files must already be published.', fields:[
-    text('image_url','Cover image',{type:'image',wide:true,hint:'Leave blank to use the existing editorial cover or a text cover.'}), text('image_alt','Cover image alt text',{wide:true}),
+    text('image_url','Cover image / video',{type:'image',wide:true,mediaTypeKey:'settings:cover.mediaType',mediaVideoKey:'settings:cover.videoUrl',hint:'Leave the image blank to use the existing editorial cover.'}), text('image_alt','Cover media description / alt text',{wide:true}),
   ]},
   { name:'Headline metrics', description:'Results below the hero. The first metric also appears on the Work card.', fields:[text('metrics','Headline metrics',{type:'metrics',wide:true,hint:'One result per line: value | label. Use only figures you can substantiate.'})]},
   { name:'Challenge', description:'The starting problem and constraints.', fields:[text('challenge','Challenge content',{type:'richtext',wide:true})]},
@@ -26,6 +26,7 @@ export const PROJECT_SECTIONS = [
 ];
 export const PROJECT_FIELDS = PROJECT_SECTIONS.flatMap(section => section.fields);
 export const PROJECT_SETTINGS_FIELDS = [
+  text('cover.mediaType','Cover display type',{group:'Images and video',hidden:true,default:'image',options:['image','video']}),text('cover.videoUrl','Cover video link',{group:'Images and video',hidden:true,default:'',embedUrl:true}),
   text('cover.caption','Cover caption',{group:'Images and video'}),
   text('video.url','Video file URL',{group:'Images and video',type:'video',wide:true,hint:'Published MP4 or WebM file path, or a direct HTTPS video URL. Leave blank to hide the video.'}),
   text('video.poster','Video poster image',{group:'Images and video',type:'image',wide:true}),text('video.caption','Video caption',{group:'Images and video'}),

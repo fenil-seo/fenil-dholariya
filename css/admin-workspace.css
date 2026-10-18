@@ -309,3 +309,5 @@ body[data-page="admin"] :focus-visible { outline: 2px solid var(--aw-orange); ou
 .admin__advanced{margin-top:12px}.admin__advanced summary{padding:10px 14px;font-size:11px;color:var(--aw-muted);cursor:pointer}.admin__advanced>p{font-size:11px;line-height:1.6;color:var(--aw-muted);padding:8px 14px}.cms-field-group{margin:16px 0}.cms-field-group>.site-fields-grid{padding:18px}
 
 .site-field .case-richtext .rte-editor{min-height:88px;max-height:240px;overflow:auto;padding:12px;font-size:15px}.cms-page-select,.cms-service-select{display:none}@media(max-width:700px){.cms-page-select,.cms-service-select{display:block;font-size:12px;color:var(--aw-muted);padding:12px}.cms-page-select select,.cms-service-select select{margin-top:8px;width:100%}.site-editor-sections nav{display:none}.cms-inline-collection>.cms-service-tabs{display:none}.cms-service-select{padding:0 0 14px}}
+
+.cms-capture-video{display:grid;place-items:center;min-height:120px;border-radius:8px;background:#11151a;color:var(--aw-orange);font-size:16px}.cms-media-choice [hidden],[data-image-controls][hidden]{display:none!important}

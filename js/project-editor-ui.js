@@ -1,4 +1,5 @@
-import { PROJECT_SECTIONS, PROJECT_FIELDS } from './project-editor-config.js?v=20261005case';
+import { PROJECT_SECTIONS, PROJECT_FIELDS } from './project-editor-config.js?v=20261018media';
+import {mediaChoice,bindVideoChoices} from './video-media.js?v=20261018media';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slugify = value => String(value || '').toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,80);
@@ -9,6 +10,7 @@ export async function mountProjectEditor({panel,api,noteDbStatus}) {
   panel.__siteEditorAbort?.abort();
   const controller = new AbortController(), signal = controller.signal;
   panel.__siteEditorAbort = controller;
+  bindVideoChoices(panel,{signal});
   const response = await api.admin('projects','list');
   noteDbStatus(response.ok,response.data);
   if (!response.ok) {
@@ -56,6 +58,7 @@ export async function mountProjectEditor({panel,api,noteDbStatus}) {
     data.slug=slugify(data.slug || data.title);return data;
   }
   function fieldMarkup(f) {
+    if(f.hidden)return '';
     const value=current().draft[f.key], id=`case-${f.key.replace(/[^a-z0-9-]/gi,'-')}`;
     const label=`<div class="site-field__label-row"><label for="${id}">${esc(f.label)}${f.required?' *':''}</label>${f.target?`<span class="site-field__counter" data-case-counter="${esc(f.key)}">${value.length} / ${f.target}</span>`:''}</div>`;
     const hint=f.hint || (f.mode==='markup'?'Optional <br>, <span>, <em> and <strong> formatting.':'');
@@ -69,6 +72,7 @@ export async function mountProjectEditor({panel,api,noteDbStatus}) {
     } else if(f.type==='richtext')control=`<div class="case-richtext" data-case-rich="${esc(f.key)}"><div class="rte-toolbar"><button type="button" class="rte-btn" data-case-command="bold" title="Bold">B</button><button type="button" class="rte-btn" data-case-command="italic" title="Italic">I</button><button type="button" class="rte-btn" data-case-command="insertUnorderedList">Bullet list</button><button type="button" class="rte-btn" data-case-command="formatBlock">Heading</button><button type="button" class="rte-btn" data-case-command="createLink">Link</button><button type="button" class="rte-btn" data-case-inline-image>Image</button><button type="button" class="rte-btn" data-case-source aria-pressed="false">HTML</button></div><div id="${id}" class="rte-editor" role="textbox" aria-multiline="true" aria-label="${esc(f.label)}" contenteditable="true" ${key}></div><textarea class="site-input site-textarea site-textarea--code" data-case-source-input="${esc(f.key)}" aria-label="${esc(f.label)} HTML" hidden>${esc(value)}</textarea></div>`;
     else if(['textarea','metrics','json'].includes(f.type))control=`<textarea id="${id}" class="site-input site-textarea${f.type==='json'?' site-textarea--code':''}" ${key} rows="${f.type==='json'?12:4}">${esc(value)}</textarea>`;
     else control=`<input id="${id}" class="site-input" ${key} type="${f.type==='number'?'number':'text'}" value="${esc(value)}" ${f.required?'required':''}>`;
+    if(f.mediaTypeKey)control=mediaChoice({key:f.key,typeKey:f.mediaTypeKey,videoKey:f.mediaVideoKey,type:current().draft[f.mediaTypeKey]||'image',video:current().draft[f.mediaVideoKey]||'',scope:'case',binding:'case'})+`<div data-image-controls${current().draft[f.mediaTypeKey]==='video'?' hidden':''}>${control}</div>`;
     return `<div class="site-field${f.wide?' site-field--wide':''}">${label}${control}${hint?`<p class="site-field__hint">${esc(hint)}</p>`:''}</div>`;
   }
   function toolbar() {
